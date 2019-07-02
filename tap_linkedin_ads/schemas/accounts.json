@@ -1,0 +1,103 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "change_audit_stamps": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "created": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "actor": {
+              "type": ["null", "string"]
+            },
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        },
+        "last_modified": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "actor": {
+              "type": ["null", "string"]
+            },
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "currency": {
+      "type": ["null", "string"]
+    },
+    "id": {
+      "type": ["null", "integer"]
+    },
+    "name": {
+      "type": ["null", "string"]
+    },
+    "notified_on_campaign_optimization": {
+      "type": ["null", "boolean"]
+    },
+    "notified_on_creative_approval": {
+      "type": ["null", "boolean"]
+    },
+    "notified_on_creative_rejection": {
+      "type": ["null", "boolean"]
+    },
+    "notified_on_end_of_campaign": {
+      "type": ["null", "boolean"]
+    },
+    "serving_statuses": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "type": ["null", "string"]
+    },
+    "total_budget": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": ["null", "number"]
+        },
+        "currency_code": {
+          "type": ["null", "string"]
+        }
+      }
+    },
+    "total_budget_ends_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "type": {
+      "type": ["null", "string"]
+    },
+    "version": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "version_tag": {
+          "type": ["null", "string"]
+        }
+      }
+    }
+  }
+}

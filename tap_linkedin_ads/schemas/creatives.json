@@ -1,0 +1,215 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "campaign": {
+      "type": ["null", "string"]
+    },
+    "change_audit_stamps": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "created": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        },
+        "last_modified": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "id": {
+      "type": ["null", "integer"]
+    },
+    "reference": {
+      "type": ["null", "string"]
+    },
+    "review": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "review_status": {
+          "type": ["null", "string"]
+        }
+      }
+    },
+    "status": {
+      "type": ["null", "string"]
+    },
+    "type": {
+      "type": ["null", "string"]
+    },
+    "variables": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "click_uri": {
+          "type": ["null", "string"]
+        },        
+        "data": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "text_ad_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "text": {
+                  "type": ["null", "string"]
+                },
+                "title": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "sponsored_update_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "activity": {
+                  "type": ["null", "string"]
+                },
+                "direct_sponsored_content": {
+                  "type": ["null", "boolean"]
+                },
+                "share": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "sponsored_mail_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "media_asset": {
+                  "type": ["null", "string"]
+                },
+                "user_generated_content_post": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "sponsored_video_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "sponsored_update_carousel_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "activity": {
+                  "type": ["null", "string"]
+                },
+                "direct_sponsored_content": {
+                  "type": ["null", "boolean"]
+                },
+                "share": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "follow_company_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "organization_name": {
+                  "type": ["null", "string"]
+                },
+                "organization": {
+                  "type": ["null", "object"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "company": {
+                      "type": ["null", "string"]
+                    }
+                  }
+                },
+                "description": {
+                  "type": ["null", "string"]
+                },
+                "headline": {
+                  "type": ["null", "string"]
+                },
+                "call_to_action": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "spotlight_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "show_member_profile_photo": {
+                  "type": ["null", "boolean"]
+                },
+                "forum_name": {
+                  "type": ["null", "string"]
+                },
+                "logo": {
+                  "type": ["null", "string"]
+                },
+                "headline": {
+                  "type": ["null", "string"]
+                },
+                "custom_background": {
+                  "type": ["null", "string"]
+                },
+                "call_to_action": {
+                  "type": ["null", "string"]
+                }
+              }
+            },
+            "job_creative_variables": {
+              "type": ["null", "object"],
+              "additionalProperties": false,
+              "properties": {
+                "company_name": {
+                  "type": ["null", "boolean"]
+                },
+                "organization": {
+                  "type": ["null", "string"]
+                },
+                "logo": {
+                  "type": ["null", "string"]
+                },
+                "headline": {
+                  "type": ["null", "string"]
+                },
+                "button_label": {
+                  "type": ["null", "string"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "version": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "version_tag": {
+          "type": ["null", "string"]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "start_date": "2019-01-01T00:00:00Z",
+  "user_agent": "tap-linkedin-ads <api_user_email@your_company.com>",
+  "access_token": "xxx",
+  "accounts": null
+}

@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "account": {
+      "type": ["null", "string"]
+    },
+    "change_audit_stamps": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "created": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        },
+        "last_modified": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "role": {
+      "type": ["null", "string"]
+    },
+    "user": {
+      "type": ["null", "string"]
+    }
+  }
+}

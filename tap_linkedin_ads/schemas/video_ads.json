@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "account": {
+      "type": ["null", "string"]
+    },
+    "change_audit_stamps": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "created": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        },
+        "last_modified": {
+          "type": ["null", "object"],
+          "additionalProperties": false,
+          "properties": {
+            "time": {
+              "type": ["null", "string"],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "content_reference": {
+      "type": ["null", "string"]
+    },
+    "name": {
+      "type": ["null", "string"]
+    },
+    "owner": {
+      "type": ["null", "string"]
+    },
+    "type": {
+      "type": ["null", "string"]
+    }
+  }
+}

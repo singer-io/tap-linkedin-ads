@@ -1,0 +1,74 @@
+import os
+import json
+from singer.metadata import get_standard_metadata
+
+# Reference: https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
+STREAMS = {
+    'accounts': {
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'video_ads': {
+        'key_properties': ['contentReference'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'account_users': {
+        'key_properties': ['user', 'account'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'campaign_groups': {
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'campaigns': {
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'creatives': {
+        'key_properties': ['id'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['changeAuditStamps.lastModified.time']
+    },
+    'ad_analytics_by_campaign': {
+        'key_properties': ['campaignId', 'day'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['day']
+    },
+    'ad_analytics_by_creative': {
+        'key_properties': ['campaignId', 'day'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['day']
+    }
+}
+
+
+def get_abs_path(path):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
+
+def get_schemas():
+    schemas = {}
+    field_metadata = {}
+
+    for stream_name, stream_metadata in STREAMS.items():
+        schema_path = get_abs_path('schemas/{}.json'.format(stream_name))
+        with open(schema_path) as file:
+            schema = json.load(file)
+        schemas[stream_name] = schema
+        metadata = []
+        # Documentation: https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#singer-python-helper-functions
+        # Reference: https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
+        metadata.append (get_standard_metadata(
+            schema=schema,
+            schema_name=stream_name,
+            key_properties=stream_metadata.get('key_properties', None),
+            valid_replication_keys=stream_metadata.get('replication_keys', None),
+            replication_method=stream_metadata.get('replication_method', None)
+        ))
+        field_metadata[stream_name] = metadata
+
+    return schemas, field_metadata
