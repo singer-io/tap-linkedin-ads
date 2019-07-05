@@ -3,7 +3,7 @@ import time
 import calendar
 import singer
 from singer import metrics, metadata, Transformer, utils
-from tap_helpscout.transform import transform_json
+from tap_linkedin_ads.transform import transform_json
 
 LOGGER = singer.get_logger()
 
@@ -161,9 +161,9 @@ def sync_endpoint(client,
 
         # Transform data with transform_json from transform.py
         #  This function denests _embedded, removes _embedded/_links, and
-        #  converst camelCase to snake_case for fieldname keys.
+        #  convert camelCase to snake_case for fieldname keys.
         transformed_data = []
-        # For the HelpScout API, _embedded is always the root element.
+        # For the Linkedin Ads API, _embedded is always the root element.
         # The data_key identifies the collection of records below the <root> element
         if data_key in data:
             transformed_data = transform_json(data[data_key], stream_name)

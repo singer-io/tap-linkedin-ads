@@ -1,6 +1,6 @@
 from singer import metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
-from tap_helpscout.schema import get_schemas, STREAMS
+from tap_linkedin_ads.schema import get_schemas, STREAMS
 
 def discover():
     schemas, field_metadata = get_schemas()
