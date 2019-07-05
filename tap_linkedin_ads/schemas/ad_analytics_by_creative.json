@@ -2,10 +2,17 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "creative": {
+      "type": ["null", "string"]
+    },
     "creative_id": {
       "type": ["null", "integer"]
     },
-    "day": {
+    "start_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "end_at": {
       "type": ["null", "string"],
       "format": "date-time"
     },

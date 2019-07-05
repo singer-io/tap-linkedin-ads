@@ -2,10 +2,17 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "campaign": {
+      "type": ["null", "string"]
+    },
     "campaign_id": {
       "type": ["null", "integer"]
     },
-    "day": {
+    "start_at": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "end_at": {
       "type": ["null", "string"],
       "format": "date-time"
     },

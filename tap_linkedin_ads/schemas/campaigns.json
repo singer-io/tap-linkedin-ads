@@ -2,7 +2,77 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "target_criteria": {
+    "targeting": {
+      "type": ["null", "object"],
+      "additionalProperties": false,
+      "properties": {
+        "included_targeting_facets": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": ["null", "string"]
+                  },
+                  "values": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "excluded_targeting_facets": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": ["null", "string"]
+                  },
+                  "values": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },    
+    "targeting_criteria": {
       "type": ["null", "object"],
       "additionalProperties": false,
       "properties": {
@@ -18,27 +88,21 @@
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
-                      "or": {
-                        "type": ["null", "object"],
-                        "additionalProperties": false,
-                        "properties": {
-                          "key": {
-                            "type": ["null", "string"]
+                      "type": {
+                        "type": ["null", "string"]
+                      },
+                      "values": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
                           },
-                          "values": {
-                            "anyOf": [
-                              {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                          {
+                            "type": "null"
                           }
-                        }
+                        ]
                       }
                     }
                   }
@@ -49,6 +113,38 @@
               ]
             }
           }
+        },
+        "exclude": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": ["null", "string"]
+                  },
+                  "values": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -92,6 +188,12 @@
     "associated_entity": {
       "type": ["null", "string"]
     },
+    "associated_entity_organization_id": {
+      "type": ["null", "integer"]
+    },
+    "associated_entity_person_id": {
+      "type": ["null", "string"]
+    },
     "run_schedule": {
       "type": ["null", "object"],
       "additionalProperties": false,
@@ -103,21 +205,6 @@
         "end": {
           "type": ["null", "string"],
           "format": "date-time"
-        }
-      }
-    },
-    "targeting": {
-      "type": ["null", "object"],
-      "additionalProperties": false,
-      "properties": {
-        "included_targeting_facets": {
-          "type": ["null", "object"],
-          "additionalProperties": false,
-          "properties": {
-            "???": {
-              "type": ["null", "string"]
-            }
-          }
         }
       }
     },
@@ -150,8 +237,19 @@
         }
       }
     },
+    "created_time": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "last_modified_time": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
     "campaign_group": {
       "type": ["null", "string"]
+    },
+    "campaign_group_id": {
+      "type": ["null", "integer"]
     },
     "daily_budget": {
       "type": ["null", "object"],
@@ -197,6 +295,9 @@
     },
     "account": {
       "type": ["null", "string"]
+    },
+    "account_id": {
+      "type": ["null", "integer"]
     },
     "status": {
       "type": ["null", "string"]

@@ -95,7 +95,7 @@ def sync_endpoint(client,
                   bookmark_query_field,
                   bookmark_field,
                   bookmark_type=None,
-                  id_field=None,
+                  id_fields=None,
                   parent=None,
                   parent_id=None):
     bookmark_path = bookmark_path + [bookmark_field]
@@ -113,10 +113,11 @@ def sync_endpoint(client,
 
     ids = [] # Initialize the ids collection
     # Stores parent object ids in id_bag for children
-    def transform(record, id_field='id'):
-        _id = record.get(id_field)
-        if _id:
-            ids.append(_id)
+    def transform(record, id_fields=['id']):
+        rec_ids = {}
+        for id_field in id_fields:
+            rec_ids[id_field] = record.get(id_field)
+        ids.append(rec_ids)
         return record
 
     write_schema(catalog, stream_name)
@@ -126,9 +127,9 @@ def sync_endpoint(client,
     # Each page has a "start" (offset value) and a "count" (batch size, number of records)
     # Increase the "start" by the "count" for each batch.
     # Continue until the "start" exceeds the total_records.
-    start = 0 # Offset value
-    count = 100 # Number of records per API call
-    total_records = count # Initialize total; reset on first API call
+    start = 0 # Starting offset value for each batch API call
+    count = 100 # Batch size; Number of records per API call
+    total_records = count # Initialize total; set to actual total on first API call
 
     while start <= total_records:
         params = {
@@ -140,11 +141,6 @@ def sync_endpoint(client,
         if bookmark_query_field:
             if bookmark_type == 'datetime':
                 params[bookmark_query_field] = last_datetime
-            elif bookmark_type == 'unixtime':
-                # Convert string to datetime
-                last_dtm = datetime.strptime(last_datetime, "%Y-%m-%dT%H:%M:%SZ")
-                # Convert datetime to unixtime (integer)
-                params[bookmark_query_field] = calendar.timegm(last_dtm.utctimetuple())
             elif bookmark_type == 'integer':
                 params[bookmark_query_field] = last_integer
 
@@ -168,15 +164,15 @@ def sync_endpoint(client,
         #  converst camelCase to snake_case for fieldname keys.
         transformed_data = []
         # For the HelpScout API, _embedded is always the root element.
-        # The data_key identifies the collection of records below the _embedded element
-        if '_embedded' in data:
-            transformed_data = transform_json(data["_embedded"], data_key)[data_key]
+        # The data_key identifies the collection of records below the <root> element
+        if data_key in data:
+            transformed_data = transform_json(data[data_key], stream_name)
 
         # Process records and get the max_bookmark_value and record_count for the set of records
         max_bookmark_value, record_count = process_records(
             catalog=catalog,
             stream_name=stream_name,
-            records=[transform(rec, id_field) for rec in transformed_data],
+            records=[transform(rec, id_fields) for rec in transformed_data],
             time_extracted=time_extracted,
             bookmark_field=bookmark_field,
             bookmark_type=bookmark_type,
@@ -200,11 +196,11 @@ def sync_endpoint(client,
 
         LOGGER.info('{} - Synced - {} to {} of total records: {}'.format(
             stream_name,
-            offset,
-            offset + batch_size,
+            start,
+            start + count,
             total_records))
 
-        offset = offset + batch_size
+        start = start + count
 
     # Return the list of ids to the stream, in case this is a parent stream with children.
     return ids
@@ -253,6 +249,32 @@ def sync_stream(client,
         # Loop through parent IDs for each child element
         for child_stream_name, child_endpoint_config in children.items():
             for _id in stream_ids:
+                parent_id = stream_ids['id']
+                # Add children filter params based on parent IDs
+                if stream_name == 'accounts':
+                    account = 'urn:li:sponsoredAccount:{}'.format(stream_ids['id'])
+                    owner == 'urn:li:organization:{}'.format(stream_ids['reference_organization_id'])
+                    params = child_endpoint_config['params']
+                    if child_stream_name == 'video_ads':
+                        child_endpoint_config['params'] =  {'account': account,
+                                                            'owner': owner, 
+                                                            **params}
+                elif stream_name == 'campaigns':
+                    campaign = 'urn:li:sponsoredCampaign:{}'.format(stream_ids['id'])
+                    params = child_endpoint_config['params']
+                    if child_stream_name == 'creatives':
+                        child_endpoint_config['params'] =  {'search.campaign.values[0]': campaign,
+                                                            **params}
+                    elif child_stream_name == 'ad_analytics_by_campaign':
+                        child_endpoint_config['params'] =  {'campaigns[0]': campaign,
+                                                            **params}
+                elif stream_name == 'creatives':
+                    creative = 'urn:li:sponsoredCreative:{}'.format(stream_ids['id'])
+                    params = child_endpoint_config['params']                    
+                    if child_stream_name == 'ad_analytics_by_creative':
+                        child_endpoint_config['params'] =  {'creatives[0]': creative,
+                                                            **params}
+
                 sync_stream(
                     client=client,
                     catalog=catalog,
@@ -307,12 +329,13 @@ def sync(client, config, catalog, state):
     if 'start_date' in config:
         start_date = config['start_date']
     
-    # Create list of Accounts for query filters
-    account_list = [] 
-    if 'accounts' in config:
-        accounts = config['customer_id']
-        account_list = accounts.replace(" ", "").split(",")
-    
+    # Get datetimes for endpoint parameters
+    now = datetime.datetime.now()
+    analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
+    analytics_campaign_dt = datetime.strptime(analytics_campaign_dt_str, "%Y-%m-%dT%H:%M:%SZ")
+    analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
+    analytics_creative_dt = datetime.strptime(analytics_creative_dt_str, "%Y-%m-%dT%H:%M:%SZ")
+
     selected_streams = get_selected_streams(catalog)
     if not selected_streams:
         return
@@ -326,135 +349,144 @@ def sync(client, config, catalog, state):
     # properties:
     #   <root node>: Plural stream name for the endpoint
     #   path: API endpoint relative path, when added to the base URL, creates the full path
+    #   account_filter: Method for Account filtering. Each uses a different query pattern/parameter:
+    #        search_id_values_param, search_account_values_param, accounts_param
     #   params: Query, sort, and other endpoint specific parameters
     #   data_path: JSON element containing the records for the endpoint
     #   bookmark_query_field: Typically a date-time field used for filtering the query
     #   bookmark_field: Replication key field, typically a date-time, used for filtering the results
     #        and setting the state
     #   bookmark_type: Data type for bookmark, integer or datetime
-    #   id_field: Primary key property for the record
     #   store_ids: Used for parent endpoints to create an id_bag collection of ids for children endpoints
+    #   id_fields: Primary key (and other IDs) from the Parent record to be used by Children
     #   children: A collection of child endpoints (where the endpoint path includes the parent id)
     #   parent: On each of the children, the singular stream name for parent element
+    #       NOT NEEDED FOR THIS INTEGRATION (The Children all include a reference to the Parent)
     endpoints = {
         'accounts': {
-            'path': '/adAccountsV2',
+            'path': 'adAccountsV2',
+            'account_filter': 'search_id_values_param',
             'params': {
                 'q': 'search',
-                'search.id.values': account_list,
-                'sort.field': 'changeAuditStamps:lastModified:time', # or ID?
+                'sort.field': 'ID',
                 'sort.order': 'ASCENDING'
             },
             'data_path': 'elements',
-            'bookmark_query_field': 'changeAuditStamps:lastModified:time', # Need to test
-            'bookmark_field': 'changeAuditStamps.lastModified.time',
-            'bookmark_type': 'unixtime', # Add logic to convert
-            'id_fields': ['id'], # Need to handle list (multiple)
+            'bookmark_field': 'last_modified_time',
+            'bookmark_type': 'datetime',
+            'id_fields': ['id', 'reference_organization_id'],
             'store_ids': True,
             'children': {
                 'video_ads': {
-                    'path': '/adDirectSponsoredContents',
+                    'path': 'adDirectSponsoredContents',
+                    'account_filter': None,
                     'params': {
-                        'q': 'account', # Can we do q=accounts, like account_users?
-                        'account': {}, # Need to replace {} with parent ID URN
-                        'types': 'List[VIDEO]', # Filter to video only?
-                        'includeTotals': 'false' # Needed?
+                        'q': 'account'
                     }
                     'data_path': 'elements',
-                    'bookmark_field': 'changeAuditStamps.lastModified.time',
-                    'bookmark_type': 'unixtime',
+                    'bookmark_field': 'last_modified_time',
+                    'bookmark_type': 'datetime',
                     'id_fields': ['contentReference']
                 }
             }
         },
 
         'account_users': {
-            'path': '/adAccountUsersV2',
+            'path': 'adAccountUsersV2',
+            'account_filter': 'accounts_param',
             'params': {
                 'q': 'accounts',
-                'accounts': account_list,
-                'sort.field': 'changeAuditStamps:lastModified:time', # or ID?
+                'sort.field': 'ID',
                 'sort.order': 'ASCENDING'
             },
             'data_path': 'elements',
-            'bookmark_field': 'changeAuditStamps.lastModified.time',
-            'bookmark_type': 'unixtime',
+            'bookmark_field': 'last_modified_time',
+            'bookmark_type': 'datetime',
             'id_fields': ['user', 'account']
-        },
+        }
 
         'campaign_groups': {
-            'path': '/adCampaignGroupsV2',
+            'path': 'adCampaignGroupsV2',
+            'account_filter': 'search_account_values_param',
             'params': {
                 'q': 'search',
-                'search.account.values': account_list,
-                'sort.field': 'changeAuditStamps:lastModified:time', # or ID?
+                'sort.field': 'ID',
                 'sort.order': 'ASCENDING'
             },
             'data_path': 'elements',
-            'bookmark_field': 'changeAuditStamps.lastModified.time',
-            'bookmark_type': 'unixtime',
+            'bookmark_field': 'last_modified_time',
+            'bookmark_type': 'datetime',
             'id_fields': ['id']
         },
 
         'campaigns': {
-            'path': '/adCampaignsV2',
+            'path': 'adCampaignsV2',
+            'account_filter': 'search_account_values_param',
             'params': {
                 'q': 'search',
-                'search.account.values': account_list,
-                'sort.field': 'changeAuditStamps:lastModified:time', # or ID?
+                'sort.field': 'ID',
                 'sort.order': 'ASCENDING'
             },
             'data_path': 'elements',
-            'bookmark_field': 'changeAuditStamps.lastModified.time',
-            'bookmark_type': 'unixtime',
+            'bookmark_field': 'last_modified_time,
+            'bookmark_type': 'datetime',
             'id_fields': ['id']
             'children': {
-                'creatives': {
-                    'path': '/adCreativesV2',
+                'ad_analytics_by_campaign': {
+                    'path': 'adAnalyticsV2',
+                    'account_filter': 'accounts_param',
                     'params': {
-                        'q': 'search', # Can we do q=accounts, like account_users?
-                        'search.campaign.values.value[0]': {}, # Need to replace {} with parent campaign ID URN
-                        'types': 'List[VIDEO]', # Filter to video only?
-                        'includeTotals': 'false' # Needed?
+                        'q': 'analytics',
+                        'pivot': 'CAMPAIGN',
+                        'timeGranularity': 'DAILY',
+                        'dateRange.start.day': analytics_campaign_dt.day,
+                        'dateRange.start.month': analytics_campaign_dt.month,
+                        'dateRange.start.year': analytics_campaign_dt.year,
+                        'dateRange.end.day': now.day,
+                        'dateRange.end.month': now.month,
+                        'dateRange.end.year': now.year
+                    },
+                    'data_path': 'elements',
+                    'bookmark_field': 'end_at',
+                    'bookmark_type': 'datetime',
+                    'id_fields': ['creative_id', 'start_at']
+                },
+                'creatives': {
+                    'path': 'adCreativesV2',
+                    'account_filter': None,
+                    'params': {
+                        'q': 'search',
+                        'search.campaign.values[0]': 'urn:li:sponsoredCampaign:{}',
+                        'sort.field': 'ID',
+                        'sort.order': 'ASCENDING'
                     }
                     'data_path': 'elements',
-                    'bookmark_field': 'changeAuditStamps.lastModified.time',
-                    'bookmark_type': 'unixtime',
-                    'id_fields': ['id']
+                    'bookmark_field': 'last_modified_time',
+                    'bookmark_type': 'datetime',
+                    'id_fields': ['id'],
+                    'children': {
+                        'ad_analytics_by_creative': {
+                            'path': 'adAnalyticsV2',
+                            'account_filter': 'accounts_param',
+                            'params': {
+                                'q': 'analytics',
+                                'pivot': 'CREATIVE',
+                                'timeGranularity': 'DAILY',
+                                'dateRange.start.day': analytics_creative_dt.day,
+                                'dateRange.start.month': analytics_creative_dt.month,
+                                'dateRange.start.year': analytics_creative_dt.year,
+                                'dateRange.end.day': now.day,
+                                'dateRange.end.month': now.month,
+                                'dateRange.end.year': now.year
+                            },
+                            'data_path': 'elements',
+                            'bookmark_field': 'end_at',
+                            'bookmark_type': 'datetime',
+                            'id_fields': ['creative_id', 'start_at']
+                        }
+                    }
                 }
             }
-        },
-
-        'ad_analytics_by_campaign': {  # possibly make child element of campaign to improve performance
-            'path': '/adAnalyticsV2',
-            'params': {
-                'q': 'analytics',
-                'pivot': 'CAMPAIGN',
-                'dateRange.end': int(time.time()) # int unix timestamp for now
-                'accounts': account_list,
-                'timeGranularity': 'day'
-            },
-            'data_path': 'elements',
-            'bookmark_query_field': 'dateRange.start',
-            'bookmark_field': 'day',
-            'bookmark_type': 'unixtime',
-            'id_fields': ['campaignId', 'day']
-        },
-
-        'ad_analytics_by_creative': { # possibly make child element of creative to improve performance
-            'path': '/adAnalyticsV2',
-            'params': {
-                'q': 'analytics',
-                'pivot': 'CREATIVE',
-                'dateRange.end': int(time.time()) # int unix timestamp for now
-                'accounts': account_list,
-                'timeGranularity': 'day'
-            },
-            'data_path': 'elements',
-            'bookmark_query_field': 'dateRange.start',
-            'bookmark_field': 'day',
-            'bookmark_type': 'unixtime',
-            'id_fields': ['creativeId', 'day']
         }
     }
 
@@ -465,6 +497,20 @@ def sync(client, config, catalog, state):
                                                         last_stream,
                                                         stream_name)
         if should_stream:
+            # Inject appropriate account_filter query parameters
+            account_filter = endpoint_config.get('account_filter', None)
+            if 'accounts' in config and account_filter is not None:
+                account_list = CONFIG['accounts'].replace(" ", "").split(",")
+                i = 0
+                for account in account_list:
+                    if account_filter = 'search_id_values_param':
+                        endpoint_config['params']['search.id.values[{}]'.format(i)] = int(account)
+                    elif account_filter = 'search_account_values_param':
+                        endpoint_config['params']['search.account.values[{}]'.format(i)] = 'urn:li:sponsoredAccount:{}'.format(account)
+                    elif account_filter = 'accounts_param':
+                        endpoint_config['params']['accounts[{}]'.format(i)] = 'urn:li:sponsoredAccount:{}'.format(account)
+                    i = i + 1
+
             update_currently_syncing(state, stream_name)
             sync_stream(
                 client=client,

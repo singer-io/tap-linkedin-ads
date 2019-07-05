@@ -7,42 +7,42 @@ STREAMS = {
     'accounts': {
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'video_ads': {
-        'key_properties': ['contentReference'],
+        'key_properties': ['content_reference_ucg_post_id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'account_users': {
-        'key_properties': ['user', 'account'],
+        'key_properties': ['account_id', 'user_person_id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'campaign_groups': {
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'campaigns': {
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'creatives': {
         'key_properties': ['id'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['changeAuditStamps.lastModified.time']
+        'replication_keys': ['last_modified_time']
     },
     'ad_analytics_by_campaign': {
-        'key_properties': ['campaignId', 'day'],
+        'key_properties': ['campaign_id', 'start_at'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['day']
+        'replication_keys': ['end_at']
     },
     'ad_analytics_by_creative': {
-        'key_properties': ['campaignId', 'day'],
+        'key_properties': ['creative_id', 'start_at'],
         'replication_method': 'INCREMENTAL',
-        'replication_keys': ['day']
+        'replication_keys': ['end_at']
     }
 }
 

@@ -79,9 +79,9 @@ def raise_for_error(response):
                         Please re-authenticate your connection to generate a new token and resume extraction.")
                 raise ex(message)
             else:
-                raise LinkedInError(error.message)
+                raise LinkedInError(error)
         except (ValueError, TypeError):
-            raise LinkedInError(error.message)
+            raise LinkedInError(error)
 
 
 class LinkedinClient(object):
@@ -145,6 +145,7 @@ class LinkedinClient(object):
         if 'headers' not in kwargs:
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
+        kwargs['headers']['Accept'] = 'application/json'
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent

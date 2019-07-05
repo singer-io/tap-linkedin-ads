@@ -10,9 +10,6 @@
           "type": ["null", "object"],
           "additionalProperties": false,
           "properties": {
-            "actor": {
-              "type": ["null", "string"]
-            },
             "time": {
               "type": ["null", "string"],
               "format": "date-time"
@@ -23,9 +20,6 @@
           "type": ["null", "object"],
           "additionalProperties": false,
           "properties": {
-            "actor": {
-              "type": ["null", "string"]
-            },
             "time": {
               "type": ["null", "string"],
               "format": "date-time"
@@ -33,6 +27,14 @@
           }
         }
       }
+    },
+    "created_time": {
+      "type": ["null", "string"],
+      "format": "date-time"
+    },
+    "last_modified_time": {
+      "type": ["null", "string"],
+      "format": "date-time"
     },
     "currency": {
       "type": ["null", "string"]
@@ -54,6 +56,12 @@
     },
     "notified_on_end_of_campaign": {
       "type": ["null", "boolean"]
+    },
+    "reference": {
+      "type": ["null", "string"]
+    },
+    "reference_organization_id": {
+      "type": ["null", "integer"]
     },
     "serving_statuses": {
       "anyOf": [
