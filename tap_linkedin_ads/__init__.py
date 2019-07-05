@@ -5,17 +5,17 @@ import json
 import argparse
 import singer
 from singer import metadata, utils
-from tap_helpscout.client import HelpScoutClient
-from tap_helpscout.discover import discover
-from tap_helpscout.sync import sync
+from tap_linkedin_ads.client import LinkedinClient
+from tap_linkedin_ads.discover import discover
+from tap_linkedin_ads.sync import sync
 
 LOGGER = singer.get_logger()
 
 REQUIRED_CONFIG_KEYS = [
-    'client_id',
-    'client_secret',
-    'refresh_token',
-    'user_agent'
+    'start_date',
+    'user_agent',
+    'access_token',
+    'accounts'
 ]
 
 def do_discover():
@@ -31,12 +31,8 @@ def main():
 
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-    with HelpScoutClient(parsed_args.config_path,
-                         parsed_args.config['client_id'],
-                         parsed_args.config['client_secret'],
-                         parsed_args.config['refresh_token'],
-                         parsed_args.config['user_agent']) as client:
-
+    with LinkedinClient(parsed_args.config['user_agent'],
+                        parsed_args.config['access_token']) as client:
         state = {}
         if parsed_args.state:
             state = parsed_args.state
