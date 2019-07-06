@@ -1,5 +1,6 @@
 import os
 import json
+from singer import metadata
 from singer.metadata import get_standard_metadata
 
 # Reference:
@@ -61,18 +62,19 @@ def get_schemas():
         with open(schema_path) as file:
             schema = json.load(file)
         schemas[stream_name] = schema
-        metadata = []
+        mdata = metadata.new()
+
         # Documentation:
         #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md
         # Reference:
         #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
-        metadata.append(get_standard_metadata(
+        mdata = metadata.get_standard_metadata(
             schema=schema,
             schema_name=stream_name,
             key_properties=stream_metadata.get('key_properties', None),
             valid_replication_keys=stream_metadata.get('replication_keys', None),
             replication_method=stream_metadata.get('replication_method', None)
-        ))
-        field_metadata[stream_name] = metadata
+        )
+        field_metadata[stream_name] = mdata
 
     return schemas, field_metadata
