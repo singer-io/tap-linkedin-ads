@@ -12,7 +12,7 @@ STREAMS = {
         'replication_keys': ['last_modified_time']
     },
     'video_ads': {
-        'key_properties': ['content_reference_ucg_post_id'],
+        'key_properties': ['content_reference'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['last_modified_time']
     },
