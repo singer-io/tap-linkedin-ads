@@ -31,8 +31,8 @@ def main():
 
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-    with LinkedinClient(parsed_args.config['user_agent'],
-                        parsed_args.config['access_token']) as client:
+    with LinkedinClient(access_token=parsed_args.config['user_agent'],
+                        user_agent=parsed_args.config['access_token']) as client:
         state = {}
         if parsed_args.state:
             state = parsed_args.state
@@ -41,9 +41,9 @@ def main():
             do_discover()
         elif parsed_args.catalog:
             sync(client=client,
+                 config=parsed_args.config,
                  catalog=parsed_args.catalog,
-                 state=state,
-                 start_date=parsed_args.config['start_date'])
+                 state=state)
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,4 @@
 from datetime import datetime
-import time
-import calendar
 import singer
 from singer import metrics, metadata, Transformer, utils
 from tap_linkedin_ads.transform import transform_json
@@ -122,7 +120,7 @@ def sync_endpoint(client,
 
     write_schema(catalog, stream_name)
 
-    # Pagination reference: 
+    # Pagination reference:
     # https://docs.microsoft.com/en-us/linkedin/shared/api-guide/concepts/pagination?context=linkedin/marketing/context
     # Each page has a "start" (offset value) and a "count" (batch size, number of records)
     # Increase the "start" by the "count" for each batch.
@@ -207,7 +205,7 @@ def sync_endpoint(client,
 
 
 # Sync a specific stream and its children streams.
-def sync_stream(client,
+def sync_stream(client, #pylint: disable=too-many-branches
                 catalog,
                 state,
                 start_date,
@@ -236,7 +234,7 @@ def sync_stream(client,
         bookmark_query_field=endpoint_config.get('bookmark_query_field'),
         bookmark_field=endpoint_config.get('bookmark_field'),
         bookmark_type=endpoint_config.get('bookmark_type'),
-        id_field=endpoint_config.get('id_field'),
+        id_fields=endpoint_config.get('id_fields'),
         parent=endpoint_config.get('parent'),
         parent_id=parent_id)
 
@@ -248,32 +246,34 @@ def sync_stream(client,
     if children:
         # Loop through parent IDs for each child element
         for child_stream_name, child_endpoint_config in children.items():
-            for _id in stream_ids:
-                parent_id = stream_ids['id']
+            for _ids in stream_ids:
+                _id = _ids['id']
+                parent_id = _ids['id']
                 # Add children filter params based on parent IDs
                 if stream_name == 'accounts':
-                    account = 'urn:li:sponsoredAccount:{}'.format(stream_ids['id'])
-                    owner == 'urn:li:organization:{}'.format(stream_ids['reference_organization_id'])
+                    account = 'urn:li:sponsoredAccount:{}'.format(_id)
+                    owner = 'urn:li:organization:{}'.format(_ids\
+                        ['reference_organization_id'])
                     params = child_endpoint_config['params']
                     if child_stream_name == 'video_ads':
-                        child_endpoint_config['params'] =  {'account': account,
-                                                            'owner': owner, 
-                                                            **params}
+                        child_endpoint_config['params'] = {'account': account,
+                                                           'owner': owner,
+                                                           **params}
                 elif stream_name == 'campaigns':
-                    campaign = 'urn:li:sponsoredCampaign:{}'.format(stream_ids['id'])
+                    campaign = 'urn:li:sponsoredCampaign:{}'.format(_id)
                     params = child_endpoint_config['params']
                     if child_stream_name == 'creatives':
-                        child_endpoint_config['params'] =  {'search.campaign.values[0]': campaign,
-                                                            **params}
+                        child_endpoint_config['params'] = {'search.campaign.values[0]': campaign,
+                                                           **params}
                     elif child_stream_name == 'ad_analytics_by_campaign':
-                        child_endpoint_config['params'] =  {'campaigns[0]': campaign,
-                                                            **params}
+                        child_endpoint_config['params'] = {'campaigns[0]': campaign,
+                                                           **params}
                 elif stream_name == 'creatives':
-                    creative = 'urn:li:sponsoredCreative:{}'.format(stream_ids['id'])
-                    params = child_endpoint_config['params']                    
+                    creative = 'urn:li:sponsoredCreative:{}'.format(_id)
+                    params = child_endpoint_config['params']
                     if child_stream_name == 'ad_analytics_by_creative':
-                        child_endpoint_config['params'] =  {'creatives[0]': creative,
-                                                            **params}
+                        child_endpoint_config['params'] = {'creatives[0]': creative,
+                                                           **params}
 
                 sync_stream(
                     client=client,
@@ -328,7 +328,7 @@ def should_sync_stream(selected_streams, last_stream, stream_name):
 def sync(client, config, catalog, state):
     if 'start_date' in config:
         start_date = config['start_date']
-    
+
     # Get datetimes for endpoint parameters
     now = datetime.datetime.now()
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
@@ -357,7 +357,7 @@ def sync(client, config, catalog, state):
     #   bookmark_field: Replication key field, typically a date-time, used for filtering the results
     #        and setting the state
     #   bookmark_type: Data type for bookmark, integer or datetime
-    #   store_ids: Used for parent endpoints to create an id_bag collection of ids for children endpoints
+    #   store_ids: Used for parents to create an id_bag collection of ids for children endpoints
     #   id_fields: Primary key (and other IDs) from the Parent record to be used by Children
     #   children: A collection of child endpoints (where the endpoint path includes the parent id)
     #   parent: On each of the children, the singular stream name for parent element
@@ -382,7 +382,7 @@ def sync(client, config, catalog, state):
                     'account_filter': None,
                     'params': {
                         'q': 'account'
-                    }
+                    },
                     'data_path': 'elements',
                     'bookmark_field': 'last_modified_time',
                     'bookmark_type': 'datetime',
@@ -403,7 +403,7 @@ def sync(client, config, catalog, state):
             'bookmark_field': 'last_modified_time',
             'bookmark_type': 'datetime',
             'id_fields': ['user', 'account']
-        }
+        },
 
         'campaign_groups': {
             'path': 'adCampaignGroupsV2',
@@ -428,9 +428,9 @@ def sync(client, config, catalog, state):
                 'sort.order': 'ASCENDING'
             },
             'data_path': 'elements',
-            'bookmark_field': 'last_modified_time,
+            'bookmark_field': 'last_modified_time',
             'bookmark_type': 'datetime',
-            'id_fields': ['id']
+            'id_fields': ['id'],
             'children': {
                 'ad_analytics_by_campaign': {
                     'path': 'adAnalyticsV2',
@@ -459,7 +459,7 @@ def sync(client, config, catalog, state):
                         'search.campaign.values[0]': 'urn:li:sponsoredCampaign:{}',
                         'sort.field': 'ID',
                         'sort.order': 'ASCENDING'
-                    }
+                    },
                     'data_path': 'elements',
                     'bookmark_field': 'last_modified_time',
                     'bookmark_type': 'datetime',
@@ -500,15 +500,17 @@ def sync(client, config, catalog, state):
             # Inject appropriate account_filter query parameters
             account_filter = endpoint_config.get('account_filter', None)
             if 'accounts' in config and account_filter is not None:
-                account_list = CONFIG['accounts'].replace(" ", "").split(",")
+                account_list = config['accounts'].replace(" ", "").split(",")
                 i = 0
                 for account in account_list:
-                    if account_filter = 'search_id_values_param':
+                    if account_filter == 'search_id_values_param':
                         endpoint_config['params']['search.id.values[{}]'.format(i)] = int(account)
-                    elif account_filter = 'search_account_values_param':
-                        endpoint_config['params']['search.account.values[{}]'.format(i)] = 'urn:li:sponsoredAccount:{}'.format(account)
-                    elif account_filter = 'accounts_param':
-                        endpoint_config['params']['accounts[{}]'.format(i)] = 'urn:li:sponsoredAccount:{}'.format(account)
+                    elif account_filter == 'search_account_values_param':
+                        endpoint_config['params']['search.account.values[{}]'.format(i)] = \
+                            'urn:li:sponsoredAccount:{}'.format(account)
+                    elif account_filter == 'accounts_param':
+                        endpoint_config['params']['accounts[{}]'.format(i)] = \
+                            'urn:li:sponsoredAccount:{}'.format(account)
                     i = i + 1
 
             update_currently_syncing(state, stream_name)

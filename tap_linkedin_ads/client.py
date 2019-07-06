@@ -1,10 +1,7 @@
-import json
-from datetime import datetime, timedelta
-
 import backoff
 import requests
 from requests.exceptions import ConnectionError
-from singer import metrics, utils, metadata
+from singer import metrics, utils
 import singer
 
 LOGGER = singer.get_logger()
@@ -64,7 +61,8 @@ def raise_for_error(response):
         response.raise_for_status()
     except (requests.HTTPError, requests.ConnectionError) as error:
         try:
-            if len(response.content) == 0:
+            content_length = len(response.content)
+            if content_length == 0:
                 # There is nothing we can do here since LinkedIn has neither sent
                 # us a 2xx response nor a response content.
                 return
@@ -75,8 +73,9 @@ def raise_for_error(response):
                 error_code = response.get('status')
                 ex = get_exception_for_error_code(error_code)
                 if response.status_code == 401 and 'Expired access token' in message:
-                    LOGGER.error("Your access_token has expired as per LinkedIn’s security policy. \n \
-                        Please re-authenticate your connection to generate a new token and resume extraction.")
+                    LOGGER.error("Your access_token has expired as per LinkedIn’s security \
+                        policy. \n Please re-authenticate your connection to generate a new token \
+                        and resume extraction.")
                 raise ex(message)
             else:
                 raise LinkedInError(error)
@@ -98,7 +97,7 @@ class LinkedinClient(object):
         self.__verified = self.check_access_token()
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
     @backoff.on_exception(backoff.expo,
@@ -112,10 +111,12 @@ class LinkedinClient(object):
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
+        headers['Content-Type'] = 'application/json'
         response = self.__session.get(
-            url='https://api.linkedin.com/v2/me',
+            url='https://api.linkedin.com/v2/adAccountsV2?q=search',
             headers=headers)
         if response.status_code != 200:
+            print(response.status_code)
             raise_for_error(response)
         else:
             return True
@@ -159,7 +160,7 @@ class LinkedinClient(object):
 
         if response.status_code >= 500:
             raise Server5xxError()
-        
+
         if response.status_code != 200:
             raise_for_error(response)
 
