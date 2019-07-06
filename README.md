@@ -176,7 +176,7 @@ To generate the **access_token**:
     ```
     Pylint test resulted in the following score:
     ```bash
-    Your code has been rated at 9.96/10 (previous run: 9.92/10, +0.04).
+    Your code has been rated at 9.95/10 (previous run: 9.83/10, +0.12).
     ```
 
     To [check the tap](https://github.com/singer-io/singer-tools#singer-check-tap) and verify working:
@@ -186,7 +186,26 @@ To generate the **access_token**:
     ```
     Check tap resulted in the following:
     ```bash
-    The output is valid... TBD
+    The output is valid.
+    It contained 833 messages for 8 streams.
+
+        29 schema messages
+        765 record messages
+        39 state messages
+
+    Details by stream:
+    +--------------------------+---------+---------+
+    | stream                   | records | schemas |
+    +--------------------------+---------+---------+
+    | accounts                 | 2       | 1       |
+    | video_ads                | 432     | 4       |
+    | account_users            | 20      | 1       |
+    | campaigns                | 206     | 1       |
+    | ad_analytics_by_creative | 47      | 9       |
+    | ad_analytics_by_campaign | 51      | 6       |
+    | creatives                | 5       | 6       |
+    | campaign_groups          | 2       | 1       |
+    +--------------------------+---------+---------+
     ```
 ---
 

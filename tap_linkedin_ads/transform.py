@@ -29,8 +29,9 @@ def convert_json(this_json):
     for key in this_json:
         try:
             new_key = convert(key)
-        except TypeError:
+        except TypeError as err:
             LOGGER.error('Error key = {}'.format(key))
+            raise err
         if isinstance(this_json[key], dict):
             out[new_key] = convert_json(this_json[key])
         elif isinstance(this_json[key], list):
@@ -71,7 +72,7 @@ def transform_analytics(data_dict):
     return data_dict
 
 
-def transform_campaigns(data_dict):
+def transform_campaigns(data_dict): #pylint: disable=too-many-branches,too-many-statements
     if 'targeting' not in data_dict or 'targeting_criteria' not in data_dict:
         return data_dict
 
@@ -85,8 +86,18 @@ def transform_campaigns(data_dict):
     num = len(or_dict) - 1
     while ky_cnt <= num:
         key = list(or_dict)[ky_cnt]
+        if isinstance(or_dict[key], list):
+            if isinstance(or_dict[key][0], str):
+                val = or_dict[key]
+            elif isinstance(or_dict[key][0], dict):
+                val = []
+                for value in or_dict[key]:
+                    val.append('{}'.format(value))
+        elif isinstance(or_dict[key], dict):
+            val = []
+            val.append('{}'.format(or_dict[key]))
         append_dict = {'type': key,
-                       'values': or_dict[key]}
+                       'values': val}
         new_dict['targeting']['excluded_targeting_facets'].append(append_dict)
         ky_cnt = ky_cnt + 1
 
@@ -99,8 +110,18 @@ def transform_campaigns(data_dict):
     num = len(or_dict) - 1
     while ky_cnt <= num:
         key = list(or_dict)[ky_cnt]
+        if isinstance(or_dict[key], list):
+            if isinstance(or_dict[key][0], str):
+                val = or_dict[key]
+            elif isinstance(or_dict[key][0], dict):
+                val = []
+                for value in or_dict[key]:
+                    val.append('{}'.format(value))
+        elif isinstance(or_dict[key], dict):
+            val = []
+            val.append('{}'.format(or_dict[key]))
         append_dict = {'type': key,
-                       'values': or_dict[key]}
+                       'values': val}
         new_dict['targeting']['included_targeting_facets'].append(append_dict)
         ky_cnt = ky_cnt + 1
 
@@ -113,8 +134,18 @@ def transform_campaigns(data_dict):
     num = len(or_dict) - 1
     while ky_cnt <= num:
         key = list(or_dict)[ky_cnt]
+        if isinstance(or_dict[key], list):
+            if isinstance(or_dict[key][0], str):
+                val = or_dict[key]
+            elif isinstance(or_dict[key][0], dict):
+                val = []
+                for value in or_dict[key]:
+                    val.append('{}'.format(value))
+        elif isinstance(or_dict[key], dict):
+            val = []
+            val.append('{}'.format(or_dict[key]))
         append_dict = {'type': key,
-                       'values': or_dict[key]}
+                       'values': val}
         new_dict['targeting_criteria']['exclude'].append(append_dict)
         ky_cnt = ky_cnt + 1
 
@@ -129,8 +160,18 @@ def transform_campaigns(data_dict):
         num = len(or_dict) - 1
         while ky_cnt <= num:
             key = list(or_dict)[ky_cnt]
+            if isinstance(or_dict[key], list):
+                if isinstance(or_dict[key][0], str):
+                    val = or_dict[key]
+                elif isinstance(or_dict[key][0], dict):
+                    val = []
+                    for value in or_dict[key]:
+                        val.append('{}'.format(value))
+            elif isinstance(or_dict[key], dict):
+                val = []
+                val.append('{}'.format(or_dict[key]))
             new_dict['targeting_criteria']['include']['and'][add_cnt]['type'] = key
-            new_dict['targeting_criteria']['include']['and'][add_cnt]['values'] = or_dict[key]
+            new_dict['targeting_criteria']['include']['and'][add_cnt]['values'] = val
             ky_cnt = ky_cnt + 1
         add_cnt = add_cnt + 1
 
@@ -189,7 +230,8 @@ def transform_urn(data_dict):
         # Create ID fields from URNs
         if isinstance(val, str):
             search = re.search('^urn:li:(.*):(.*)$', val)
-            if search and not key == 'value':
+            # Do not create keys for 'pivot_value' and 'value' URNs
+            if search and not key in ('value', 'pivot_value', 'type'):
                 id_type = convert(search.group(1).replace('sponsored', ''))
                 if id_type == key:
                     new_key = '{}_id'.format(id_type)
@@ -197,9 +239,12 @@ def transform_urn(data_dict):
                     new_key = '{}_{}_id'.format(key, id_type)
                 if not id_type == 'unknown':
                     try:
+                        # Set ID as integer
                         id_val = int(search.group(2))
                     except ValueError:
+                        # Set ID as string
                         id_val = search.group(2)
+                        pass #pylint: disable=unnecessary-pass
                     data_dict[new_key] = id_val
     return data_dict
 
@@ -209,18 +254,18 @@ def transform_data(data_dict, stream_name):
         return [transform_data(x, stream_name) for x in data_dict]
     elif isinstance(data_dict, dict):
         # Transform dictionaries
-        data_dict = transform_urn(data_dict)
-        if stream_name[0:15] == 'ad_analytics_by_':
+        if stream_name.startswith('ad_analytics_by_'):
             data_dict = transform_analytics(data_dict)
         elif stream_name == 'campaigns':
             data_dict = transform_campaigns(data_dict)
         elif stream_name == 'creatives':
             data_dict = transform_creatives(data_dict)
+        data_dict = transform_urn(data_dict)
         data_dict = transform_audit_fields(data_dict)
 
-        # Transform unix epoch integers to datetimes
+        # Transform unix epoch millisecond integers to datetimes
         for key, val in data_dict.items():
-            if key[-4:] == 'time' or key[-3:] == '_at' or key == 'start' or key == 'end':
+            if key.endswith('time') or key.endswith('_at') or key == 'start' or key == 'end':
                 if isinstance(val, int) and not isinstance(val, bool):
                     if val >= 1000000000000 and val <= 2000000000000: # valid unix epoch times
                         timestamp, msecs = divmod(val, 1000)
@@ -235,6 +280,5 @@ def transform_data(data_dict, stream_name):
 
 def transform_json(this_json, stream_name):
     LOGGER.info('Transforming stream: {}'.format(stream_name))
-    # TESTING: LOGGER.info(str(this_json))
     transformed_json = transform_data(convert_json(this_json), stream_name)
     return transformed_json

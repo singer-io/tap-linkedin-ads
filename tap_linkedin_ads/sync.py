@@ -11,11 +11,21 @@ def write_schema(catalog, stream_name):
     schema = stream.schema.to_dict()
     try:
         singer.write_schema(stream_name, schema, stream.key_properties)
-    except OSError:
+    except OSError as err:
         LOGGER.info('OS Error writing schema for: {}'.format(stream_name))
+        raise err
 
 
-def process_records(catalog,
+def write_record(stream_name, record, time_extracted):
+    try:
+        singer.write_record(stream_name, record, time_extracted=time_extracted)
+    except OSError as err:
+        LOGGER.info('OS Error writing record for: {}'.format(stream_name))
+        LOGGER.info('record: {}'.format(record))
+        raise err
+
+
+def process_records(catalog, #pylint: disable=too-many-branches
                     stream_name,
                     records,
                     time_extracted,
@@ -52,19 +62,20 @@ def process_records(catalog,
                     if bookmark_type == 'integer':
                         # Keep only records whose bookmark is after the last_integer
                         if record[bookmark_field] >= last_integer:
-                            singer.write_record(stream_name, record, time_extracted=time_extracted)
+                            write_record(stream_name, record, time_extracted=time_extracted)
                             counter.increment()
                     elif bookmark_type == 'datetime':
                         last_dttm = transformer._transform_datetime(last_datetime)
                         bookmark_dttm = transformer._transform_datetime(record[bookmark_field])
                         # Keep only records whose bookmark is after the last_datetime
                         if bookmark_dttm >= last_dttm:
-                            singer.write_record(stream_name, record, time_extracted=time_extracted)
+                            write_record(stream_name, record, time_extracted=time_extracted)
                             counter.increment()
                 else:
-                    singer.write_record(stream_name, record, time_extracted=time_extracted)
+                    write_record(stream_name, record, time_extracted=time_extracted)
                     counter.increment()
-            return max_bookmark_value, counter.value
+
+        return max_bookmark_value, counter.value
 
 
 def get_bookmark(state, stream, default):
@@ -85,7 +96,7 @@ def write_bookmark(state, stream, value):
 
 
 # Sync a specific parent or child endpoint.
-def sync_endpoint(client,
+def sync_endpoint(client, #pylint: disable=too-many-branches
                   catalog,
                   state,
                   start_date,
@@ -112,15 +123,6 @@ def sync_endpoint(client,
     else:
         last_datetime = get_bookmark(state, stream_name, start_date)
         max_bookmark_value = last_datetime
-
-    ids = [] # Initialize the ids collection
-    # Stores parent object ids in id_bag for children
-    def transform(record, id_fields=['id']):
-        rec_ids = {}
-        for id_field in id_fields:
-            rec_ids[id_field] = record.get(id_field)
-        ids.append(rec_ids)
-        return record
 
     write_schema(catalog, stream_name)
 
@@ -164,22 +166,32 @@ def sync_endpoint(client,
         time_extracted = utils.now()
 
         # Transform data with transform_json from transform.py
-        #  This function converts unix datetimes, de-nests audit fields, 
+        #  This function converts unix datetimes, de-nests audit fields,
         #  tranforms URNs to IDs, tranforms/abstracts variably named fields,
         #  converts camelCase to snake_case for fieldname keys.
-        transformed_data = []
         # For the Linkedin Ads API, 'elements' is always the root data_key for records.
         # The data_key identifies the collection of records below the <root> element
+        # LOGGER.info('data = {}'.format(data)) # TESTING, comment out
+        ids = [] # Initialize the ids list
+        transformed_data = [] # initialize the record list
         if data_key in data:
             transformed_data = transform_json(data, stream_name)[data_key]
+        # LOGGER.info('transformed_data = {}'.format(transformed_data))  # TESTING, comment out
         if not transformed_data or transformed_data is None:
             break # No data results
+
+        # Stores parent object ids for children (return ids at end of function)
+        for record in transformed_data:
+            rec_ids = {}
+            for id_field in id_fields:
+                rec_ids[id_field] = record.get(id_field)
+                ids.append(rec_ids)
 
         # Process records and get the max_bookmark_value and record_count for the set of records
         max_bookmark_value, record_count = process_records(
             catalog=catalog,
             stream_name=stream_name,
-            records=[transform(rec, id_fields) for rec in transformed_data],
+            records=transformed_data,
             time_extracted=time_extracted,
             bookmark_field=bookmark_field,
             bookmark_type=bookmark_type,
@@ -201,15 +213,17 @@ def sync_endpoint(client,
         else:
             total_records = record_count  # OR should this be offset + record_count?
 
+        # to_rec: to record; ending record for the batch
         to_rec = start + count
         if to_rec > total_records:
             to_rec = total_records
+
         LOGGER.info('{} - Synced - {} to {} of total records: {}'.format(
             stream_name,
             start,
             to_rec,
             total_records))
-
+        # Pagination: increment the offset by the count (batch-size)
         start = start + count
 
     # Return the list of ids to the stream, in case this is a parent stream with children.
@@ -367,7 +381,7 @@ def sync(client, config, catalog, state):
     #        and setting the state
     #   bookmark_type: Data type for bookmark, integer or datetime
     #   store_ids: Used for parents to create an id_bag collection of ids for children endpoints
-    #   id_fields: Primary key (and other IDs) from the Parent record to be used by Children
+    #   id_fields: Primary key (and other IDs) from the Parent stored when store_ids is true.
     #   children: A collection of child endpoints (where the endpoint path includes the parent id)
     #   parent: On each of the children, the singular stream name for parent element
     #       NOT NEEDED FOR THIS INTEGRATION (The Children all include a reference to the Parent)
@@ -504,7 +518,7 @@ def sync(client, config, catalog, state):
                                                         last_stream,
                                                         stream_name)
         if should_stream:
-            # Inject appropriate account_filter query parameters
+            # Add appropriate account_filter query parameters based on account_filter type
             account_filter = endpoint_config.get('account_filter', None)
             if 'accounts' in config and account_filter is not None:
                 account_list = config['accounts'].replace(" ", "").split(",")
