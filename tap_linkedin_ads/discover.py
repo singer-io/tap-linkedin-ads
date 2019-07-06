@@ -1,4 +1,3 @@
-from singer import metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
 from tap_linkedin_ads.schema import get_schemas, STREAMS
 

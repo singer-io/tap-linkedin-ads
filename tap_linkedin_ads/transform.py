@@ -1,5 +1,8 @@
 import re
 from datetime import datetime, timedelta
+import singer
+
+LOGGER = singer.get_logger()
 
 # Convert camelCase to snake_case
 def convert(name):
@@ -24,7 +27,10 @@ def convert_array(arr):
 def convert_json(this_json):
     out = {}
     for key in this_json:
-        new_key = convert(key)
+        try:
+            new_key = convert(key)
+        except TypeError:
+            LOGGER.error('Error key = {}'.format(key))
         if isinstance(this_json[key], dict):
             out[new_key] = convert_json(this_json[key])
         elif isinstance(this_json[key], list):
@@ -72,7 +78,8 @@ def transform_campaigns(data_dict):
     new_dict = data_dict
     # Abstract targeting excludes
     or_dict = data_dict.get('targeting', {}).get('excluded_targeting_facets', {})
-    del new_dict['targeting']['excluded_targeting_facets']
+    if 'excluded_targeting_facets' in new_dict['targeting']:
+        del new_dict['targeting']['excluded_targeting_facets']
     new_dict['targeting']['excluded_targeting_facets'] = []
     ky_cnt = 0
     num = len(or_dict) - 1
@@ -85,7 +92,8 @@ def transform_campaigns(data_dict):
 
     # Abstract targeting includes
     or_dict = data_dict.get('targeting', {}).get('included_targeting_facets', {})
-    del new_dict['targeting']['included_targeting_facets']
+    if 'excluded_targeting_facets' in new_dict['targeting']:
+        del new_dict['targeting']['included_targeting_facets']
     new_dict['targeting']['included_targeting_facets'] = []
     ky_cnt = 0
     num = len(or_dict) - 1
@@ -98,7 +106,8 @@ def transform_campaigns(data_dict):
 
     # Abstract targeting_criteria excludes
     or_dict = data_dict.get('targeting_criteria', {}).get('exclude', {}).get('or', {})
-    del new_dict['targeting_criteria']['exclude']
+    if 'exclude' in new_dict['targeting_criteria']:
+        del new_dict['targeting_criteria']['exclude']
     new_dict['targeting_criteria']['exclude'] = []
     ky_cnt = 0
     num = len(or_dict) - 1
@@ -114,7 +123,8 @@ def transform_campaigns(data_dict):
     add_cnt = 0
     for and_criteria in and_list:
         or_dict = and_criteria.get('or', {})
-        del new_dict['targeting_criteria']['include']['and'][add_cnt]['or']
+        if 'or' in new_dict['targeting_criteria']['include']['and'][add_cnt]:
+            del new_dict['targeting_criteria']['include']['and'][add_cnt]['or']
         ky_cnt = 0
         num = len(or_dict) - 1
         while ky_cnt <= num:
@@ -133,7 +143,6 @@ def transform_creatives(data_dict):
 
     new_dict = data_dict
     variables = new_dict.get('variables', {}).get('data', {})
-    print(variables)
     ky_cnt = 0
     num = len(variables) - 1
     while ky_cnt <= num:
@@ -153,7 +162,8 @@ def transform_creatives(data_dict):
             new_dict['variables']['values'].append(val)
             pk_cnt = pk_cnt + 1
 
-        del new_dict['variables']['data']
+        if 'data' in new_dict['variables']:
+            del new_dict['variables']['data']
         ky_cnt = ky_cnt + 1
 
     return new_dict
@@ -179,7 +189,7 @@ def transform_urn(data_dict):
         # Create ID fields from URNs
         if isinstance(val, str):
             search = re.search('^urn:li:(.*):(.*)$', val)
-            if search:
+            if search and not key == 'value':
                 id_type = convert(search.group(1).replace('sponsored', ''))
                 if id_type == key:
                     new_key = '{}_id'.format(id_type)
@@ -224,5 +234,7 @@ def transform_data(data_dict, stream_name):
 
 
 def transform_json(this_json, stream_name):
+    LOGGER.info('Transforming stream: {}'.format(stream_name))
+    # TESTING: LOGGER.info(str(this_json))
     transformed_json = transform_data(convert_json(this_json), stream_name)
     return transformed_json

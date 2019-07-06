@@ -9,7 +9,10 @@ LOGGER = singer.get_logger()
 def write_schema(catalog, stream_name):
     stream = catalog.get_stream(stream_name)
     schema = stream.schema.to_dict()
-    singer.write_schema(stream_name, schema, stream.key_properties)
+    try:
+        singer.write_schema(stream_name, schema, stream.key_properties)
+    except OSError:
+        LOGGER.info('OS Error writing schema for: {}'.format(stream_name))
 
 
 def process_records(catalog,
@@ -45,22 +48,23 @@ def process_records(catalog,
                                                schema,
                                                stream_metadata)
 
-            if bookmark_field and (bookmark_field in record):
-                if bookmark_type == 'integer':
-                    # Keep only records whose bookmark is after the last_integer
-                    if record[bookmark_field] >= last_integer:
-                        singer.write_record(stream_name, record, time_extracted=time_extracted)
-                        counter.increment()
-                elif bookmark_type == 'datetime':
-                    # Keep only records whose bookmark is after the last_datetime
-                    if datetime.strptime(record[bookmark_field], "%Y-%m-%dT%H:%M:%S.%fZ") >= \
-                        datetime.strptime(last_datetime, "%Y-%m-%dT%H:%M:%SZ"):
-                        singer.write_record(stream_name, record, time_extracted=time_extracted)
-                        counter.increment()
-            else:
-                singer.write_record(stream_name, record, time_extracted=time_extracted)
-                counter.increment()
-        return max_bookmark_value, counter
+                if bookmark_field and (bookmark_field in record):
+                    if bookmark_type == 'integer':
+                        # Keep only records whose bookmark is after the last_integer
+                        if record[bookmark_field] >= last_integer:
+                            singer.write_record(stream_name, record, time_extracted=time_extracted)
+                            counter.increment()
+                    elif bookmark_type == 'datetime':
+                        last_dttm = transformer._transform_datetime(last_datetime)
+                        bookmark_dttm = transformer._transform_datetime(record[bookmark_field])
+                        # Keep only records whose bookmark is after the last_datetime
+                        if bookmark_dttm >= last_dttm:
+                            singer.write_record(stream_name, record, time_extracted=time_extracted)
+                            counter.increment()
+                else:
+                    singer.write_record(stream_name, record, time_extracted=time_extracted)
+                    counter.increment()
+            return max_bookmark_value, counter.value
 
 
 def get_bookmark(state, stream, default):
@@ -164,7 +168,9 @@ def sync_endpoint(client,
         # For the Linkedin Ads API, _embedded is always the root element.
         # The data_key identifies the collection of records below the <root> element
         if data_key in data:
-            transformed_data = transform_json(data[data_key], stream_name)
+            transformed_data = transform_json(data, stream_name)[data_key]
+        if not transformed_data or transformed_data is None:
+            break # No data results
 
         # Process records and get the max_bookmark_value and record_count for the set of records
         max_bookmark_value, record_count = process_records(
@@ -192,10 +198,13 @@ def sync_endpoint(client,
         else:
             total_records = record_count  # OR should this be offset + record_count?
 
+        to_rec = start + count
+        if to_rec > total_records:
+            to_rec = total_records
         LOGGER.info('{} - Synced - {} to {} of total records: {}'.format(
             stream_name,
             start,
-            start + count,
+            to_rec,
             total_records))
 
         start = start + count
@@ -249,31 +258,25 @@ def sync_stream(client, #pylint: disable=too-many-branches
             for _ids in stream_ids:
                 _id = _ids['id']
                 parent_id = _ids['id']
+
                 # Add children filter params based on parent IDs
                 if stream_name == 'accounts':
                     account = 'urn:li:sponsoredAccount:{}'.format(_id)
                     owner = 'urn:li:organization:{}'.format(_ids\
                         ['reference_organization_id'])
-                    params = child_endpoint_config['params']
                     if child_stream_name == 'video_ads':
-                        child_endpoint_config['params'] = {'account': account,
-                                                           'owner': owner,
-                                                           **params}
+                        child_endpoint_config['params']['account'] = account
+                        child_endpoint_config['params']['owner'] = owner
                 elif stream_name == 'campaigns':
                     campaign = 'urn:li:sponsoredCampaign:{}'.format(_id)
-                    params = child_endpoint_config['params']
                     if child_stream_name == 'creatives':
-                        child_endpoint_config['params'] = {'search.campaign.values[0]': campaign,
-                                                           **params}
+                        child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                     elif child_stream_name == 'ad_analytics_by_campaign':
-                        child_endpoint_config['params'] = {'campaigns[0]': campaign,
-                                                           **params}
+                        child_endpoint_config['params']['campaigns[0]'] = campaign
                 elif stream_name == 'creatives':
                     creative = 'urn:li:sponsoredCreative:{}'.format(_id)
-                    params = child_endpoint_config['params']
                     if child_stream_name == 'ad_analytics_by_creative':
-                        child_endpoint_config['params'] = {'creatives[0]': creative,
-                                                           **params}
+                        child_endpoint_config['params']['creatives[0]'] = creative
 
                 sync_stream(
                     client=client,
@@ -283,8 +286,8 @@ def sync_stream(client, #pylint: disable=too-many-branches
                     id_bag=id_bag,
                     stream_name=child_stream_name,
                     endpoint_config=child_endpoint_config,
-                    bookmark_path=bookmark_path + [_id, child_stream_name],
-                    id_path=id_path + [_id],
+                    bookmark_path=bookmark_path, # + [_id, child_stream_name],
+                    id_path=id_path, # + [_id],
                     parent_id=_id)
 
 
@@ -330,7 +333,7 @@ def sync(client, config, catalog, state):
         start_date = config['start_date']
 
     # Get datetimes for endpoint parameters
-    now = datetime.datetime.now()
+    now = datetime.now()
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
     analytics_campaign_dt = datetime.strptime(analytics_campaign_dt_str, "%Y-%m-%dT%H:%M:%SZ")
     analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
@@ -395,9 +398,7 @@ def sync(client, config, catalog, state):
             'path': 'adAccountUsersV2',
             'account_filter': 'accounts_param',
             'params': {
-                'q': 'accounts',
-                'sort.field': 'ID',
-                'sort.order': 'ASCENDING'
+                'q': 'accounts'
             },
             'data_path': 'elements',
             'bookmark_field': 'last_modified_time',

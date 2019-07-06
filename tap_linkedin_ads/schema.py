@@ -1,7 +1,6 @@
 import os
 import json
 from singer import metadata
-from singer.metadata import get_standard_metadata
 
 # Reference:
 #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
