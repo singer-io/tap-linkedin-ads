@@ -152,6 +152,8 @@ def sync_endpoint(client,
 
         # Squash params to query-string params
         querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+        LOGGER.info('URL for {}: https://api.linkedin.com/v2/{}?{}'\
+            .format(stream_name, path, querystring))
 
         # Get data, API request
         data = client.get(
@@ -162,10 +164,11 @@ def sync_endpoint(client,
         time_extracted = utils.now()
 
         # Transform data with transform_json from transform.py
-        #  This function denests _embedded, removes _embedded/_links, and
-        #  convert camelCase to snake_case for fieldname keys.
+        #  This function converts unix datetimes, de-nests audit fields, 
+        #  tranforms URNs to IDs, tranforms/abstracts variably named fields,
+        #  converts camelCase to snake_case for fieldname keys.
         transformed_data = []
-        # For the Linkedin Ads API, _embedded is always the root element.
+        # For the Linkedin Ads API, 'elements' is always the root data_key for records.
         # The data_key identifies the collection of records below the <root> element
         if data_key in data:
             transformed_data = transform_json(data, stream_name)[data_key]
@@ -340,11 +343,14 @@ def sync(client, config, catalog, state):
     analytics_creative_dt = datetime.strptime(analytics_creative_dt_str, "%Y-%m-%dT%H:%M:%SZ")
 
     selected_streams = get_selected_streams(catalog)
+    LOGGER.info('selected_streams: {}'.format(selected_streams))
+
     if not selected_streams:
         return
 
     # last_stream = Previous currently synced stream, if the load was interrupted
     last_stream = singer.get_currently_syncing(state)
+    LOGGER.info('last/currently syncing stream: {}'.format(last_stream))
     id_bag = {}
 
 
@@ -389,7 +395,7 @@ def sync(client, config, catalog, state):
                     'data_path': 'elements',
                     'bookmark_field': 'last_modified_time',
                     'bookmark_type': 'datetime',
-                    'id_fields': ['contentReference']
+                    'id_fields': ['content_reference']
                 }
             }
         },
@@ -403,7 +409,7 @@ def sync(client, config, catalog, state):
             'data_path': 'elements',
             'bookmark_field': 'last_modified_time',
             'bookmark_type': 'datetime',
-            'id_fields': ['user', 'account']
+            'id_fields': ['account_id', 'user_person_id']
         },
 
         'campaign_groups': {
@@ -515,6 +521,7 @@ def sync(client, config, catalog, state):
                     i = i + 1
 
             update_currently_syncing(state, stream_name)
+            LOGGER.info('Begin syncing stream: {}'.format(stream_name))
             sync_stream(
                 client=client,
                 catalog=catalog,
@@ -524,3 +531,4 @@ def sync(client, config, catalog, state):
                 stream_name=stream_name,
                 endpoint_config=endpoint_config)
             update_currently_syncing(state, None)
+            LOGGER.info('Finished syncing stream: {}'.format(stream_name))

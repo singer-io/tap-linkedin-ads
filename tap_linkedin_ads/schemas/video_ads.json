@@ -48,6 +48,9 @@
 		"content_reference_ucg_post_id": {
 			"type": ["null", "integer"]
 		},
+		"content_reference_share_id": {
+			"type": ["null", "integer"]
+		},
 		"name": {
 			"type": ["null", "string"]
 		},
