@@ -15,7 +15,7 @@ def discover():
             tap_stream_id=stream_name,
             key_properties=STREAMS[stream_name]['key_properties'],
             schema=schema,
-            metadata=metadata.to_list(mdata)
+            metadata=mdata
         ))
 
     return catalog

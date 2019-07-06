@@ -25,7 +25,7 @@ def process_records(catalog,
                     parent_id=None):
     stream = catalog.get_stream(stream_name)
     schema = stream.schema.to_dict()
-    stream_metadata = metadata.to_map(stream.metadata)
+    stream_metadata = metadata.to_list(stream.metadata)
 
     with metrics.record_counter(stream_name) as counter:
         for record in records:

@@ -111,12 +111,12 @@ class LinkedinClient(object):
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Content-Type'] = 'application/json'
+        headers['Accept'] = 'application/json'
         response = self.__session.get(
-            url='https://api.linkedin.com/v2/adAccountsV2?q=search',
+            url='https://api.linkedin.com/v2/me',
             headers=headers)
         if response.status_code != 200:
-            print(response.status_code)
+            LOGGER.error('Error status_code = {}'.format(response.status_code))
             raise_for_error(response)
         else:
             return True

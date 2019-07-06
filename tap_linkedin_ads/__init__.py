@@ -31,8 +31,8 @@ def main():
 
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-    with LinkedinClient(access_token=parsed_args.config['user_agent'],
-                        user_agent=parsed_args.config['access_token']) as client:
+    with LinkedinClient(access_token=parsed_args.config['access_token'],
+                        user_agent=parsed_args.config['user_agent']) as client:
         state = {}
         if parsed_args.state:
             state = parsed_args.state
