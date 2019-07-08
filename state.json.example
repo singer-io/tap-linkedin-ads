@@ -1,13 +1,13 @@
 {
-	"currently_syncing": "creatives",
-	"bookmarks": {
-		"accounts": "2019-06-11T13:37:55Z",
-		"account_users": "2019-06-19T19:48:42Z",
-		"video_ads": "2019-06-18T18:23:58Z",
-		"campaign_groups": "2019-06-20T00:52:46Z",
-		"campaigns": "2019-06-19T19:48:44Z",
-		"creatives": "2019-06-11T13:37:55Z",
-		"ad_analytics_by_campaign": "2019-06-11T13:37:55Z",
-		"ad_analytics_by_creative": "2019-06-11T13:37:55Z"
-	}
+  "currently_syncing": "video_ads",
+  "bookmarks": {
+    "accounts": "2019-06-10T05:11:19.702000Z",
+    "campaigns": "2019-07-01T05:52:03.000000Z",
+    "campaign_groups": "2019-01-24T12:04:10.000000Z",
+    "ad_analytics_by_campaign": "2019-06-14T00:00:00Z",
+    "account_users": "2019-05-23T07:07:46.511000Z",
+    "ad_analytics_by_creative": "2019-06-14T00:00:00Z",
+    "video_ads": "2019-04-18T15:10:38.000000Z",
+    "creatives": "2019-02-07T09:45:18.000000Z"
+  }
 }
