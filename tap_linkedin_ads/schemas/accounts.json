@@ -63,6 +63,9 @@
 		"reference_organization_id": {
 			"type": ["null", "integer"]
 		},
+		"reference_person_id": {
+			"type": ["null", "string"]
+		},
 		"serving_statuses": {
 			"anyOf": [{
 					"type": "array",

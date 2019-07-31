@@ -279,8 +279,11 @@ def sync_stream(client, #pylint: disable=too-many-branches
                 # Add children filter params based on parent IDs
                 if stream_name == 'accounts':
                     account = 'urn:li:sponsoredAccount:{}'.format(_id)
-                    owner = 'urn:li:organization:{}'.format(_ids\
-                        ['reference_organization_id'])
+                    if _ids['reference_organization_id'] is None:
+                        owner = client.organization
+                    else:
+                        owner = 'urn:li:organization:{}'.format(_ids\
+                            ['reference_organization_id'])
                     if child_stream_name == 'video_ads':
                         child_endpoint_config['params']['account'] = account
                         child_endpoint_config['params']['owner'] = owner

@@ -11,6 +11,10 @@ class Server5xxError(Exception):
     pass
 
 
+class Server429Error(Exception):
+    pass
+
+
 class LinkedInError(Exception):
     pass
 
@@ -86,15 +90,17 @@ def raise_for_error(response):
 class LinkedinClient(object):
     def __init__(self,
                  access_token,
-                 user_agent=None):
+                 user_agent=None,
+                 organization=None):
         self.__access_token = access_token
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__base_url = None
         self.__verified = False
+        self.organization = organization
 
     def __enter__(self):
-        self.__verified = self.check_access_token()
+        self.__verified, self.organization = self.check_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -113,20 +119,26 @@ class LinkedinClient(object):
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
         response = self.__session.get(
-            url='https://api.linkedin.com/v2/me',
+            # Simple endpoint that returns 1 record w/ default organization URN
+            url='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
             headers=headers)
         if response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
             raise_for_error(response)
         else:
-            return True
+            resp = response.json()
+            organization = None
+            if 'elements' in resp:
+                if 'organizationalTarget' in resp['elements'][0]:
+                    organization = resp['elements'][0]['organizationalTarget']
+                    LOGGER.info('Default Organization: {}'.format(organization))
+            return True, organization
 
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError),
+                          (Server5xxError, ConnectionError, Server429Error),
                           max_tries=5,
                           factor=2)
-    @utils.ratelimit(400, 60)
     def request(self, method, path=None, url=None, **kwargs):
         if not self.__verified:
             self.__verified = self.check_access_token()
