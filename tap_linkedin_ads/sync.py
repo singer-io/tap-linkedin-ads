@@ -272,43 +272,50 @@ def sync_stream(client, #pylint: disable=too-many-branches
     if children:
         # Loop through parent IDs for each child element
         for child_stream_name, child_endpoint_config in children.items():
-            for _ids in stream_ids:
-                _id = _ids['id']
-                parent_id = _ids['id']
+            should_stream, last_stream_child = should_sync_stream(
+                get_selected_streams(catalog),
+                None,
+                child_stream_name)
+            if should_stream:
+                LOGGER.info('START Syncing: {}'.format(child_stream_name))
+                for _ids in stream_ids:
+                    _id = _ids['id']
+                    parent_id = _ids['id']
 
-                # Add children filter params based on parent IDs
-                if stream_name == 'accounts':
-                    account = 'urn:li:sponsoredAccount:{}'.format(_id)
-                    if _ids['reference_organization_id'] is None:
-                        owner = client.organization
-                    else:
-                        owner = 'urn:li:organization:{}'.format(_ids\
-                            ['reference_organization_id'])
-                    if child_stream_name == 'video_ads':
-                        child_endpoint_config['params']['account'] = account
-                        child_endpoint_config['params']['owner'] = owner
-                elif stream_name == 'campaigns':
-                    campaign = 'urn:li:sponsoredCampaign:{}'.format(_id)
-                    if child_stream_name == 'creatives':
-                        child_endpoint_config['params']['search.campaign.values[0]'] = campaign
-                    elif child_stream_name == 'ad_analytics_by_campaign':
-                        child_endpoint_config['params']['campaigns[0]'] = campaign
-                elif stream_name == 'creatives':
-                    creative = 'urn:li:sponsoredCreative:{}'.format(_id)
-                    if child_stream_name == 'ad_analytics_by_creative':
-                        child_endpoint_config['params']['creatives[0]'] = creative
+                    # Add children filter params based on parent IDs
+                    if stream_name == 'accounts':
+                        account = 'urn:li:sponsoredAccount:{}'.format(_id)
+                        if _ids['reference_organization_id'] is None:
+                            owner = client.organization
+                        else:
+                            owner = 'urn:li:organization:{}'.format(_ids\
+                                ['reference_organization_id'])
+                        if child_stream_name == 'video_ads':
+                            child_endpoint_config['params']['account'] = account
+                            child_endpoint_config['params']['owner'] = owner
+                    elif stream_name == 'campaigns':
+                        campaign = 'urn:li:sponsoredCampaign:{}'.format(_id)
+                        if child_stream_name == 'creatives':
+                            child_endpoint_config['params']['search.campaign.values[0]'] = campaign
+                        elif child_stream_name == 'ad_analytics_by_campaign':
+                            child_endpoint_config['params']['campaigns[0]'] = campaign
+                    elif stream_name == 'creatives':
+                        creative = 'urn:li:sponsoredCreative:{}'.format(_id)
+                        if child_stream_name == 'ad_analytics_by_creative':
+                            child_endpoint_config['params']['creatives[0]'] = creative
 
-                sync_stream(
-                    client=client,
-                    catalog=catalog,
-                    state=state,
-                    start_date=start_date,
-                    id_bag=id_bag,
-                    stream_name=child_stream_name,
-                    endpoint_config=child_endpoint_config,
-                    bookmark_path=bookmark_path, # + [_id, child_stream_name],
-                    id_path=id_path, # + [_id],
-                    parent_id=_id)
+                    sync_stream(
+                        client=client,
+                        catalog=catalog,
+                        state=state,
+                        start_date=start_date,
+                        id_bag=id_bag,
+                        stream_name=child_stream_name,
+                        endpoint_config=child_endpoint_config,
+                        bookmark_path=bookmark_path, # + [_id, child_stream_name],
+                        id_path=id_path, # + [_id],
+                        parent_id=_id)
+                LOGGER.info('FINISHED Syncing: {}'.format(child_stream_name))
 
 
 # Review catalog and make a list of selected streams
@@ -525,20 +532,18 @@ def sync(client, config, catalog, state):
             account_filter = endpoint_config.get('account_filter', None)
             if 'accounts' in config and account_filter is not None:
                 account_list = config['accounts'].replace(" ", "").split(",")
-                i = 0
-                for account in account_list:
+                for idx, account in enumerate(account_list):
                     if account_filter == 'search_id_values_param':
-                        endpoint_config['params']['search.id.values[{}]'.format(i)] = int(account)
+                        endpoint_config['params']['search.id.values[{}]'.format(idx)] = int(account)
                     elif account_filter == 'search_account_values_param':
-                        endpoint_config['params']['search.account.values[{}]'.format(i)] = \
+                        endpoint_config['params']['search.account.values[{}]'.format(idx)] = \
                             'urn:li:sponsoredAccount:{}'.format(account)
                     elif account_filter == 'accounts_param':
-                        endpoint_config['params']['accounts[{}]'.format(i)] = \
+                        endpoint_config['params']['accounts[{}]'.format(idx)] = \
                             'urn:li:sponsoredAccount:{}'.format(account)
-                    i = i + 1
 
+            LOGGER.info('START Syncing: {}'.format(stream_name))
             update_currently_syncing(state, stream_name)
-            LOGGER.info('Begin syncing stream: {}'.format(stream_name))
             sync_stream(
                 client=client,
                 catalog=catalog,
@@ -548,4 +553,4 @@ def sync(client, config, catalog, state):
                 stream_name=stream_name,
                 endpoint_config=endpoint_config)
             update_currently_syncing(state, None)
-            LOGGER.info('Finished syncing stream: {}'.format(stream_name))
+            LOGGER.info('FINISHED Syncing: {}'.format(stream_name))

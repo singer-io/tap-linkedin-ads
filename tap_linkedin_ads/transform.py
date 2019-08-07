@@ -151,11 +151,10 @@ def transform_campaigns(data_dict): #pylint: disable=too-many-branches,too-many-
 
     # Abstract targeting_criteria includes
     and_list = data_dict.get('targeting_criteria', {}).get('include', {}).get('and', {})
-    add_cnt = 0
-    for and_criteria in and_list:
+    for idx, and_criteria in enumerate(and_list):
         or_dict = and_criteria.get('or', {})
-        if 'or' in new_dict['targeting_criteria']['include']['and'][add_cnt]:
-            del new_dict['targeting_criteria']['include']['and'][add_cnt]['or']
+        if 'or' in new_dict['targeting_criteria']['include']['and'][idx]:
+            del new_dict['targeting_criteria']['include']['and'][idx]['or']
         ky_cnt = 0
         num = len(or_dict) - 1
         while ky_cnt <= num:
@@ -170,10 +169,9 @@ def transform_campaigns(data_dict): #pylint: disable=too-many-branches,too-many-
             elif isinstance(or_dict[key], dict):
                 val = []
                 val.append('{}'.format(or_dict[key]))
-            new_dict['targeting_criteria']['include']['and'][add_cnt]['type'] = key
-            new_dict['targeting_criteria']['include']['and'][add_cnt]['values'] = val
+            new_dict['targeting_criteria']['include']['and'][idx]['type'] = key
+            new_dict['targeting_criteria']['include']['and'][idx]['values'] = val
             ky_cnt = ky_cnt + 1
-        add_cnt = add_cnt + 1
 
     return new_dict
 
