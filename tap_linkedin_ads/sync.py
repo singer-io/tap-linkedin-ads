@@ -176,7 +176,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
         transformed_data = [] # initialize the record list
         if data_key in data:
             transformed_data = transform_json(data, stream_name)[data_key]
-        # LOGGER.info('transformed_data = {}'.format(transformed_data))  # TESTING, comment out
+        LOGGER.info('transformed_data = {}'.format(transformed_data))  # TESTING, comment out
         if not transformed_data or transformed_data is None:
             break # No data results
 
