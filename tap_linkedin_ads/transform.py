@@ -47,10 +47,10 @@ def convert_json(this_json):
 # convert string/currency number to decimal
 def string_to_decimal(val):
     try:
-      new_val = Decimal(sub(r'[^\d.]', '', money))
-      return new_val
+        new_val = Decimal(sub(r'[^\d.]', '', val))
+        return new_val
     except:
-      return None
+        return None
 
 
 def transform_analytics(data_dict):
