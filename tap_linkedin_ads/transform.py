@@ -1,4 +1,7 @@
 import re
+from re import sub
+from decimal import Decimal
+
 from datetime import datetime, timedelta
 import singer
 
@@ -41,7 +44,24 @@ def convert_json(this_json):
     return out
 
 
+# convert string/currency number to decimal
+def string_to_decimal(val):
+    try:
+      new_val = Decimal(sub(r'[^\d.]', '', money))
+      return new_val
+    except:
+      return None
+
+
 def transform_analytics(data_dict):
+    # convert string numbers to float/decimal numbers
+    currency_fields = ['conversion_value_in_local_currency',
+                       'cost_in_local_currency',
+                       'cost_in_usd']
+    for currency_field in currency_fields:
+        if currency_field in data_dict:
+            val = data_dict[currency_field]
+            data_dict[currency_field] = string_to_decimal(val)
     # create pivot id and urn fields from pivot and pivot_value
     if 'pivot' in data_dict and 'pivot_value' in data_dict:
         key = data_dict['pivot'].lower()

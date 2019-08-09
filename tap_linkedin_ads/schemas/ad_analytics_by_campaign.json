@@ -29,13 +29,13 @@
 			"type": ["null", "integer"]
 		},
 		"conversion_value_in_local_currency": {
-			"type": ["null", "string"]
+			"type": ["null", "number"]
 		},
 		"cost_in_local_currency": {
-			"type": ["null", "string"]
+			"type": ["null", "number"]
 		},
 		"cost_in_usd": {
-			"type": ["null", "string"]
+			"type": ["null", "number"]
 		},
 		"date_range": {
 			"type": ["null", "object"],
