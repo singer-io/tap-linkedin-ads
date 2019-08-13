@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import singer
 from singer import metrics, metadata, Transformer, utils
 from tap_linkedin_ads.transform import transform_json
@@ -362,9 +362,11 @@ def sync(client, config, catalog, state):
     # Get datetimes for endpoint parameters
     now = datetime.now()
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
-    analytics_campaign_dt = datetime.strptime(analytics_campaign_dt_str, "%Y-%m-%dT%H:%M:%SZ")
+    analytics_campaign_dt = datetime.strptime(analytics_campaign_dt_str, "%Y-%m-%dT%H:%M:%SZ") -\
+        timedelta(days=1)
     analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
-    analytics_creative_dt = datetime.strptime(analytics_creative_dt_str, "%Y-%m-%dT%H:%M:%SZ")
+    analytics_creative_dt = datetime.strptime(analytics_creative_dt_str, "%Y-%m-%dT%H:%M:%SZ") -\
+            timedelta(days=1)
 
     selected_streams = get_selected_streams(catalog)
     LOGGER.info('selected_streams: {}'.format(selected_streams))
