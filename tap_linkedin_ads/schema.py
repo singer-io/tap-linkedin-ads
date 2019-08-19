@@ -69,7 +69,6 @@ def get_schemas():
         #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
         mdata = metadata.get_standard_metadata(
             schema=schema,
-            schema_name=stream_name,
             key_properties=stream_metadata.get('key_properties', None),
             valid_replication_keys=stream_metadata.get('replication_keys', None),
             replication_method=stream_metadata.get('replication_method', None)
