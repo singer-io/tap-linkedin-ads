@@ -9,15 +9,103 @@ This tap:
 - Pulls raw data from the [LinkedIn Marketing Ads 2.0 API](https://docs.microsoft.com/en-us/linkedin/marketing/)
 - Extracts the following resources:
   - [Ad Accounts](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
-    - [Ad Account Users](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts)
     - [Video Ads](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
+  - [Ad Account Users](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts)
   - [Campaign Groups](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaign-groups#search-for-campaign-groups)
   - [Campaigns](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
-  - [Creatives](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
-  - [Ad Analytics by Campaign](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
-  - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+    - [Ad Analytics by Campaign](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+    - [Creatives](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
+      - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
+
+## Streams
+[**accounts**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
+- Endpoint: https://api.linkedin.com/v2/adAccountsV2
+- Primary key field: id
+- Foreign keys: reference_organization_id (organization), reference_person_id (person)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: account id (from config.json)
+  - Sort by: account id ascending
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for total_budget field.
+- Children: video_ads
+
+[**video_ads**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
+- Endpoint: https://api.linkedin.com/v2/adDirectSponsoredContents
+- Primary key field: content_reference
+- Foreign keys: account_id (accounts), owner_organization_id (organizations)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: account (from parent account) and owner (from parent account) (see NOTE below)
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
+- Parent: account
+**NOTE**: The parent Account **MUST** reference and **Organization** (not a Person)
+- [Campaign Manager User Roles for Video Ads](https://www.linkedin.com/help/lms/answer/90733/campaign-manager-user-roles-for-video-ads?lang=en)
+
+[**account_users**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts)
+- Endpoint: https://api.linkedin.com/v2/adAccountUsersV2
+- Primary key fields: account_id, user_person_id
+- Foreign keys: account_id (accounts), user_person_id (person)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: account (from config.json)
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
+
+[**campaign_groups**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaign-groups#search-for-campaign-groups)
+- Endpoint: https://api.linkedin.com/v2/adCampaignGroupsV2
+- Primary key field: id
+- Foreign keys: account_id (accounts)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: account (from config.json)
+  - Sort by: Campaign Group id ascending
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
+
+[**campaigns**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
+- Endpoint: https://api.linkedin.com/v2/adCampaignsV2
+- Primary key field: id
+- Foreign keys: account_id (accounts)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: account (from config.json)
+  - Sort by: Campaign id ascending
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for daily_budget and unit_cost amount fields. Targeting and Targeting Criteria are transformed to a generalized type with list array structure.
+- Children: creatives, ad_analytics_by_campaign
+
+[**creatives**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
+- Endpoint: https://api.linkedin.com/v2/adCreativesV2
+- Primary key field: id
+- Foreign keys: campaign_id (campaigns)
+- Replication strategy: Incremental (query all, filter results)
+  - Filter: campaign_id (from parent campaign)
+  - Sort by: Creative id ascending
+  - Bookmark: last_modified_time (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Variables are transformed to a generalized type with list of key/value pairs.
+- Parent: campaing
+- Children: ad_analytics_by_creative
+
+[**ad_analytics_by_campaign**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+- Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
+- Primary key fields: campaign_id, start_at
+- Foreign keys: campaign_id (campaigns)
+- Granulariy: One record per day per campaign_id
+- Replication strategy: Incremental (query filtered by bookmark date range)
+  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date to current date)
+  - Bookmark: end_at (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to campaign and campaign_id.
+- Parent: campaign
+
+[**ad_analytics_by_creative**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+- Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
+- Primary key fields: creative_id, start_at
+- Foreign keys: creative_id (creatives)
+- Granulariy: One record per day per creative_id
+- Replication strategy: Incremental (query filtered by bookmark date range)
+  - Filter: creative_id (from parent creative), start/end date range (bookmark date to current date)
+  - Bookmark: end_at (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to creative and creative_id.
+- Parent: creative
 
 ## Authentication
 The tap uses a LinkedIn provided **access_token** in the config settings to make API requests. Access tokens expire after 60 days and require a user to manually authenticate again. If the tap receives a 401 invalid token response, the error logs will state that your access token has expired and to re-authenticate your connection to generate a new token.

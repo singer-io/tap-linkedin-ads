@@ -247,7 +247,7 @@
 			"additionalProperties": false,
 			"properties": {
 				"amount": {
-					"type": ["null", "string"]
+					"type": ["null", "number"]
 				},
 				"currency_code": {
 					"type": ["null", "string"]
@@ -259,7 +259,7 @@
 			"additionalProperties": false,
 			"properties": {
 				"amount": {
-					"type": ["null", "string"]
+					"type": ["null", "number"]
 				},
 				"currency_code": {
 					"type": ["null", "string"]

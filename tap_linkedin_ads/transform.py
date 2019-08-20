@@ -7,6 +7,7 @@ import singer
 
 LOGGER = singer.get_logger()
 
+
 # Convert camelCase to snake_case
 def convert(name):
     regsub = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
@@ -53,6 +54,16 @@ def string_to_decimal(val):
         return None
 
 
+def transform_accounts(data_dict):
+    # convert string numbers to float/decimal numbers
+    currency_fields = ['total_budget']
+    for currency_field in currency_fields:
+        if currency_field in data_dict:
+            val = data_dict[currency_field]
+            data_dict[currency_field] = string_to_decimal(val)
+    return data_dict
+
+
 def transform_analytics(data_dict):
     # convert string numbers to float/decimal numbers
     currency_fields = ['conversion_value_in_local_currency',
@@ -93,6 +104,13 @@ def transform_analytics(data_dict):
 
 
 def transform_campaigns(data_dict): #pylint: disable=too-many-branches,too-many-statements
+    # convert string numbers to float/decimal numbers
+    currency_fields = ['daily_budget', 'unit_cost']
+    for currency_field in currency_fields:
+        val = data_dict.get(currency_field, {}).get('amount')
+        if val:
+            data_dict[currency_field]['amount'] = string_to_decimal(val)
+
     if 'targeting' not in data_dict or 'targeting_criteria' not in data_dict:
         return data_dict
 
@@ -267,36 +285,30 @@ def transform_urn(data_dict):
     return data_dict
 
 
-def transform_data(data_dict, stream_name):
-    if isinstance(data_dict, list):
-        return [transform_data(x, stream_name) for x in data_dict]
-    elif isinstance(data_dict, dict):
-        # Transform dictionaries
-        if stream_name.startswith('ad_analytics_by_'):
-            data_dict = transform_analytics(data_dict)
-        elif stream_name == 'campaigns':
-            data_dict = transform_campaigns(data_dict)
-        elif stream_name == 'creatives':
-            data_dict = transform_creatives(data_dict)
-        data_dict = transform_urn(data_dict)
-        data_dict = transform_audit_fields(data_dict)
 
-        # Transform unix epoch millisecond integers to datetimes
-        for key, val in data_dict.items():
-            if key.endswith('time') or key.endswith('_at') or key == 'start' or key == 'end':
-                if isinstance(val, int) and not isinstance(val, bool):
-                    if val >= 1000000000000 and val <= 2000000000000: # valid unix epoch times
-                        timestamp, msecs = divmod(val, 1000)
-                        dttm = datetime.fromtimestamp(timestamp) + timedelta(milliseconds=msecs)
-                        formatted_time = dttm.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-                        data_dict[key] = formatted_time
-        return {transform_data(key, stream_name): transform_data(val, stream_name)\
-            for key, val in data_dict.items()}
-    else:
-        return data_dict
+def transform_data(data_dict, stream_name):
+    new_dict = data_dict
+    i = 0
+    for record in data_dict['elements']:
+        this_dict = record
+        if stream_name.startswith('ad_analytics_by_'):
+            this_dict = transform_analytics(this_dict)
+        elif stream_name == 'accounts':
+            this_dict = transform_accounts(this_dict)
+        elif stream_name == 'campaigns':
+            this_dict = transform_campaigns(this_dict)
+        elif stream_name == 'creatives':
+            this_dict = transform_creatives(this_dict)
+        this_dict = transform_urn(this_dict)
+        this_dict = transform_audit_fields(this_dict)
+
+        new_dict['elements'][i] = this_dict
+        i = i + 1
+    return new_dict
 
 
 def transform_json(this_json, stream_name):
     LOGGER.info('Transforming stream: {}'.format(stream_name))
-    transformed_json = transform_data(convert_json(this_json), stream_name)
+    converted_json = convert_json(this_json)
+    transformed_json = transform_data(converted_json, stream_name)
     return transformed_json

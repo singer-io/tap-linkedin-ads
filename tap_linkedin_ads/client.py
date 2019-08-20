@@ -90,17 +90,15 @@ def raise_for_error(response):
 class LinkedinClient(object):
     def __init__(self,
                  access_token,
-                 user_agent=None,
-                 organization=None):
+                 user_agent=None):
         self.__access_token = access_token
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__base_url = None
         self.__verified = False
-        self.organization = organization
 
     def __enter__(self):
-        self.__verified, self.organization = self.check_access_token()
+        self.__verified = self.check_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -119,20 +117,18 @@ class LinkedinClient(object):
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
         response = self.__session.get(
-            # Simple endpoint that returns 1 record w/ default organization URN
-            url='https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee',
+            # Simple endpoint that returns 1 Account record (to check API/token access):
+            url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
             headers=headers)
         if response.status_code != 200:
             LOGGER.error('Error status_code = {}'.format(response.status_code))
             raise_for_error(response)
         else:
             resp = response.json()
-            organization = None
             if 'elements' in resp:
-                if 'organizationalTarget' in resp['elements'][0]:
-                    organization = resp['elements'][0]['organizationalTarget']
-                    LOGGER.info('Default Organization: {}'.format(organization))
-            return True, organization
+                return True
+            else:
+                return False
 
 
     @backoff.on_exception(backoff.expo,
