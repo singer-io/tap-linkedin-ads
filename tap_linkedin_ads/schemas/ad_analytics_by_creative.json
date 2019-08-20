@@ -29,13 +29,16 @@
 			"type": ["null", "integer"]
 		},
 		"conversion_value_in_local_currency": {
-			"type": ["null", "number"]
+			"type": ["null", "number"],
+			"multipleOf": 1e-08
 		},
 		"cost_in_local_currency": {
-			"type": ["null", "number"]
+			"type": ["null", "number"],
+			"multipleOf": 1e-08
 		},
 		"cost_in_usd": {
-			"type": ["null", "number"]
+			"type": ["null", "number"],
+			"multipleOf": 1e-08
 		},
 		"date_range": {
 			"type": ["null", "object"],

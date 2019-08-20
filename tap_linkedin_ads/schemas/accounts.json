@@ -86,7 +86,8 @@
 			"additionalProperties": false,
 			"properties": {
 				"amount": {
-					"type": ["null", "number"]
+					"type": ["null", "number"],
+					"multipleOf": 1e-08
 				},
 				"currency_code": {
 					"type": ["null", "string"]
