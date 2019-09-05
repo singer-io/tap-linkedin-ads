@@ -4,7 +4,7 @@ config/
 virtualenvs/
 catalog.json
 *config.json
-state.json
+state*.json
 target*.json
 *.sublime-*
 .python-version
@@ -15,4 +15,3 @@ dist/
 __pycache__/
 venv/
 build/
-

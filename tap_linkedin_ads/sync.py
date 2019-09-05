@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import singer
 from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
+from singer.utils import strptime_to_utc
 from tap_linkedin_ads.transform import transform_json
 
 LOGGER = singer.get_logger()
@@ -74,8 +75,8 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
                 # Reset max_bookmark_value to new value if higher
                 if bookmark_field and (bookmark_field in transformed_record):
-                    if (max_bookmark_value is None) or \
-                        (transformed_record[bookmark_field] > max_bookmark_value):
+                    if max_bookmark_value is None or \
+                        strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
                         max_bookmark_value = transformed_record[bookmark_field]
 
                 if bookmark_field and (bookmark_field in transformed_record):
@@ -85,8 +86,8 @@ def process_records(catalog, #pylint: disable=too-many-branches
                             write_record(stream_name, transformed_record, time_extracted=time_extracted)
                             counter.increment()
                     elif bookmark_type == 'datetime':
-                        last_dttm = transformer._transform_datetime(last_datetime)
-                        bookmark_dttm = transformed_record[bookmark_field]
+                        last_dttm = strptime_to_utc(last_datetime)
+                        bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
                         # Keep only records whose bookmark is after the last_datetime
                         if bookmark_dttm >= last_dttm:
                             write_record(stream_name, transformed_record, time_extracted=time_extracted)
@@ -330,13 +331,11 @@ def sync(client, config, catalog, state):
         start_date = config['start_date']
 
     # Get datetimes for endpoint parameters
-    now = datetime.now()
+    now = utils.now()
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
-    analytics_campaign_dt = datetime.strptime(analytics_campaign_dt_str, "%Y-%m-%dT%H:%M:%SZ") -\
-        timedelta(days=1)
+    analytics_campaign_dt = strptime_to_utc(analytics_campaign_dt_str) - timedelta(days=1)
     analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
-    analytics_creative_dt = datetime.strptime(analytics_creative_dt_str, "%Y-%m-%dT%H:%M:%SZ") -\
-            timedelta(days=1)
+    analytics_creative_dt = strptime_to_utc(analytics_creative_dt_str) - timedelta(days=1)
 
     selected_streams = get_selected_streams(catalog)
     LOGGER.info('selected_streams: {}'.format(selected_streams))
