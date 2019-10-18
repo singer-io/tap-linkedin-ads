@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.4
+  * Change bookmarking to update after ALL batches for child nodes. Change paging logic to use next URL in links. Add 7 days buffer to account for changes/delays in ads analytics report data. 
+
 ## 0.0.3
   * Fix sync datetime conversion issue when reading from state. Using singer-python utils strptime_to_utc.
 

@@ -3,7 +3,7 @@
 config/
 virtualenvs/
 catalog.json
-*config.json
+*config*.json
 state*.json
 target*.json
 *.sublime-*
@@ -15,3 +15,8 @@ dist/
 __pycache__/
 venv/
 build/
+tap_intercom/.vscode/settings.json
+*.ipynb
+.DS_Store
+test_configuration.py
+tap_target_commands.sh
