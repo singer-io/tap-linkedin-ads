@@ -1,7 +1,8 @@
+import urllib.parse
 from datetime import datetime, timedelta
 import singer
 from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
-from singer.utils import strptime_to_utc
+from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json
 
 LOGGER = singer.get_logger()
@@ -49,10 +50,8 @@ def process_records(catalog, #pylint: disable=too-many-branches
                     records,
                     time_extracted,
                     bookmark_field=None,
-                    bookmark_type=None,
                     max_bookmark_value=None,
                     last_datetime=None,
-                    last_integer=None,
                     parent=None,
                     parent_id=None):
     stream = catalog.get_stream(stream_name)
@@ -80,18 +79,12 @@ def process_records(catalog, #pylint: disable=too-many-branches
                         max_bookmark_value = transformed_record[bookmark_field]
 
                 if bookmark_field and (bookmark_field in transformed_record):
-                    if bookmark_type == 'integer':
-                        # Keep only records whose bookmark is after the last_integer
-                        if transformed_record[bookmark_field] >= last_integer:
-                            write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                            counter.increment()
-                    elif bookmark_type == 'datetime':
-                        last_dttm = strptime_to_utc(last_datetime)
-                        bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
-                        # Keep only records whose bookmark is after the last_datetime
-                        if bookmark_dttm >= last_dttm:
-                            write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                            counter.increment()
+                    last_dttm = strptime_to_utc(last_datetime)
+                    bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
+                    # Keep only records whose bookmark is after the last_datetime
+                    if bookmark_dttm >= last_dttm:
+                        write_record(stream_name, transformed_record, time_extracted=time_extracted)
+                        counter.increment()
                 else:
                     write_record(stream_name, transformed_record, time_extracted=time_extracted)
                     counter.increment()
@@ -111,23 +104,30 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                   static_params,
                   bookmark_query_field=None,
                   bookmark_field=None,
-                  bookmark_type=None,
                   id_fields=None,
                   parent=None,
                   parent_id=None):
 
-    # Get the latest bookmark for the stream and set the last_integer/datetime
-    last_datetime = None
-    last_integer = None
-    max_bookmark_value = None
-    if bookmark_type == 'integer':
-        last_integer = get_bookmark(state, stream_name, 0)
-        max_bookmark_value = last_integer
-    else:
-        last_datetime = get_bookmark(state, stream_name, start_date)
-        max_bookmark_value = last_datetime
+    # Get the latest bookmark for the stream and set the last_datetime
+    last_datetime = get_bookmark(state, stream_name, start_date)
+    max_bookmark_value = last_datetime
+    LOGGER.info('{}: bookmark last_datetime = {}'.format(stream_name, max_bookmark_value))
 
     write_schema(catalog, stream_name)
+
+    # Initialize child_max_bookmarks
+    child_max_bookmarks = {}
+    children = endpoint_config.get('children')
+    if children:
+        for child_stream_name, child_endpoint_config in children.items():
+            should_stream, last_stream_child = should_sync_stream(
+                get_selected_streams(catalog), None, child_stream_name)
+
+            if should_stream:
+                child_bookmark_field = child_endpoint_config.get('bookmark_field')
+                if child_bookmark_field:
+                    child_last_datetime = get_bookmark(state, stream_name, start_date)
+                    child_max_bookmarks[child_stream_name] = child_last_datetime
 
     # Pagination reference:
     # https://docs.microsoft.com/en-us/linkedin/shared/api-guide/concepts/pagination?context=linkedin/marketing/context
@@ -136,37 +136,29 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     # Continue until the "start" exceeds the total_records.
     start = 0 # Starting offset value for each batch API call
     count = 100 # Batch size; Number of records per API call
-    total_records = count # Initialize total; set to actual total on first API call
+    total_records = 0
+    page = 1
+    params = {
+        'start': start,
+        'count': count,
+        **static_params # adds in endpoint specific, sort, filter params
+    }
+    if bookmark_query_field:
+        params[bookmark_query_field] = last_datetime
 
-    while start <= total_records:
-        params = {
-            'start': start,
-            'count': count,
-            **static_params # adds in endpoint specific, sort, filter params
-        }
+    querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+    next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, querystring)
 
-        if bookmark_query_field:
-            if bookmark_type == 'datetime':
-                params[bookmark_query_field] = last_datetime
-            elif bookmark_type == 'integer':
-                params[bookmark_query_field] = last_integer
-
-        LOGGER.info('{} - Sync start {}'.format(
-            stream_name,
-            'since: {}, '.format(last_datetime) if bookmark_query_field else ''))
-
-        # Squash params to query-string params
-        querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
-        LOGGER.info('URL for {}: https://api.linkedin.com/v2/{}?{}'\
-            .format(stream_name, path, querystring))
+    while next_url:
+        LOGGER.info('URL for {}: {}'.format(stream_name, next_url))
 
         # Get data, API request
         data = client.get(
-            path,
-            params=querystring,
+            url=next_url,
             endpoint=stream_name)
         # time_extracted: datetime when the data was extracted from the API
         time_extracted = utils.now()
+        # LOGGER.info('stream_name = , data = {}'.format(stream_name, data))  # TESTING, comment out
 
         # Transform data with transform_json from transform.py
         #  This function converts unix datetimes, de-nests audit fields,
@@ -177,8 +169,10 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
         transformed_data = [] # initialize the record list
         if data_key in data:
             transformed_data = transform_json(data, stream_name)[data_key]
-        # LOGGER.info('transformed_data = {}'.format(transformed_data))  # TESTING, comment out
+        # LOGGER.info('stream_name = , transformed_data = {}'.format(stream_name, transformed_data))  # TESTING, comment out
         if not transformed_data or transformed_data is None:
+            LOGGER.info('No transformed_data')
+            # LOGGER.info('data_key = {}, data = {}'.format(data_key, data))
             break # No data results
 
         # Process records and get the max_bookmark_value and record_count for the set of records
@@ -188,21 +182,14 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             records=transformed_data,
             time_extracted=time_extracted,
             bookmark_field=bookmark_field,
-            bookmark_type=bookmark_type,
             max_bookmark_value=max_bookmark_value,
             last_datetime=last_datetime,
-            last_integer=last_integer,
             parent=parent,
             parent_id=parent_id)
-
-        # set total_records for pagination
-        if 'total' in data['paging']:
-            total_records = data['paging']['total']
-        else:
-            total_records = record_count
+        LOGGER.info('{}, records processed: {}'.format(stream_name, record_count))
+        total_records = total_records + record_count
 
         # Loop thru parent batch records for each children objects (if should stream)
-        children = endpoint_config.get('children')
         if children:
             for child_stream_name, child_endpoint_config in children.items():
                 should_stream, last_stream_child = should_sync_stream(get_selected_streams(catalog),
@@ -232,19 +219,15 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                             if child_stream_name == 'creatives':
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
-                            elif child_stream_name == 'ad_analytics_by_campaign':
+                            elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
-                        elif stream_name == 'creatives':
-                            creative = 'urn:li:sponsoredCreative:{}'.format(parent_id)
-                            if child_stream_name == 'ad_analytics_by_creative':
-                                child_endpoint_config['params']['creatives[0]'] = creative
 
                         LOGGER.info('Syncing: {}, parent_stream: {}, parent_id: {}'.format(
                             child_stream_name,
                             stream_name,
                             parent_id))
                         child_path = child_endpoint_config.get('path')
-                        child_total_records = sync_endpoint(
+                        child_total_records, child_batch_bookmark_value = sync_endpoint(
                             client=client,
                             catalog=catalog,
                             state=state,
@@ -256,37 +239,43 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             static_params=child_endpoint_config.get('params', {}),
                             bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
                             bookmark_field=child_endpoint_config.get('bookmark_field'),
-                            bookmark_type=child_endpoint_config.get('bookmark_type'),
                             id_fields=child_endpoint_config.get('id_fields'),
                             parent=child_endpoint_config.get('parent'),
                             parent_id=parent_id)
+                        
+                        child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
+                        child_max_bookmark = child_max_bookmarks.get(child_stream_name)
+                        child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
+                        if child_batch_bookmark_dttm > child_max_bookmark_dttm:
+                            child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
+
                         LOGGER.info('Synced: {}, parent_id: {}, total_records: {}'.format(
                             child_stream_name, 
                             parent_id,
                             child_total_records))
 
+        # Pagination: Get next_url
+        next_url = None
+        links = data.get('paging', {}).get('links', [])
+        for link in links:
+            rel = link.get('rel')
+            if rel == 'next':
+                href = link.get('href')
+                if href:
+                    next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
 
-        # Update the state with the max_bookmark_value for the stream
-        if bookmark_field:
-            write_bookmark(state,
-                           stream_name,
-                           max_bookmark_value)
-
-        # to_rec: to record; ending record for the batch
-        to_rec = start + count
-        if to_rec > total_records:
-            to_rec = total_records
-
-        LOGGER.info('{} - Synced - {} to {} of total records: {}'.format(
+        LOGGER.info('{}: Synced page {}, this page: {}. Total records processed: {}'.format(
             stream_name,
-            start,
-            to_rec,
+            page,
+            record_count,
             total_records))
-        # Pagination: increment the offset by the count (batch-size)
-        start = start + count
+        page = page + 1
 
-    # Return the list of ids to the stream, in case this is a parent stream with children.
-    return total_records
+    # Write child bookmarks
+    for key, val in list(child_max_bookmarks.items()):
+        write_bookmark(state, key, val)
+
+    return total_records, max_bookmark_value
 
 
 # Review catalog and make a list of selected streams
@@ -332,10 +321,12 @@ def sync(client, config, catalog, state):
 
     # Get datetimes for endpoint parameters
     now = utils.now()
+    # delta = 7 days to account for delays in ads data
+    delta = 7
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
-    analytics_campaign_dt = strptime_to_utc(analytics_campaign_dt_str) - timedelta(days=1)
+    analytics_campaign_dt = strptime_to_utc(analytics_campaign_dt_str) - timedelta(days=delta)
     analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
-    analytics_creative_dt = strptime_to_utc(analytics_creative_dt_str) - timedelta(days=1)
+    analytics_creative_dt = strptime_to_utc(analytics_creative_dt_str) - timedelta(days=delta)
 
     selected_streams = get_selected_streams(catalog)
     LOGGER.info('selected_streams: {}'.format(selected_streams))
@@ -358,7 +349,6 @@ def sync(client, config, catalog, state):
     #   bookmark_query_field: Typically a date-time field used for filtering the query
     #   bookmark_field: Replication key field, typically a date-time, used for filtering the results
     #        and setting the state
-    #   bookmark_type: Data type for bookmark, integer or datetime
     #   store_ids: Used for parents to create an id_bag collection of ids for children endpoints
     #   id_fields: Primary key (and other IDs) from the Parent stored when store_ids is true.
     #   children: A collection of child endpoints (where the endpoint path includes the parent id)
@@ -375,7 +365,6 @@ def sync(client, config, catalog, state):
             },
             'data_key': 'elements',
             'bookmark_field': 'last_modified_time',
-            'bookmark_type': 'datetime',
             'id_fields': ['id', 'reference_organization_id'],
             'children': {
                 'video_ads': {
@@ -386,7 +375,6 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'last_modified_time',
-                    'bookmark_type': 'datetime',
                     'id_fields': ['content_reference']
                 }
             }
@@ -400,7 +388,6 @@ def sync(client, config, catalog, state):
             },
             'data_key': 'elements',
             'bookmark_field': 'last_modified_time',
-            'bookmark_type': 'datetime',
             'id_fields': ['account_id', 'user_person_id']
         },
 
@@ -414,7 +401,6 @@ def sync(client, config, catalog, state):
             },
             'data_key': 'elements',
             'bookmark_field': 'last_modified_time',
-            'bookmark_type': 'datetime',
             'id_fields': ['id']
         },
 
@@ -428,7 +414,6 @@ def sync(client, config, catalog, state):
             },
             'data_key': 'elements',
             'bookmark_field': 'last_modified_time',
-            'bookmark_type': 'datetime',
             'id_fields': ['id'],
             'children': {
                 'ad_analytics_by_campaign': {
@@ -447,7 +432,6 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
-                    'bookmark_type': 'datetime',
                     'id_fields': ['creative_id', 'start_at']
                 },
                 'creatives': {
@@ -461,29 +445,25 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'last_modified_time',
-                    'bookmark_type': 'datetime',
-                    'id_fields': ['id'],
-                    'children': {
-                        'ad_analytics_by_creative': {
-                            'path': 'adAnalyticsV2',
-                            'account_filter': 'accounts_param',
-                            'params': {
-                                'q': 'analytics',
-                                'pivot': 'CREATIVE',
-                                'timeGranularity': 'DAILY',
-                                'dateRange.start.day': analytics_creative_dt.day,
-                                'dateRange.start.month': analytics_creative_dt.month,
-                                'dateRange.start.year': analytics_creative_dt.year,
-                                'dateRange.end.day': now.day,
-                                'dateRange.end.month': now.month,
-                                'dateRange.end.year': now.year
-                            },
-                            'data_key': 'elements',
-                            'bookmark_field': 'end_at',
-                            'bookmark_type': 'datetime',
-                            'id_fields': ['creative_id', 'start_at']
-                        }
-                    }
+                    'id_fields': ['id']
+                },
+                'ad_analytics_by_creative': {
+                    'path': 'adAnalyticsV2',
+                    'account_filter': 'accounts_param',
+                    'params': {
+                        'q': 'analytics',
+                        'pivot': 'CREATIVE',
+                        'timeGranularity': 'DAILY',
+                        'dateRange.start.day': analytics_creative_dt.day,
+                        'dateRange.start.month': analytics_creative_dt.month,
+                        'dateRange.start.year': analytics_creative_dt.year,
+                        'dateRange.end.day': now.day,
+                        'dateRange.end.month': now.month,
+                        'dateRange.end.year': now.year
+                    },
+                    'data_key': 'elements',
+                    'bookmark_field': 'end_at',
+                    'id_fields': ['creative_id', 'start_at']
                 }
             }
         }
@@ -513,7 +493,8 @@ def sync(client, config, catalog, state):
             LOGGER.info('START Syncing: {}'.format(stream_name))
             update_currently_syncing(state, stream_name)
             path = endpoint_config.get('path')
-            total_records = sync_endpoint(
+            bookmark_field = endpoint_config.get('bookmark_field')
+            total_records, max_bookmark_value = sync_endpoint(
                 client=client,
                 catalog=catalog,
                 state=state,
@@ -524,9 +505,12 @@ def sync(client, config, catalog, state):
                 data_key=endpoint_config.get('data_key', 'elements'),
                 static_params=endpoint_config.get('params', {}),
                 bookmark_query_field=endpoint_config.get('bookmark_query_field'),
-                bookmark_field=endpoint_config.get('bookmark_field'),
-                bookmark_type=endpoint_config.get('bookmark_type'),
+                bookmark_field=bookmark_field,
                 id_fields=endpoint_config.get('id_fields'))
+
+            # Write parent bookmarks
+            if bookmark_field:
+                write_bookmark(state, stream_name, max_bookmark_value)
 
             update_currently_syncing(state, None)
             LOGGER.info('Synced: {}, total_records: {}'.format(

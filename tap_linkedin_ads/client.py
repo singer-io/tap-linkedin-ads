@@ -135,15 +135,15 @@ class LinkedinClient(object):
                           (Server5xxError, ConnectionError, Server429Error),
                           max_tries=5,
                           factor=2)
-    def request(self, method, path=None, url=None, **kwargs):
+    def request(self, method, url=None, path=None, **kwargs):
         if not self.__verified:
             self.__verified = self.check_access_token()
 
         if not url and self.__base_url is None:
-            self.__base_url = 'https://api.linkedin.com/v2/'
+            self.__base_url = 'https://api.linkedin.com/v2'
 
         if not url and path:
-            url = self.__base_url + path
+            url = '{}/{}'.format(self.__base_url, path)
 
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']
@@ -174,8 +174,8 @@ class LinkedinClient(object):
 
         return response.json()
 
-    def get(self, path, **kwargs):
-        return self.request('GET', path=path, **kwargs)
+    def get(self, url=None, path=None, **kwargs):
+        return self.request('GET', url=url, path=path, **kwargs)
 
-    def post(self, path, **kwargs):
-        return self.request('POST', path=path, **kwargs)
+    def post(self, url=None, path=None, **kwargs):
+        return self.request('POST', url=url, path=path, **kwargs)

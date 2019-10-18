@@ -15,7 +15,7 @@ This tap:
   - [Campaigns](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
     - [Ad Analytics by Campaign](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
     - [Creatives](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
-      - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+    - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
@@ -71,7 +71,7 @@ This tap:
   - Sort by: Campaign id ascending
   - Bookmark: last_modified_time (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for daily_budget and unit_cost amount fields. Targeting and Targeting Criteria are transformed to a generalized type with list array structure.
-- Children: creatives, ad_analytics_by_campaign
+- Children: creatives, ad_analytics_by_campaign, ad_analytics_by_creative
 
 [**creatives**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
 - Endpoint: https://api.linkedin.com/v2/adCreativesV2
@@ -82,8 +82,7 @@ This tap:
   - Sort by: Creative id ascending
   - Bookmark: last_modified_time (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Variables are transformed to a generalized type with list of key/value pairs.
-- Parent: campaing
-- Children: ad_analytics_by_creative
+- Parent: campaign
 
 [**ad_analytics_by_campaign**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
@@ -91,7 +90,7 @@ This tap:
 - Foreign keys: campaign_id (campaigns)
 - Granulariy: One record per day per campaign_id
 - Replication strategy: Incremental (query filtered by bookmark date range)
-  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date to current date)
+  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date - 7 days to current date)
   - Bookmark: end_at (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to campaign and campaign_id.
 - Parent: campaign
@@ -99,13 +98,13 @@ This tap:
 [**ad_analytics_by_creative**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
 - Primary key fields: creative_id, start_at
-- Foreign keys: creative_id (creatives)
+- Foreign keys: creative_id
 - Granulariy: One record per day per creative_id
 - Replication strategy: Incremental (query filtered by bookmark date range)
-  - Filter: creative_id (from parent creative), start/end date range (bookmark date to current date)
+  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date - 7 days to current date)
   - Bookmark: end_at (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to creative and creative_id.
-- Parent: creative
+- Parent: campaign
 
 ## Authentication
 The tap uses a LinkedIn provided **access_token** in the config settings to make API requests. Access tokens expire after 60 days and require a user to manually authenticate again. If the tap receives a 401 invalid token response, the error logs will state that your access token has expired and to re-authenticate your connection to generate a new token.
