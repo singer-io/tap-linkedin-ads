@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.5
+  * Add missing fields to the Ad Analytics endpoint streams: clicks, reactions, sends, etc.
+
 ## 0.0.4
   * Change bookmarking to update after ALL batches for child nodes. Change paging logic to use next URL in links. Add 7 days buffer to account for changes/delays in ads analytics report data. 
 
