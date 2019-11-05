@@ -22,6 +22,9 @@
 		"ad_unit_clicks": {
 			"type": ["null", "integer"]
 		},
+		"clicks": {
+			"type": ["null", "integer"]
+		},
 		"comments": {
 			"type": ["null", "integer"]
 		},
@@ -94,6 +97,9 @@
 		"impressions": {
 			"type": ["null", "integer"]
 		},
+		"landing_page_clicks": {
+			"type": ["null", "integer"]
+		},
 		"lead_generation_mail_contact_info_shares": {
 			"type": ["null", "integer"]
 		},
@@ -132,6 +138,12 @@
 					"type": "null"
 				}
 			]
+		},
+		"reactions": {
+			"type": ["null", "integer"]
+		},
+		"sends": {
+			"type": ["null", "integer"]
 		},
 		"shares": {
 			"type": ["null", "integer"]
@@ -200,6 +212,9 @@
 			"type": ["null", "integer"]
 		},
 		"viral_other_engagements": {
+			"type": ["null", "integer"]
+		},
+		"viral_reactions": {
 			"type": ["null", "integer"]
 		},
 		"viral_shares": {
