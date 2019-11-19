@@ -212,7 +212,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
                             owner_id = record.get('reference_organization_id', None)
                             owner = 'urn:li:organization:{}'.format(owner_id)
-                            if child_stream_name == 'video_ads' and owner_id is not None:
+                            if child_stream_name == 'video_advertisment' and owner_id is not None:
                                 child_endpoint_config['params']['account'] = account
                                 child_endpoint_config['params']['owner'] = owner
                         elif stream_name == 'campaigns':
@@ -367,7 +367,7 @@ def sync(client, config, catalog, state):
             'bookmark_field': 'last_modified_time',
             'id_fields': ['id', 'reference_organization_id'],
             'children': {
-                'video_ads': {
+                'video_advertisment': {
                     'path': 'adDirectSponsoredContents',
                     'account_filter': None,
                     'params': {

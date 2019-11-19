@@ -29,9 +29,9 @@ This tap:
   - Sort by: account id ascending
   - Bookmark: last_modified_time (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for total_budget field.
-- Children: video_ads
+- Children: video_advertisment
 
-[**video_ads**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
+[**video_advertisment**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
 - Endpoint: https://api.linkedin.com/v2/adDirectSponsoredContents
 - Primary key field: content_reference
 - Foreign keys: account_id (accounts), owner_organization_id (organizations)
@@ -118,7 +118,7 @@ The API user account should be assigned one of the following roles:
 - **VIEWER** (Recommended)
 
 The API user account should be assigned the following **permissions** for the API endpoints:
-- accounts, account_users, video_ads, campaign_groups, campaigns, creatives:
+- accounts, account_users, video_advertisment, campaign_groups, campaigns, creatives:
     - r_ads: read ads (Recommended)
     - rw_ads: read-write ads
 - ad_analytics_by_campaign, ad_analytics_by_creative:
@@ -218,7 +218,7 @@ To generate the **access_token**:
         "bookmarks": {
             "accounts": "2019-06-11T13:37:55Z",
             "account_users": "2019-06-19T19:48:42Z",
-            "video_ads": "2019-06-18T18:23:58Z",
+            "video_advertisment": "2019-06-18T18:23:58Z",
             "campaign_groups": "2019-06-20T00:52:46Z",
             "campaigns": "2019-06-19T19:48:44Z",
             "creatives": "2019-06-11T13:37:55Z",
@@ -285,7 +285,7 @@ To generate the **access_token**:
     | stream                   | records | schemas |
     +--------------------------+---------+---------+
     | accounts                 | 2       | 1       |
-    | video_ads                | 432     | 4       |
+    | video_advertisment                | 432     | 4       |
     | account_users            | 20      | 1       |
     | campaigns                | 206     | 1       |
     | ad_analytics_by_creative | 47      | 9       |
