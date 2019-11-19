@@ -8,42 +8,42 @@ from singer import metadata
 STREAMS = {
     'accounts': {
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
-    'video_ads': {
+    'video_advertisment': {
         'key_properties': ['content_reference'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
     'account_users': {
         'key_properties': ['account_id', 'user_person_id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
     'campaign_groups': {
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
     'campaigns': {
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
     'creatives': {
         'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['last_modified_time']
     },
     'ad_analytics_by_campaign': {
         'key_properties': ['campaign_id', 'start_at'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['end_at']
     },
     'ad_analytics_by_creative': {
         'key_properties': ['creative_id', 'start_at'],
-        'replication_method': 'INCREMENTAL',
+        'replication_method': 'FULL_TABLE',
         'replication_keys': ['end_at']
     }
 }
