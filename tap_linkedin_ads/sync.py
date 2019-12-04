@@ -135,7 +135,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     # Increase the "start" by the "count" for each batch.
     # Continue until the "start" exceeds the total_records.
     start = 0 # Starting offset value for each batch API call
-    count = 100 # Batch size; Number of records per API call
+    count = endpoint_config.get('count', 100) # Batch size; Number of records per API call, default = 100
     total_records = 0
     page = 1
     params = {
@@ -428,7 +428,8 @@ def sync(client, config, catalog, state):
                         'dateRange.start.year': analytics_campaign_dt.year,
                         'dateRange.end.day': now.day,
                         'dateRange.end.month': now.month,
-                        'dateRange.end.year': now.year
+                        'dateRange.end.year': now.year,
+                        'count': 10000
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
@@ -459,7 +460,8 @@ def sync(client, config, catalog, state):
                         'dateRange.start.year': analytics_creative_dt.year,
                         'dateRange.end.day': now.day,
                         'dateRange.end.month': now.month,
-                        'dateRange.end.year': now.year
+                        'dateRange.end.year': now.year,
+                        'count': 10000
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',

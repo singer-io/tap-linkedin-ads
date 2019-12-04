@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.6
+  * Fix 400 error ad_analytics_by_campaign/creative not paging beyond first page.
+
 ## 0.0.5
   * Add missing fields to the Ad Analytics endpoint streams: clicks, reactions, sends, etc.
 
