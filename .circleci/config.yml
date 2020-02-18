@@ -30,7 +30,7 @@ jobs:
                        --email=harrison+sandboxtest@stitchdata.com \
                        --password=$SANDBOX_PASSWORD \
                        --client-id=50 \
-                       tap_tester.suites.linkedin-ads
+                       tap_tester.suites.linkedin_ads
 workflows:
   version: 2
   commit:
