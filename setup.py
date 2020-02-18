@@ -13,6 +13,12 @@ setup(name='tap-linkedin-ads',
           'requests==2.22.0',
           'singer-python==5.8.1'
       ],
+      extras_require={
+        'dev': [
+            'ipdb==0.11',
+            'pylint==2.4.4',
+        ]
+      },
       entry_points='''
           [console_scripts]
           tap-linkedin-ads=tap_linkedin_ads:main
