@@ -1,7 +1,7 @@
 import backoff
 import requests
-from requests.exceptions import ConnectionError
-from singer import metrics, utils
+
+from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
@@ -87,7 +87,7 @@ def raise_for_error(response):
             raise LinkedInError(error)
 
 
-class LinkedinClient(object):
+class LinkedinClient:
     def __init__(self,
                  access_token,
                  user_agent=None):
@@ -108,7 +108,7 @@ class LinkedinClient(object):
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    def check_access_token(self):
+    def check_access_token(self): #pylint: disable=inconsistent-return-statements
         if self.__access_token is None:
             raise Exception('Error: Missing access_token.')
         headers = {}
@@ -121,18 +121,18 @@ class LinkedinClient(object):
             url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
             headers=headers)
         if response.status_code != 200:
-            LOGGER.error('Error status_code = {}'.format(response.status_code))
+            LOGGER.error('Error status_code = %s', response.status_code)
             raise_for_error(response)
         else:
             resp = response.json()
-            if 'elements' in resp:
+            if 'elements' in resp: #pylint: disable=simplifiable-if-statement
                 return True
             else:
                 return False
 
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError, Server429Error),
+                          (Server5xxError, requests.exceptions.ConnectionError, Server429Error),
                           max_tries=5,
                           factor=2)
     def request(self, method, url=None, path=None, **kwargs):
