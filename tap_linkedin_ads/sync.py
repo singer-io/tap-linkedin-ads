@@ -1,5 +1,5 @@
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import timedelta
 import singer
 from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
@@ -14,7 +14,7 @@ def write_schema(catalog, stream_name):
     try:
         singer.write_schema(stream_name, schema, stream.key_properties)
     except OSError as err:
-        LOGGER.info('OS Error writing schema for: {}'.format(stream_name))
+        LOGGER.info('OS Error writing schema for: %s', stream_name)
         raise err
 
 
@@ -22,8 +22,8 @@ def write_record(stream_name, record, time_extracted):
     try:
         singer.write_record(stream_name, record, time_extracted=time_extracted)
     except OSError as err:
-        LOGGER.info('OS Error writing record for: {}'.format(stream_name))
-        LOGGER.info('record: {}'.format(record))
+        LOGGER.info('OS Error writing record for: %s', stream_name)
+        LOGGER.info('record: %s', record)
         raise err
 
 
@@ -41,7 +41,7 @@ def write_bookmark(state, stream, value):
     if 'bookmarks' not in state:
         state['bookmarks'] = {}
     state['bookmarks'][stream] = value
-    LOGGER.info('Write state for stream: {}, value: {}'.format(stream, value))
+    LOGGER.info('Write state for stream: %s, value: %s', stream, value)
     singer.write_state(state)
 
 
@@ -93,7 +93,7 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
 
 # Sync a specific parent or child endpoint.
-def sync_endpoint(client, #pylint: disable=too-many-branches
+def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                   catalog,
                   state,
                   start_date,
@@ -111,7 +111,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     # Get the latest bookmark for the stream and set the last_datetime
     last_datetime = get_bookmark(state, stream_name, start_date)
     max_bookmark_value = last_datetime
-    LOGGER.info('{}: bookmark last_datetime = {}'.format(stream_name, max_bookmark_value))
+    LOGGER.info('%s: bookmark last_datetime = %s', stream_name, max_bookmark_value)
 
     write_schema(catalog, stream_name)
 
@@ -120,8 +120,9 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     children = endpoint_config.get('children')
     if children:
         for child_stream_name, child_endpoint_config in children.items():
-            should_stream, last_stream_child = should_sync_stream(
-                get_selected_streams(catalog), None, child_stream_name)
+            should_stream, _ = should_sync_stream(get_selected_streams(catalog),
+                                                  None,
+                                                  child_stream_name)
 
             if should_stream:
                 child_bookmark_field = child_endpoint_config.get('bookmark_field')
@@ -149,8 +150,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
     querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
     next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, querystring)
 
-    while next_url:
-        LOGGER.info('URL for {}: {}'.format(stream_name, next_url))
+    while next_url: #pylint: disable=too-many-nested-blocks
+        LOGGER.info('URL for %s: %s', stream_name, next_url)
 
         # Get data, API request
         data = client.get(
@@ -158,7 +159,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             endpoint=stream_name)
         # time_extracted: datetime when the data was extracted from the API
         time_extracted = utils.now()
-        # LOGGER.info('stream_name = , data = {}'.format(stream_name, data))  # TESTING, comment out
 
         # Transform data with transform_json from transform.py
         #  This function converts unix datetimes, de-nests audit fields,
@@ -169,10 +169,9 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
         transformed_data = [] # initialize the record list
         if data_key in data:
             transformed_data = transform_json(data, stream_name)[data_key]
-        # LOGGER.info('stream_name = , transformed_data = {}'.format(stream_name, transformed_data))  # TESTING, comment out
+
         if not transformed_data or transformed_data is None:
             LOGGER.info('No transformed_data')
-            # LOGGER.info('data_key = {}, data = {}'.format(data_key, data))
             break # No data results
 
         # Process records and get the max_bookmark_value and record_count for the set of records
@@ -186,15 +185,15 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
             last_datetime=last_datetime,
             parent=parent,
             parent_id=parent_id)
-        LOGGER.info('{}, records processed: {}'.format(stream_name, record_count))
+        LOGGER.info('%s, records processed: %s', stream_name, record_count)
         total_records = total_records + record_count
 
         # Loop thru parent batch records for each children objects (if should stream)
         if children:
             for child_stream_name, child_endpoint_config in children.items():
-                should_stream, last_stream_child = should_sync_stream(get_selected_streams(catalog),
-                                                            None,
-                                                            child_stream_name)
+                should_stream, _ = should_sync_stream(get_selected_streams(catalog),
+                                                      None,
+                                                      child_stream_name)
                 if should_stream:
                     # For each parent record
                     for record in transformed_data:
@@ -222,10 +221,10 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
 
-                        LOGGER.info('Syncing: {}, parent_stream: {}, parent_id: {}'.format(
-                            child_stream_name,
-                            stream_name,
-                            parent_id))
+                        LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
+                                    child_stream_name,
+                                    stream_name,
+                                    parent_id)
                         child_path = child_endpoint_config.get('path')
                         child_total_records, child_batch_bookmark_value = sync_endpoint(
                             client=client,
@@ -242,17 +241,17 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                             id_fields=child_endpoint_config.get('id_fields'),
                             parent=child_endpoint_config.get('parent'),
                             parent_id=parent_id)
-                        
+
                         child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
                         child_max_bookmark = child_max_bookmarks.get(child_stream_name)
                         child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
                         if child_batch_bookmark_dttm > child_max_bookmark_dttm:
                             child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
 
-                        LOGGER.info('Synced: {}, parent_id: {}, total_records: {}'.format(
-                            child_stream_name, 
-                            parent_id,
-                            child_total_records))
+                        LOGGER.info('Synced: %s, parent_id: %s, total_records: %s',
+                                    child_stream_name,
+                                    parent_id,
+                                    child_total_records)
 
         # Pagination: Get next_url
         next_url = None
@@ -264,11 +263,11 @@ def sync_endpoint(client, #pylint: disable=too-many-branches
                 if href:
                     next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
 
-        LOGGER.info('{}: Synced page {}, this page: {}. Total records processed: {}'.format(
-            stream_name,
-            page,
-            record_count,
-            total_records))
+        LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
+                    stream_name,
+                    page,
+                    record_count,
+                    total_records)
         page = page + 1
 
     # Write child bookmarks
@@ -329,14 +328,14 @@ def sync(client, config, catalog, state):
     analytics_creative_dt = strptime_to_utc(analytics_creative_dt_str) - timedelta(days=delta)
 
     selected_streams = get_selected_streams(catalog)
-    LOGGER.info('selected_streams: {}'.format(selected_streams))
+    LOGGER.info('selected_streams: %s', selected_streams)
 
     if not selected_streams:
         return
 
     # last_stream = Previous currently synced stream, if the load was interrupted
     last_stream = singer.get_currently_syncing(state)
-    LOGGER.info('last/currently syncing stream: {}'.format(last_stream))
+    LOGGER.info('last/currently syncing stream: %s', last_stream)
 
     # endpoints: API URL endpoints to be called
     # properties:
@@ -492,7 +491,7 @@ def sync(client, config, catalog, state):
                         endpoint_config['params']['accounts[{}]'.format(idx)] = \
                             'urn:li:sponsoredAccount:{}'.format(account)
 
-            LOGGER.info('START Syncing: {}'.format(stream_name))
+            LOGGER.info('START Syncing: %s', stream_name)
             update_currently_syncing(state, stream_name)
             path = endpoint_config.get('path')
             bookmark_field = endpoint_config.get('bookmark_field')
@@ -515,7 +514,7 @@ def sync(client, config, catalog, state):
                 write_bookmark(state, stream_name, max_bookmark_value)
 
             update_currently_syncing(state, None)
-            LOGGER.info('Synced: {}, total_records: {}'.format(
-                            stream_name, 
-                            total_records))
-            LOGGER.info('FINISHED Syncing: {}'.format(stream_name))
+            LOGGER.info('Synced: %s, total_records: %s',
+                        stream_name,
+                        total_records)
+            LOGGER.info('FINISHED Syncing: %s', stream_name)

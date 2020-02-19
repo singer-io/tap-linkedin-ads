@@ -34,7 +34,7 @@ def convert_json(this_json):
         try:
             new_key = convert(key)
         except TypeError as err:
-            LOGGER.error('Error key = {}'.format(key))
+            LOGGER.error('Error key = %s', key)
             raise err
         if isinstance(this_json[key], dict):
             out[new_key] = convert_json(this_json[key])
@@ -50,7 +50,7 @@ def string_to_decimal(val):
     try:
         new_val = Decimal(sub(r'[^\d.]', '', val))
         return new_val
-    except:
+    except Exception:
         return None
 
 
@@ -308,7 +308,7 @@ def transform_data(data_dict, stream_name):
 
 
 def transform_json(this_json, stream_name):
-    LOGGER.info('Transforming stream: {}'.format(stream_name))
+    LOGGER.info('Transforming stream: %s', stream_name)
     converted_json = convert_json(this_json)
     transformed_json = transform_data(converted_json, stream_name)
     return transformed_json
