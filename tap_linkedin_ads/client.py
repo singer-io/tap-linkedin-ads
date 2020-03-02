@@ -88,17 +88,22 @@ def raise_for_error(response):
 
 
 class LinkedinClient:
-    def __init__(self,
-                 access_token,
-                 user_agent=None):
-        self.__access_token = access_token
+    def __init__(
+        self,
+        client_id,
+        client_secret,
+        refresh_token,
+        user_agent=None
+    ):
+        self.__client_id = client_id
+        self.__client_secret = client_secret
+        self.__refresh_token = refresh_token
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__base_url = None
-        self.__verified = False
 
     def __enter__(self):
-        self.__verified = self.check_access_token()
+        self.__access_token = self.get_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -108,37 +113,26 @@ class LinkedinClient:
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    def check_access_token(self): #pylint: disable=inconsistent-return-statements
-        if self.__access_token is None:
-            raise Exception('Error: Missing access_token.')
-        headers = {}
-        if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
-        headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Accept'] = 'application/json'
-        response = self.__session.get(
-            # Simple endpoint that returns 1 Account record (to check API/token access):
-            url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
-            headers=headers)
+    def get_access_token(self):
+        """ Get a fresh access token using the refresh token provided in the config file
+        """
+        url = 'https://www.linkedin.com/oauth/v2/accessToken'
+        response = self.__session.post(url, data={
+            'grant_type': 'refresh_token',
+            'client_id': self.__client_id,
+            'client_secret': self.__client_secret,
+            'refresh_token': self.__refresh_token,
+        })
         if response.status_code != 200:
             LOGGER.error('Error status_code = %s', response.status_code)
             raise_for_error(response)
-        else:
-            resp = response.json()
-            if 'elements' in resp: #pylint: disable=simplifiable-if-statement
-                return True
-            else:
-                return False
-
+        return response.json()['access_token']
 
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, requests.exceptions.ConnectionError, Server429Error),
                           max_tries=5,
                           factor=2)
     def request(self, method, url=None, path=None, **kwargs):
-        if not self.__verified:
-            self.__verified = self.check_access_token()
-
         if not url and self.__base_url is None:
             self.__base_url = 'https://api.linkedin.com/v2'
 
