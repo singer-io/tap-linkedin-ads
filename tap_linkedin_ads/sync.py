@@ -279,13 +279,10 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
 
 # Review catalog and make a list of selected streams
 def get_selected_streams(catalog):
-    selected_streams = set()
-    for stream in catalog.streams:
-        mdata = metadata.to_map(stream.metadata)
-        root_metadata = mdata.get(())
-        if root_metadata and root_metadata.get('selected') is True:
-            selected_streams.add(stream.tap_stream_id)
-    return list(selected_streams)
+    return [
+        stream.tap_stream_id for stream in catalog.streams
+        if stream.schema.selected
+    ]
 
 
 # Currently syncing sets the stream currently being delivered in the state.
