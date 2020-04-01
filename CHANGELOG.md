@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0
+  * Preparing for v1.0.0 release
+
 ## 0.0.6
   * Fix 400 error ad_analytics_by_campaign/creative not paging beyond first page.
 
