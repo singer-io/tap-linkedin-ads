@@ -20,3 +20,4 @@ tap_intercom/.vscode/settings.json
 .DS_Store
 test_configuration.py
 tap_target_commands.sh
+data.json
