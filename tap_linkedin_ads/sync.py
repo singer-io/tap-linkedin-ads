@@ -229,6 +229,12 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                             if child_stream_name == 'video_ads' and owner_id is not None:
                                 child_endpoint_config['params']['account'] = account
                                 child_endpoint_config['params']['owner'] = owner
+                            if child_stream_name == 'ad_analytics_by_account':
+                                child_endpoint_config['params']['accounts[0]'] = account
+                        elif stream_name == 'campaign_groups':
+                            campaign_group = 'urn:li:sponsoredCampaignGroup:{}'.format(parent_id)
+                            if child_stream_name == 'ad_analytics_by_campaign_group':
+                                child_endpoint_config['params']['campaignGroups[0]'] = campaign_group
                         elif stream_name == 'campaigns':
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                             if child_stream_name == 'creatives':
@@ -334,6 +340,11 @@ def sync(client, config, catalog, state):
     now = utils.now()
     # delta = 7 days to account for delays in ads data
     delta = 7
+
+    analytics_account_dt_str = get_bookmark(state, 'ad_analytics_by_campaign_group', start_date)
+    analytics_account_dt = strptime_to_utc(analytics_account_dt_str) - timedelta(days=delta) 
+    analytics_campaigngr_dt_str = get_bookmark(state, 'ad_analytics_by_campaign_group', start_date)
+    analytics_campaigngr_dt = strptime_to_utc(analytics_campaigngr_dt_str) - timedelta(days=delta)
     analytics_campaign_dt_str = get_bookmark(state, 'ad_analytics_by_campaign', start_date)
     analytics_campaign_dt = strptime_to_utc(analytics_campaign_dt_str) - timedelta(days=delta)
     analytics_creative_dt_str = get_bookmark(state, 'ad_analytics_by_creative', start_date)
@@ -387,6 +398,25 @@ def sync(client, config, catalog, state):
                     'data_key': 'elements',
                     'bookmark_field': 'last_modified_time',
                     'id_fields': ['content_reference']
+                },
+                'ad_analytics_by_account': {
+                    'path': 'adAnalyticsV2',
+                    'account_filter': 'accounts_param',
+                    'params': {
+                        'q': 'analytics',
+                        'pivot': 'ACCOUNT',
+                        'timeGranularity': 'DAILY',
+                        'dateRange.start.day': analytics_account_dt.day,
+                        'dateRange.start.month': analytics_account_dt.month,
+                        'dateRange.start.year': analytics_account_dt.year,
+                        'dateRange.end.day': now.day,
+                        'dateRange.end.month': now.month,
+                        'dateRange.end.year': now.year,
+                        'count': 10000
+                    },
+                    'data_key': 'elements',
+                    'bookmark_field': 'end_at',
+                    'id_fields': ['start_at']
                 }
             }
         },
@@ -412,7 +442,29 @@ def sync(client, config, catalog, state):
             },
             'data_key': 'elements',
             'bookmark_field': 'last_modified_time',
-            'id_fields': ['id']
+            'id_fields': ['id'],
+            'children': {
+                'ad_analytics_by_campaign_group': {
+                    'path': 'adAnalyticsV2',
+                    'account_filter': 'accounts_param',
+                    'params': {
+                        'q': 'analytics',
+                        'pivot': 'CAMPAIGN_GROUP',
+                        'timeGranularity': 'DAILY',
+                        'dateRange.start.day': analytics_campaigngr_dt.day,
+                        'dateRange.start.month': analytics_campaigngr_dt.month,
+                        'dateRange.start.year': analytics_campaigngr_dt.year,
+                        'dateRange.end.day': now.day,
+                        'dateRange.end.month': now.month,
+                        'dateRange.end.year': now.year,
+                        'count': 10000,
+                        'projection': '(*,elements(*(*,pivotValue~(name,account~(*)))))'
+                    },
+                    'data_key': 'elements',
+                    'bookmark_field': 'end_at',
+                    'id_fields': ['start_at']
+                }
+            }
         },
 
         'campaigns': {

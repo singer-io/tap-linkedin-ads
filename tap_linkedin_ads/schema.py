@@ -45,6 +45,16 @@ STREAMS = {
         'key_properties': ['creative_id', 'start_at'],
         'replication_method': 'INCREMENTAL',
         'replication_keys': ['end_at']
+    },
+    'ad_analytics_by_campaign_group': {
+        'key_properties': ['campaign_group_id', 'start_at'],
+        'replication_method': 'INCREMENTAL',
+        'recplication_keys': ['end_at']
+    },
+    'ad_analytics_by_account': {
+        'key_properties': ['start_at'],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['end_at']
     }
 }
 
