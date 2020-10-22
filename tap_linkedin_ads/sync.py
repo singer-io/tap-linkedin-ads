@@ -1,7 +1,7 @@
 import urllib.parse
 from datetime import timedelta
 import singer
-from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
+from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json
 
@@ -67,27 +67,29 @@ def process_records(catalog, #pylint: disable=too-many-branches
             # Transform record for Singer.io
             with Transformer(integer_datetime_fmt=UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING) \
                 as transformer:
-                transformed_record = transformer.transform(
-                    record,
-                    schema,
-                    stream_metadata)
+                # transformed_record = transformer.transform(
+                #     record,
+                #     schema,
+                #     stream_metadata)
 
+                write_record(stream_name, record, time_extracted=time_extracted)
+                counter.increment()
                 # Reset max_bookmark_value to new value if higher
-                if bookmark_field and (bookmark_field in transformed_record):
-                    if max_bookmark_value is None or \
-                        strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
-                        max_bookmark_value = transformed_record[bookmark_field]
+                # if bookmark_field and (bookmark_field in transformed_record):
+                #     if max_bookmark_value is None or \
+                #         strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
+                #         max_bookmark_value = transformed_record[bookmark_field]
 
-                if bookmark_field and (bookmark_field in transformed_record):
-                    last_dttm = strptime_to_utc(last_datetime)
-                    bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
-                    # Keep only records whose bookmark is after the last_datetime
-                    if bookmark_dttm >= last_dttm:
-                        write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                        counter.increment()
-                else:
-                    write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                    counter.increment()
+                # if bookmark_field and (bookmark_field in transformed_record):
+                #     last_dttm = strptime_to_utc(last_datetime)
+                #     bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
+                #     # Keep only records whose bookmark is after the last_datetime
+                #     if bookmark_dttm >= last_dttm:
+                #         write_record(stream_name, transformed_record, time_extracted=time_extracted)
+                #         counter.increment()
+                # else:
+                #     write_record(stream_name, transformed_record, time_extracted=time_extracted)
+                #     counter.increment()
 
         return max_bookmark_value, counter.value
 
@@ -206,6 +208,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 parent_id_field = id_field
                             i = i + 1
                         parent_id = record.get(parent_id_field)
+                        remaining_selected_fields = selected_fields(catalog.get_stream(stream_name))
                         # Add children filter params based on parent IDs
                         if stream_name == 'accounts':
                             account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
@@ -220,38 +223,50 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:20], remaining_selected_fields[20:]
+                                child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
                                     child_stream_name,
                                     stream_name,
                                     parent_id)
                         child_path = child_endpoint_config.get('path')
-                        child_total_records, child_batch_bookmark_value = sync_endpoint(
-                            client=client,
-                            catalog=catalog,
-                            state=state,
-                            start_date=start_date,
-                            stream_name=child_stream_name,
-                            path=child_path,
-                            endpoint_config=child_endpoint_config,
-                            data_key=child_endpoint_config.get('data_key', 'elements'),
-                            static_params=child_endpoint_config.get('params', {}),
-                            bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
-                            bookmark_field=child_endpoint_config.get('bookmark_field'),
-                            id_fields=child_endpoint_config.get('id_fields'),
-                            parent=child_endpoint_config.get('parent'),
-                            parent_id=parent_id)
 
-                        child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
-                        child_max_bookmark = child_max_bookmarks.get(child_stream_name)
-                        child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
-                        if child_batch_bookmark_dttm > child_max_bookmark_dttm:
-                            child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
+                        # Due to adAnalyticsV2 endpoint requiring to select at most 20 fields specified at a time
+                        # it must be chunked. Other streams would only ever call sync_endpoint once
+                        while remaining_selected_fields:
+                            child_total_records, child_batch_bookmark_value = sync_endpoint(
+                                client=client,
+                                catalog=catalog,
+                                state=state,
+                                start_date=start_date,
+                                stream_name=child_stream_name,
+                                path=child_path,
+                                endpoint_config=child_endpoint_config,
+                                data_key=child_endpoint_config.get('data_key', 'elements'),
+                                static_params=child_endpoint_config.get('params', {}),
+                                bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
+                                bookmark_field=child_endpoint_config.get('bookmark_field'),
+                                id_fields=child_endpoint_config.get('id_fields'),
+                                parent=child_endpoint_config.get('parent'),
+                                parent_id=parent_id)
 
-                        LOGGER.info('Synced: %s, parent_id: %s, total_records: %s',
-                                    child_stream_name,
-                                    parent_id,
-                                    child_total_records)
+                            child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
+                            child_max_bookmark = child_max_bookmarks.get(child_stream_name)
+                            child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
+                            if child_batch_bookmark_dttm > child_max_bookmark_dttm:
+                                child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
+
+                            LOGGER.info('Synced: %s, parent_id: %s, total_records: %s',
+                                        child_stream_name,
+                                        parent_id,
+                                        child_total_records)
+
+                            if child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:20], remaining_selected_fields[20:]
+                                child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
+
+
 
         # Pagination: Get next_url
         next_url = None
@@ -518,3 +533,21 @@ def sync(client, config, catalog, state):
                         stream_name,
                         total_records)
             LOGGER.info('FINISHED Syncing: %s', stream_name)
+
+
+def create_fields_param(fields):
+    return ','.join(fields)
+
+
+# TODO: If this needs to be used in any other tap move it to singer-python
+def selected_fields(catalog_for_stream):
+    mdata = metadata.to_map(catalog_for_stream.metadata)
+    fields = catalog_for_stream.schema.properties.keys()
+
+    selected_fields_list = list()
+    for field in fields:
+        field_metadata = mdata.get(('properties', field))
+        if should_sync_field(field_metadata.get('inclusion'), field_metadata.get('selected')):
+            selected_fields_list.append(field)
+
+    return selected_fields_list

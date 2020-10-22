@@ -71,12 +71,20 @@ def raise_for_error(response):
                 # us a 2xx response nor a response content.
                 return
             response = response.json()
-            if ('error' in response) or ('errorCode' in response):
+            if ('error' in response) or ('errorCode' in response) or ('serviceErrorCode' in response):
                 message = '%s: %s' % (response.get('error', str(error)),
                                       response.get('message', 'Unknown Error'))
                 error_code = response.get('status')
                 ex = get_exception_for_error_code(error_code)
-                if response.status_code == 401 and 'Expired access token' in message:
+
+                if 'status_code' in response:
+                    status_code = response.status_code
+                elif 'status' in response:
+                    status_code = error_code
+                else:
+                    status_code = None
+
+                if status_code and status_code == 401 and 'Expired access token' in message:
                     LOGGER.error("Your access_token has expired as per LinkedIn’s security \
                         policy. \n Please re-authenticate your connection to generate a new token \
                         and resume extraction.")
