@@ -135,29 +135,30 @@ def process_records(catalog, #pylint: disable=too-many-branches
             # Transform record for Singer.io
             with Transformer(integer_datetime_fmt=UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING) \
                 as transformer:
-                # transformed_record = transformer.transform(
-                #     record,
-                #     schema,
-                #     stream_metadata)
+                # if stream_name.startswith('ad_analytics_by_'):
+                #     import ipdb; ipdb.set_trace()
+                #     1+1
+                transformed_record = transformer.transform(
+                    record,
+                    schema,
+                    stream_metadata)
 
-                write_record(stream_name, record, time_extracted=time_extracted)
-                counter.increment()
                 # Reset max_bookmark_value to new value if higher
-                # if bookmark_field and (bookmark_field in transformed_record):
-                #     if max_bookmark_value is None or \
-                #         strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
-                #         max_bookmark_value = transformed_record[bookmark_field]
+                if bookmark_field and (bookmark_field in transformed_record):
+                    if max_bookmark_value is None or \
+                        strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
+                        max_bookmark_value = transformed_record[bookmark_field]
 
-                # if bookmark_field and (bookmark_field in transformed_record):
-                #     last_dttm = strptime_to_utc(last_datetime)
-                #     bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
-                #     # Keep only records whose bookmark is after the last_datetime
-                #     if bookmark_dttm >= last_dttm:
-                #         write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                #         counter.increment()
-                # else:
-                #     write_record(stream_name, transformed_record, time_extracted=time_extracted)
-                #     counter.increment()
+                if bookmark_field and (bookmark_field in transformed_record):
+                    last_dttm = strptime_to_utc(last_datetime)
+                    bookmark_dttm = strptime_to_utc(transformed_record[bookmark_field])
+                    # Keep only records whose bookmark is after the last_datetime
+                    if bookmark_dttm >= last_dttm:
+                        write_record(stream_name, transformed_record, time_extracted=time_extracted)
+                        counter.increment()
+                else:
+                    write_record(stream_name, transformed_record, time_extracted=time_extracted)
+                    counter.increment()
 
         return max_bookmark_value, counter.value
 
@@ -444,6 +445,7 @@ def sync(client, config, catalog, state):
     #   children: A collection of child endpoints (where the endpoint path includes the parent id)
     #   parent: On each of the children, the singular stream name for parent element
     #       NOT NEEDED FOR THIS INTEGRATION (The Children all include a reference to the Parent)
+    #       Except for ad_analytics_by_campaign and ad_analytics_by_creative
     endpoints = {
         'accounts': {
             'path': 'adAccountsV2',
@@ -523,7 +525,8 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
-                    'id_fields': ['creative_id', 'start_at']
+                    'id_fields': ['campaign_id', 'start_at'],
+                    'parent': 'campaign',
                 },
                 'creatives': {
                     'path': 'adCreativesV2',
@@ -551,11 +554,12 @@ def sync(client, config, catalog, state):
                         'dateRange.end.day': now.day,
                         'dateRange.end.month': now.month,
                         'dateRange.end.year': now.year,
-                        'count': 10000
+                        'count': 10000,
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
-                    'id_fields': ['creative_id', 'start_at']
+                    'id_fields': ['creative_id', 'start_at'],
+                    'parent': 'creative',
                 }
             }
         }
