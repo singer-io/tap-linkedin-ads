@@ -6,7 +6,74 @@ from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
-FIELDS_PER_AD_ANALYTICS_V2_QUERY = 1
+FIELDS_PER_AD_ANALYTICS_V2_QUERY = 20
+FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
+    'actionClicks',
+    'adUnitClicks',
+    'approximateUniqueImpressions',
+    'cardClicks',
+    'cardImpressions',
+    'clicks',
+    'commentLikes',
+    'comments',
+    'companyPageClicks',
+    'conversionValueInLocalCurrency',
+    'costInLocalCurrency',
+    'costInUsd',
+    'dateRange',
+    'externalWebsiteConversions',
+    'externalWebsitePostClickConversions',
+    'externalWebsitePostViewConversions',
+    'follows',
+    'fullScreenPlays',
+    'impressions',
+    'landingPageClicks',
+    'leadGenerationMailContactInfoShares',
+    'leadGenerationMailInterestedClicks',
+    'likes',
+    'oneClickLeadFormOpens',
+    'oneClickLeads',
+    'opens',
+    'otherEngagements',
+    'pivotValues',
+    'reactions',
+    'sends',
+    'shares',
+    'textUrlClicks',
+    'totalEngagements',
+    'videoCompletions',
+    'videoFirstQuartileCompletions',
+    'videoMidpointCompletions',
+    'videoStarts',
+    'videoThirdQuartileCompletions',
+    'videoViews',
+    'viralCardClicks',
+    'viralCardImpressions',
+    'viralClicks',
+    'viralCommentLikes',
+    'viralComments',
+    'viralCompanyPageClicks',
+    'viralExternalWebsiteConversions',
+    'viralExternalWebsitePostClickConversions',
+    'viralExternalWebsitePostViewConversions',
+    'viralFollows',
+    'viralFullScreenPlays',
+    'viralImpressions',
+    'viralLandingPageClicks',
+    'viralLikes',
+    'viralOneClickLeadFormOpens',
+    'viralOneClickLeads',
+    'viralOtherEngagements',
+    'viralReactions',
+    'viralShares',
+    'viralTotalEngagements',
+    'viralVideoCompletions',
+    'viralVideoFirstQuartileCompletions',
+    'viralVideoMidpointCompletions',
+    'viralVideoStarts',
+    'viralVideoThirdQuartileCompletions',
+    'viralVideoViews',
+}
 
 
 def write_schema(catalog, stream_name):
@@ -209,8 +276,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 parent_id_field = id_field
                             i = i + 1
                         parent_id = record.get(parent_id_field)
-                        remaining_selected_fields = [field for field in selected_fields(catalog.get_stream(stream_name))
-                                                     if field not in {'offsite_delivery_enabled', 'created_time', 'associated_entity', 'last_modified_time', 'cost_type', 'daily_budget', 'daily_budget', 'account_id', 'version', 'audience_expansion_enabled', 'type', 'status', 'locale', 'name', 'targeting', 'serving_statuses'}]
+                        remaining_selected_fields = selected_fields(catalog.get_stream(child_stream_name))
+
                         # Add children filter params based on parent IDs
                         if stream_name == 'accounts':
                             account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
@@ -225,6 +292,11 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
+                                remaining_selected_fields = [field for field in remaining_selected_fields
+                                                             if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
+
+                                LOGGER.info("remaining_selected_fields=%s", remaining_selected_fields)
+                                LOGGER.info("fields not matching=%s", set(selected_fields(catalog.get_stream(child_stream_name))).difference(set(remaining_selected_fields)))
                                 current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
 
@@ -267,6 +339,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                             if child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
+                            else:
+                                remaining_selected_fields = None
 
 
 

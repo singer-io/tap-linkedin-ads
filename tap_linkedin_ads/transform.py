@@ -296,7 +296,6 @@ def transform_urn(data_dict):
     return data_dict
 
 
-
 def transform_data(data_dict, stream_name):
     new_dict = data_dict
     i = 0
