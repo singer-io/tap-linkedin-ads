@@ -88,7 +88,10 @@ def raise_for_error(response):
                     LOGGER.error("Your access_token has expired as per LinkedIn’s security \
                         policy. \n Please re-authenticate your connection to generate a new token \
                         and resume extraction.")
-                raise ex(message)
+                if status_code and status_code == 403:
+                    LOGGER.error(message)
+                else:
+                    raise ex(message)
             else:
                 raise LinkedInError(error)
         except (ValueError, TypeError):

@@ -3,9 +3,10 @@ from datetime import timedelta
 import singer
 from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
 from singer.utils import strptime_to_utc, strftime
-from tap_linkedin_ads.transform import transform_json
+from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
+FIELDS_PER_AD_ANALYTICS_V2_QUERY = 1
 
 
 def write_schema(catalog, stream_name):
@@ -208,7 +209,8 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 parent_id_field = id_field
                             i = i + 1
                         parent_id = record.get(parent_id_field)
-                        remaining_selected_fields = selected_fields(catalog.get_stream(stream_name))
+                        remaining_selected_fields = [field for field in selected_fields(catalog.get_stream(stream_name))
+                                                     if field not in {'offsite_delivery_enabled', 'created_time', 'associated_entity', 'last_modified_time', 'cost_type', 'daily_budget', 'daily_budget', 'account_id', 'version', 'audience_expansion_enabled', 'type', 'status', 'locale', 'name', 'targeting', 'serving_statuses'}]
                         # Add children filter params based on parent IDs
                         if stream_name == 'accounts':
                             account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
@@ -223,7 +225,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
-                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:20], remaining_selected_fields[20:]
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
@@ -263,7 +265,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                         child_total_records)
 
                             if child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:20], remaining_selected_fields[20:]
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
 
 
@@ -536,7 +538,8 @@ def sync(client, config, catalog, state):
 
 
 def create_fields_param(fields):
-    return ','.join(fields)
+    camel_case_fields = [snake_case_to_camel_case(field) for field in fields]
+    return ','.join(camel_case_fields)
 
 
 # TODO: If this needs to be used in any other tap move it to singer-python
