@@ -135,9 +135,6 @@ def process_records(catalog, #pylint: disable=too-many-branches
             # Transform record for Singer.io
             with Transformer(integer_datetime_fmt=UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING) \
                 as transformer:
-                # if stream_name.startswith('ad_analytics_by_'):
-                #     import ipdb; ipdb.set_trace()
-                #     1+1
                 transformed_record = transformer.transform(
                     record,
                     schema,
