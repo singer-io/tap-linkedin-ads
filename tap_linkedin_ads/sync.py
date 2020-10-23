@@ -292,10 +292,14 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
                                 remaining_selected_fields = [field for field in remaining_selected_fields
                                                              if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
+                                if 'date_range' not in remaining_selected_fields:
+                                    remaining_selected_fields.append('date_range')
 
                                 LOGGER.info("remaining_selected_fields=%s", remaining_selected_fields)
                                 LOGGER.info("fields not matching=%s", set(selected_fields(catalog.get_stream(child_stream_name))).difference(set(remaining_selected_fields)))
-                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY - 1], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY - 1:]
+                                if 'date_range' not in current_sync_selected_fields:
+                                    current_sync_selected_fields.append('date_range')
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
@@ -335,7 +339,9 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                         child_total_records)
 
                             if child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY:]
+                                current_sync_selected_fields, remaining_selected_fields = remaining_selected_fields[0:FIELDS_PER_AD_ANALYTICS_V2_QUERY - 1], remaining_selected_fields[FIELDS_PER_AD_ANALYTICS_V2_QUERY - 1:]
+                                if 'date_range' not in current_sync_selected_fields:
+                                    current_sync_selected_fields.append('date_range')
                                 child_endpoint_config['params']['fields'] = create_fields_param(current_sync_selected_fields)
                             else:
                                 remaining_selected_fields = None
