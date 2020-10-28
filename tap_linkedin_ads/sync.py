@@ -307,7 +307,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 static_params=child_endpoint_config.get('params', {}),
                                 bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
                                 bookmark_field=child_endpoint_config.get('bookmark_field'),
-                                id_fields=child_endpoint_config.get('id_fields'),
                                 parent=child_endpoint_config.get('parent'),
                                 parent_id=parent_id)
                         else:
@@ -694,7 +693,6 @@ def sync_ad_analytics_by_campaign(client, #pylint: disable=too-many-branches,too
                                   static_params,
                                   bookmark_query_field=None,
                                   bookmark_field=None,
-                                  id_fields=None,
                                   parent=None,
                                   parent_id=None):
 
@@ -728,20 +726,20 @@ def sync_ad_analytics_by_campaign(client, #pylint: disable=too-many-branches,too
     for pageA in get_pages_analytics_by_campaign(client, path, start, count, chunkA, stream_name, last_datetime, static_params, bookmark_query_field=bookmark_query_field):
         full_records = dict()
 
-        for element in pageA['elements']:
+        for element in pageA[data_key]:
             temp_start = element['dateRange']['start']
-            string_start = '{}-{}-{}'.format(temp_start['year'],temp_start['month'],temp_start['day'])
+            string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
             full_records[string_start] = element
 
 
         for chunk in [chunkB, chunkC, chunkD]:
             if len(chunk) > 1:
                 for page in get_pages_analytics_by_campaign(client, path, start, count, chunk, stream_name, last_datetime, static_params, bookmark_query_field=bookmark_query_field):
-                    merge_dicts(full_records, page['elements'])
+                    merge_dicts(full_records, page[data_key])
 
         time_extracted = utils.now()
 
-        transformed_data = transform_json({"elements": list(full_records.values())}, stream_name)['elements']
+        transformed_data = transform_json({data_key: list(full_records.values())}, stream_name)[data_key]
 
         # write_records(transformed_records)
         max_bookmark_value, record_count = process_records(
@@ -763,6 +761,6 @@ def sync_ad_analytics_by_campaign(client, #pylint: disable=too-many-branches,too
 def merge_dicts(full_records, elements):
     for element in elements:
         temp_start = element['dateRange']['start']
-        string_start = '{}-{}-{}'.format(temp_start['year'],temp_start['month'],temp_start['day'])
+        string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
         if string_start in full_records:
             full_records[string_start].update(element)
