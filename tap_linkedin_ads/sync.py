@@ -35,6 +35,8 @@ FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'oneClickLeads',
     'opens',
     'otherEngagements',
+    'pivot',
+    'pivotValue',
     'pivotValues',
     'reactions',
     'sends',
