@@ -1,12 +1,81 @@
 import urllib.parse
 from datetime import timedelta
 import singer
-from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
+from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
 from singer.utils import strptime_to_utc, strftime
-from tap_linkedin_ads.transform import transform_json
+from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
 
+FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
+    'actionClicks',
+    'adUnitClicks',
+    'approximateUniqueImpressions', #Add
+    'cardClicks', #Add
+    'cardImpressions', #Add
+    'clicks',
+    'commentLikes', #Add
+    'comments',
+    'companyPageClicks',
+    'conversionValueInLocalCurrency',
+    'costInLocalCurrency',
+    'costInUsd',
+    'dateRange',
+    'externalWebsiteConversions',
+    'externalWebsitePostClickConversions',
+    'externalWebsitePostViewConversions',
+    'follows',
+    'fullScreenPlays',
+    'impressions',
+    'landingPageClicks',
+    'leadGenerationMailContactInfoShares',
+    'leadGenerationMailInterestedClicks',
+    'likes',
+    'oneClickLeadFormOpens',
+    'oneClickLeads',
+    'opens',
+    'otherEngagements',
+    'pivot',
+    'pivotValue',
+    'pivotValues',
+    'reactions',
+    'sends',
+    'shares',
+    'textUrlClicks',
+    'totalEngagements',
+    'videoCompletions',
+    'videoFirstQuartileCompletions',
+    'videoMidpointCompletions',
+    'videoStarts',
+    'videoThirdQuartileCompletions',
+    'videoViews',
+    'viralCardClicks',
+    'viralCardImpressions',
+    'viralClicks',
+    'viralCommentLikes',
+    'viralComments',
+    'viralCompanyPageClicks',
+    'viralExternalWebsiteConversions',
+    'viralExternalWebsitePostClickConversions',
+    'viralExternalWebsitePostViewConversions',
+    'viralFollows',
+    'viralFullScreenPlays',
+    'viralImpressions',
+    'viralLandingPageClicks',
+    'viralLikes',
+    'viralOneClickLeadFormOpens',
+    'viralOneClickLeads',
+    'viralOtherEngagements',
+    'viralReactions',
+    'viralShares',
+    'viralTotalEngagements',
+    'viralVideoCompletions',
+    'viralVideoFirstQuartileCompletions',
+    'viralVideoMidpointCompletions',
+    'viralVideoStarts',
+    'viralVideoThirdQuartileCompletions',
+    'viralVideoViews',
+}
 
 def write_schema(catalog, stream_name):
     stream = catalog.get_stream(stream_name)
@@ -220,6 +289,16 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
+                                # get selected fields
+                                valid_selected_fields = [snake_case_to_camel_case(field)
+                                                         for field in selected_fields(catalog.get_stream(child_stream_name))
+                                                         if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
+
+                                field_count = len(valid_selected_fields)
+                                if field_count > 20:
+                                    raise RuntimeError("LinkedIn's API limits the field count for {} to 20 metrics (You have selected {}).".format(child_stream_name, field_count))
+
+                                child_endpoint_config['params']['fields'] = ','.join(valid_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
                                     child_stream_name,
@@ -432,7 +511,7 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
-                    'id_fields': ['creative_id', 'start_at']
+                    'parent': 'campaign',
                 },
                 'creatives': {
                     'path': 'adCreativesV2',
@@ -518,3 +597,15 @@ def sync(client, config, catalog, state):
                         stream_name,
                         total_records)
             LOGGER.info('FINISHED Syncing: %s', stream_name)
+
+def selected_fields(catalog_for_stream):
+    mdata = metadata.to_map(catalog_for_stream.metadata)
+    fields = catalog_for_stream.schema.properties.keys()
+
+    selected_fields_list = list()
+    for field in fields:
+        field_metadata = mdata.get(('properties', field))
+        if should_sync_field(field_metadata.get('inclusion'), field_metadata.get('selected')):
+            selected_fields_list.append(field)
+
+    return selected_fields_list
