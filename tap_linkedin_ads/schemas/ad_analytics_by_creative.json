@@ -1,7 +1,28 @@
 {
 	"type": "object",
 	"additionalProperties": false,
-	"properties": {
+        "properties": {
+                "approximate_unique_impressions": {
+                        "type": ["null", "integer"]
+                },
+                "card_clicks": {
+                        "type": ["null", "integer"]
+                },
+                "card_impressions": {
+                        "type": ["null", "integer"]
+                },
+                "comment_likes": {
+                        "type": ["null", "integer"]
+                },
+                "viral_card_clicks": {
+                        "type": ["null", "integer"]
+                },
+                "viral_card_impressions": {
+                        "type": ["null", "integer"]
+                },
+                "viral_comment_likes": {
+                        "type": ["null", "integer"]
+                },
 		"creative": {
 			"type": ["null", "string"]
 		},
