@@ -13,6 +13,15 @@ def convert(name):
     regsub = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', regsub).lower()
 
+def snake_case_to_camel_case(text):
+    if not text:
+        return text
+
+    words = text.split('_')
+    first_word = words[0]
+    remaining_words = words[1:]
+
+    return first_word + ''.join(word.title() for word in remaining_words)
 
 # Convert keys in json array
 def convert_array(arr):
