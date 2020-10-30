@@ -108,37 +108,71 @@
 						}
 					}
 				},
-				"exclude": {
-					"anyOf": [{
-							"type": "array",
-							"items": {
-								"type": "object",
-								"additionalProperties": false,
-								"properties": {
-									"type": {
-										"type": ["null", "string"]
-									},
-									"values": {
-										"anyOf": [{
-												"type": "array",
-												"items": {
-													"type": "string"
-												}
-											},
-											{
-												"type": "null"
-											}
-										]
-									}
-								}
-							}
-						},
-						{
-							"type": "null"
-						}
-					]
-				}
-			}
+                    "exclude": {
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "properties": {
+                        "or": {
+                          "type": [
+                            "null",
+                            "object"
+                          ],
+                          "properties": {
+                            "urn:li:ad_targeting_facet:titles": {
+                              "type": [
+                                "null",
+                                "array"
+                              ],
+                              "items": {
+                                "type": [
+                                  "null",
+                                  "string"
+                                ]
+                              }
+                            },
+                            "urn:li:ad_targeting_facet:staff_count_ranges": {
+                              "type": [
+                                "null",
+                                "array"
+                              ],
+                              "items": {
+                                "type": [
+                                  "null",
+                                  "string"
+                                ]
+                              }
+                            },
+                            "urn:li:ad_targeting_facet:followed_companies": {
+                              "type": [
+                                "null",
+                                "array"
+                              ],
+                              "items": {
+                                "type": [
+                                  "null",
+                                  "string"
+                                ]
+                              }
+                            },
+                            "urn:li:ad_targeting_facet:seniorities": {
+                              "type": [
+                                "null",
+                                "array"
+                              ],
+                              "items": {
+                                "type": [
+                                  "null",
+                                  "string"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+		  }
 		},
 		"serving_statuses": {
 			"anyOf": [{
