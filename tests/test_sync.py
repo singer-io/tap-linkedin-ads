@@ -38,7 +38,7 @@ class LinkedinAdsSyncTest(unittest.TestCase):
         return self.ALL_STREAMS
 
     def expected_sync_streams(self):
-        return self.ALL_STREAMS
+        return self.ALL_STREAMS - {'ad_analytics_by_creative'}
 
     def expected_pks(self):
         return {
@@ -147,17 +147,18 @@ class LinkedinAdsSyncTest(unittest.TestCase):
         # Select all streams and all fields
         for entry in catalog_entries:
 
-            schema = menagerie.select_catalog(conn_id, entry)
+            if entry.get('tap_stream_id') in self.expected_sync_streams():
+                schema = menagerie.select_catalog(conn_id, entry)
 
-            catalog_entry = {
-                'key_properties': entry.get('key_properties'),
-                'schema' : schema,
-                'tap_stream_id': entry.get('tap_stream_id'),
-                'replication_method': entry.get('replication_method'),
-                'replication_key': entry.get('replication_key')
-            }
+                catalog_entry = {
+                    'key_properties': entry.get('key_properties'),
+                    'schema' : schema,
+                    'tap_stream_id': entry.get('tap_stream_id'),
+                    'replication_method': entry.get('replication_method'),
+                    'replication_key': entry.get('replication_key')
+                }
 
-            connections.select_catalog_and_fields_via_metadata(conn_id, catalog_entry, schema)
+                connections.select_catalog_and_fields_via_metadata(conn_id, catalog_entry, schema)
 
         # found_catalogs = menagerie.get_catalogs(conn_id)
         self.assertGreater(len(catalog_entries),
