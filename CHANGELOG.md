@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+  * Update request format for `ad_analytics_by_campaigns` and `ad_analytics_by_creative`
+  * Update schemas for: `campaigns`, `ad_analytics_by_campaigns`, and `ad_analytics_by_creative`
+  * Add assertion around how many fields can be selected for `ad_analytics_by_campaigns` and `ad_analytics_by_creative`
+  * Prettified all JSON schema files
+  * [#12](https://github.com/singer-io/tap-linkedin-ads/pull/12)
+
 ## 1.0.0
   * Preparing for v1.0.0 release
 
