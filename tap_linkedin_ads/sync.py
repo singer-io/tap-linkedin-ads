@@ -544,8 +544,7 @@ def sync(client, config, catalog, state):
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
-                    'id_fields': ['creative_id', 'start_at'],
-                    'parent': 'creative',
+                    'id_fields': ['creative_id', 'start_at']
                 }
             }
         }
