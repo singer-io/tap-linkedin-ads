@@ -1,7 +1,7 @@
 import urllib.parse
 from datetime import timedelta
 import singer
-from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
+from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json
 
@@ -518,3 +518,15 @@ def sync(client, config, catalog, state):
                         stream_name,
                         total_records)
             LOGGER.info('FINISHED Syncing: %s', stream_name)
+
+def selected_fields(catalog_for_stream):
+    mdata = metadata.to_map(catalog_for_stream.metadata)
+    fields = catalog_for_stream.schema.properties.keys()
+
+    selected_fields_list = list()
+    for field in fields:
+        field_metadata = mdata.get(('properties', field))
+        if should_sync_field(field_metadata.get('inclusion'), field_metadata.get('selected')):
+            selected_fields_list.append(field)
+
+    return selected_fields_list
