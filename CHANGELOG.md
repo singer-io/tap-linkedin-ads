@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+  * Fix typo in the `ad_analytics_by_campaign` schema
+  * [#15](https://github.com/singer-io/tap-linkedin-ads/pull/15)
+
 ## 1.0.1
   * Update request format for `ad_analytics_by_campaigns` and `ad_analytics_by_creative`
   * Update schemas for: `campaigns`, `ad_analytics_by_campaigns`, and `ad_analytics_by_creative`
