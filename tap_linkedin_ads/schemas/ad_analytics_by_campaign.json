@@ -107,7 +107,7 @@
       ],
       "multipleOf": 1e-08
     },
-    "cost_in_local_cy": {
+    "cost_in_local_currency": {
       "type": [
         "null",
         "number"
