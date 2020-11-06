@@ -309,21 +309,41 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                     stream_name,
                                     parent_id)
                         child_path = child_endpoint_config.get('path')
-                        child_total_records, child_batch_bookmark_value = sync_endpoint(
-                            client=client,
-                            catalog=catalog,
-                            state=state,
-                            start_date=start_date,
-                            stream_name=child_stream_name,
-                            path=child_path,
-                            endpoint_config=child_endpoint_config,
-                            data_key=child_endpoint_config.get('data_key', 'elements'),
-                            static_params=child_endpoint_config.get('params', {}),
-                            bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
-                            bookmark_field=child_endpoint_config.get('bookmark_field'),
-                            id_fields=child_endpoint_config.get('id_fields'),
-                            parent=child_endpoint_config.get('parent'),
-                            parent_id=parent_id)
+
+                        if child_stream_name == 'ad_analytics_by_campaign':
+                            child_total_records, child_batch_bookmark_value = sync_ad_analytics(
+                                client=client,
+                                catalog=catalog,
+                                state=state,
+                                start_date=last_datetime,
+                                stream_name=child_stream_name,
+                                path=child_path,
+                                endpoint_config=child_endpoint_config,
+                                data_key=child_endpoint_config.get('data_key', 'elements'),
+                                static_params=child_endpoint_config.get('params', {}),
+                                bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
+                                bookmark_field=child_endpoint_config.get('bookmark_field'),
+                                id_fields=child_endpoint_config.get('id_fields'),
+                                parent=child_endpoint_config.get('parent'),
+                                parent_id=parent_id)
+
+                        else:
+
+                            child_total_records, child_batch_bookmark_value = sync_endpoint(
+                                client=client,
+                                catalog=catalog,
+                                state=state,
+                                start_date=start_date,
+                                stream_name=child_stream_name,
+                                path=child_path,
+                                endpoint_config=child_endpoint_config,
+                                data_key=child_endpoint_config.get('data_key', 'elements'),
+                                static_params=child_endpoint_config.get('params', {}),
+                                bookmark_query_field=child_endpoint_config.get('bookmark_query_field'),
+                                bookmark_field=child_endpoint_config.get('bookmark_field'),
+                                id_fields=child_endpoint_config.get('id_fields'),
+                                parent=child_endpoint_config.get('parent'),
+                                parent_id=parent_id)
 
                         child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
                         child_max_bookmark = child_max_bookmarks.get(child_stream_name)
