@@ -186,7 +186,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
     max_bookmark_value = last_datetime
     LOGGER.info('%s: bookmark last_datetime = %s', stream_name, max_bookmark_value)
 
-    write_schema(catalog, stream_name)
 
     # Initialize child_max_bookmarks
     child_max_bookmarks = {}
@@ -198,6 +197,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                                   child_stream_name)
 
             if should_stream:
+                write_schema(catalog, child_stream_name)
                 child_bookmark_field = child_endpoint_config.get('bookmark_field')
                 if child_bookmark_field:
                     child_last_datetime = get_bookmark(state, stream_name, start_date)
@@ -598,6 +598,10 @@ def sync(client, config, catalog, state):
             update_currently_syncing(state, stream_name)
             path = endpoint_config.get('path')
             bookmark_field = endpoint_config.get('bookmark_field')
+
+            # Write schema for parent streams
+            write_schema(catalog, stream_name)
+
             total_records, max_bookmark_value = sync_endpoint(
                 client=client,
                 catalog=catalog,
