@@ -1,11 +1,15 @@
 import urllib.parse
+import datetime
 from datetime import timedelta
+import pytz
 import singer
 from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
+
+LOOKBACK_WINDOW = 7
 
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
@@ -609,3 +613,84 @@ def selected_fields(catalog_for_stream):
             selected_fields_list.append(field)
 
     return selected_fields_list
+
+def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statements
+                      catalog,
+                      state,
+                      start_date,
+                      stream_name,
+                      path,
+                      endpoint_config,
+                      data_key,
+                      static_params,
+                      bookmark_query_field=None,
+                      bookmark_field=None,
+                      id_fields=None,
+                      parent=None,
+                      parent_id=None):
+    # Maybe use start_date here instead of last_datetime?
+    last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
+
+    window_start_date = last_datetime_dt.date()
+    window_end_date = window_start_date + timedelta(days=1) # maybe make this configurable
+
+    # Override the default start and end dates
+    static_params = {**static_params,
+                     'dateRange.start.day': window_start_date.day,
+                     'dateRange.start.month': window_start_date.month,
+                     'dateRange.start.year': window_start_date.year,
+
+                     'dateRange.end.day': window_end_date.day,
+                     'dateRange.end.month': window_end_date.month,
+                     'dateRange.end.year': window_end_date.year,}
+    today = datetime.date.today()
+    total_records = 0
+    while window_end_date <= today:
+        window_total_records, _ = sync_endpoint(
+            client=client,
+            catalog=catalog,
+            state=state,
+            start_date=start_date,
+            stream_name=stream_name,
+            path=endpoint_config.get('path'),
+            endpoint_config=endpoint_config,
+            data_key=endpoint_config.get('data_key', 'elements'),
+            static_params=static_params,
+            bookmark_query_field=endpoint_config.get('bookmark_query_field'),
+            bookmark_field=endpoint_config.get('bookmark_field'),
+            id_fields=endpoint_config.get('id_fields'),
+            parent=endpoint_config.get('parent'),
+            parent_id=parent_id)
+
+        total_records += window_total_records
+
+        # WE have to convert the window_end (date object) into a datetime
+        # in order to singer.strftime() it for the bookmark
+        bookmark_value = datetime.datetime(
+            year=window_end_date.year,
+            month=window_end_date.month,
+            day=window_end_date.day,
+            hour=0,
+            minute=0,
+            second=0,
+            tzinfo=pytz.UTC
+        )
+
+        max_bookmark = strftime(bookmark_value)
+
+        window_start_date = window_end_date
+        window_end_date = window_start_date + timedelta(days=1)
+
+        if window_end_date > today:
+            break
+
+        static_params = {**static_params,
+                         'dateRange.start.day': window_start_date.day,
+                         'dateRange.start.month': window_start_date.month,
+                         'dateRange.start.year': window_start_date.year,
+
+                         'dateRange.end.day': window_end_date.day,
+                         'dateRange.end.month': window_end_date.month,
+                         'dateRange.end.year': window_end_date.year,}
+
+    return total_records, max_bookmark
