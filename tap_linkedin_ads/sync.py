@@ -299,10 +299,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                                          for field in selected_fields(catalog.get_stream(child_stream_name))
                                                          if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
 
-                                field_count = len(valid_selected_fields)
-                                if field_count > 20:
-                                    raise RuntimeError("LinkedIn's API limits the field count for {} to 20 metrics (You have selected {}).".format(child_stream_name, field_count))
-
                                 child_endpoint_config['params']['fields'] = ','.join(valid_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
