@@ -424,7 +424,7 @@ def sync(client, config, catalog, state):
 
     if config.get('date_window_size'):
         LOGGER.info('Using non-standard date window size of %s', config.get('date_window_size'))
-        global DATE_WINDOW_SIZE
+        global DATE_WINDOW_SIZE # pylint: disable=global-statement
         DATE_WINDOW_SIZE = config.get('date_window_size')
     else:
         LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
@@ -646,7 +646,7 @@ def selected_fields(catalog_for_stream):
 
     return selected_fields_list
 
-def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statements
+def sync_ad_analytics(client,
                       catalog,
                       state,
                       start_date,
@@ -660,6 +660,7 @@ def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statem
                       id_fields=None,
                       parent=None,
                       parent_id=None):
+    # pylint: disable=too-many-branches,too-many-statements,unused-argument
     # Maybe use start_date here instead of last_datetime?
     last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
 
