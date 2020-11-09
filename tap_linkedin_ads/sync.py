@@ -10,6 +10,7 @@ from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 LOGGER = singer.get_logger()
 
 LOOKBACK_WINDOW = 7
+DATE_WINDOW_SIZE = 30 # days
 
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
@@ -656,7 +657,11 @@ def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statem
     last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
-    window_end_date = window_start_date + timedelta(days=1) # maybe make this configurable
+    window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE) # maybe make this configurable
+    today = datetime.date.today()
+
+    if window_end_date > today:
+        window_end_date = today
 
     # Override the default start and end dates
     static_params = {**static_params,
@@ -667,7 +672,7 @@ def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statem
                      'dateRange.end.day': window_end_date.day,
                      'dateRange.end.month': window_end_date.month,
                      'dateRange.end.year': window_end_date.year,}
-    today = datetime.date.today()
+
     total_records = 0
     while window_end_date <= today:
         window_total_records, _ = sync_endpoint(
@@ -703,10 +708,13 @@ def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statem
         max_bookmark = strftime(bookmark_value)
 
         window_start_date = window_end_date
-        window_end_date = window_start_date + timedelta(days=1)
+        window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
 
         if window_end_date > today:
-            break
+            window_end_date = today
+
+            if window_start_date == window_end_date:
+                break
 
         static_params = {**static_params,
                          'dateRange.start.day': window_start_date.day,
