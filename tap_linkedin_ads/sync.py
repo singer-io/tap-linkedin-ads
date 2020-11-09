@@ -422,6 +422,13 @@ def sync(client, config, catalog, state):
     if 'start_date' in config:
         start_date = config['start_date']
 
+    if config.get('date_window_size'):
+        LOGGER.info('Using non-standard date window size of %s', config.get('date_window_size'))
+        global DATE_WINDOW_SIZE
+        DATE_WINDOW_SIZE = config.get('date_window_size')
+    else:
+        LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
+
     # Get datetimes for endpoint parameters
     now = utils.now()
     # delta = 7 days to account for delays in ads data
@@ -657,7 +664,7 @@ def sync_ad_analytics(client, #pylint: disable=too-many-branches,too-many-statem
     last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
-    window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE) # maybe make this configurable
+    window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
     today = datetime.date.today()
 
     if window_end_date > today:
