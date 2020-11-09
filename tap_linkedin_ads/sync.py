@@ -681,7 +681,7 @@ def sync_ad_analytics(client,
 
     total_records = 0
     while window_end_date <= today:
-        window_total_records, _ = sync_endpoint(
+        window_total_records, _ = sync_analytics_endpoint(
             client=client,
             catalog=catalog,
             state=state,
@@ -732,3 +732,64 @@ def sync_ad_analytics(client,
                          'dateRange.end.year': window_end_date.year,}
 
     return total_records, max_bookmark
+
+def sync_analytics_endpoint(client, catalog, state, start_date, stream_name, path, endpoint_config, data_key, static_params,
+                            bookmark_query_field=None, bookmark_field=None, id_fields=None, parent=None, parent_id=None):
+    # Get the latest bookmark for the stream and set the last_datetime
+    last_datetime = get_bookmark(state, stream_name, start_date)
+    max_bookmark_value = last_datetime
+    LOGGER.info('%s: bookmark last_datetime = %s', stream_name, max_bookmark_value)
+
+    start = 0 # Starting offset value for each batch API call
+    count = endpoint_config.get('count', 100) # Batch size; Number of records per API call, default = 100
+    total_records = 0
+    page = 1
+    params = {
+        'start': start,
+        'count': count,
+        **static_params # adds in endpoint specific, sort, filter params
+    }
+    if bookmark_query_field:
+        params[bookmark_query_field] = last_datetime
+
+    # Update fields
+
+    querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+    next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, querystring)
+
+    while next_url:
+        LOGGER.info('URL for %s: %s', stream_name, next_url)
+
+        data = client.get(url=next_url, endpoint=stream_name)
+
+        time_extracted = utils.now()
+
+        if data_key in data:
+            transformed_data = transform_json(data, stream_name)[data_key]
+
+        if not transformed_data or transformed_data is None:
+            LOGGER.info('No transformed_data')
+            break # No data results
+
+        max_bookmark_value, record_count = process_records(catalog=catalog, stream_name=stream_name, records=transformed_data, time_extracted=time_extracted, bookmark_field=bookmark_field,
+                                                           max_bookmark_value=max_bookmark_value, last_datetime=last_datetime, parent=parent, parent_id=parent_id)
+        LOGGER.info('%s, records processed: %s', stream_name, record_count)
+        total_records = total_records + record_count
+
+        next_url = get_next_url(data):
+
+        LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s', stream_name, page, record_count, total_records)
+        page = page + 1
+
+    return total_records, max_bookmark_value
+
+def get_next_url(data):
+    next_url = None
+    links = data.get('paging', {}).get('links', [])
+    for link in links:
+        rel = link.get('rel')
+        if rel == 'next':
+            href = link.get('href')
+            if href:
+                next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+    return next_url
