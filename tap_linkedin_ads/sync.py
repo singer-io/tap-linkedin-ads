@@ -656,6 +656,8 @@ def sync_ad_analytics(client,
                       id_fields=None,
                       parent=None,
                       parent_id=None):
+def split_into_chunks(fields, chunk_length):
+    return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
 
     # start_date here is not the config's start date, it's the bookmark
