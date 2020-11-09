@@ -661,7 +661,9 @@ def sync_ad_analytics(client,
                       parent=None,
                       parent_id=None):
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
-    # Maybe use start_date here instead of last_datetime?
+
+    # start_date here is not the config's start date, it's the bookmark
+    # value, which can fall back to the config's start date
     last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
