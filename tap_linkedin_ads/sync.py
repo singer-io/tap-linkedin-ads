@@ -658,6 +658,28 @@ def sync_ad_analytics(client,
                       parent_id=None):
 def split_into_chunks(fields, chunk_length):
     return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
+
+def shift_sync_window(params, today):
+    current_end = datetime.date(
+        year=params['dateRange.end.year'],
+        month=params['dateRange.end.month'],
+        day=params['dateRange.end.day'],
+    )
+    new_end = current_end + timedelta(days=DATE_WINDOW_SIZE)
+
+    if new_end > today:
+        new_end = today
+
+    new_params = {**params,
+                  'dateRange.start.day': current_end.day,
+                  'dateRange.start.month': current_end.month,
+                  'dateRange.start.year': current_end.year,
+
+                  'dateRange.end.day': new_end.day,
+                  'dateRange.end.month': new_end.month,
+                  'dateRange.end.year': new_end.year,}
+    return current_end, new_end, new_params
+
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
 
     # start_date here is not the config's start date, it's the bookmark

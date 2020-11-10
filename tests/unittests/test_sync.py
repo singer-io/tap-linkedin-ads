@@ -1,9 +1,11 @@
+import datetime
 import unittest
 from tap_linkedin_ads.sync import get_next_url
+from tap_linkedin_ads.sync import shift_sync_window
 from tap_linkedin_ads.sync import split_into_chunks
 
 
-class TestChunking(unittest.TestCase):
+class TestSyncUtils(unittest.TestCase):
     def test_split_into_chunks(self):
         MAX_CHUNK_LENGTH = 17
         fields = list(range(65))
@@ -38,4 +40,54 @@ class TestChunking(unittest.TestCase):
         actual_2 = get_next_url(data)
 
         self.assertEqual(expected_2, actual_2)
+
+    def test_shift_sync_window_non_boundary(self):
+        expected_start_date = datetime.date(year=2020, month=10, day=1)
+        expected_end_date = datetime.date(year=2020, month=10, day=31)
+        expected_params = {
+            'dateRange.start.year': expected_start_date.year,
+            'dateRange.start.month': expected_start_date.month,
+            'dateRange.start.day': expected_start_date.day,
+            'dateRange.end.year': expected_end_date.year,
+            'dateRange.end.month': expected_end_date.month,
+            'dateRange.end.day': expected_end_date.day,
+        }
+
+        params = {
+            'dateRange.end.year': 2020,
+            'dateRange.end.month': 10,
+            'dateRange.end.day': 1,
+        }
+        today = datetime.date(year=2020, month=11, day=10)
+
+        actual_start_date, actual_end_date, actual_params = shift_sync_window(params, today)
+
+        self.assertEqual(expected_start_date, actual_start_date)
+        self.assertEqual(expected_end_date, actual_end_date)
+        self.assertEqual(expected_params, actual_params)
+
+    def test_shift_sync_window_boundary(self):
+        expected_start_date = datetime.date(year=2020, month=10, day=1)
+        expected_end_date = datetime.date(year=2020, month=10, day=15)
+        expected_params = {
+            'dateRange.start.year': expected_start_date.year,
+            'dateRange.start.month': expected_start_date.month,
+            'dateRange.start.day': expected_start_date.day,
+            'dateRange.end.year': expected_end_date.year,
+            'dateRange.end.month': expected_end_date.month,
+            'dateRange.end.day': expected_end_date.day,
+        }
+
+        params = {
+            'dateRange.end.year': 2020,
+            'dateRange.end.month': 10,
+            'dateRange.end.day': 1,
+        }
+        today = datetime.date(year=2020, month=10, day=15)
+
+        actual_start_date, actual_end_date, actual_params = shift_sync_window(params, today)
+
+        self.assertEqual(expected_start_date, actual_start_date)
+        self.assertEqual(expected_end_date, actual_end_date)
+        self.assertEqual(expected_params, actual_params)
 
