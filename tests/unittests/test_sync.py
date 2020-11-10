@@ -1,6 +1,7 @@
 import datetime
 import unittest
 from tap_linkedin_ads.sync import get_next_url
+from tap_linkedin_ads.sync import merge_responses
 from tap_linkedin_ads.sync import shift_sync_window
 from tap_linkedin_ads.sync import split_into_chunks
 
@@ -91,3 +92,54 @@ class TestSyncUtils(unittest.TestCase):
         self.assertEqual(expected_end_date, actual_end_date)
         self.assertEqual(expected_params, actual_params)
 
+
+    def test_merge_responses_empty(self):
+        # This is the assumed key name that holds the records in the response
+        data_key = 'elements'
+        SUCCESSFUL_EMPTY_API_RESPONSE = {'paging' : None,
+                                         data_key : []}
+
+        # We accumulate responses in this list
+        responses = []
+
+        for page in [SUCCESSFUL_EMPTY_API_RESPONSE]:
+            if page.get(data_key):
+                responses.append(page.get(data_key))
+
+        self.assertEqual(dict(),
+                         merge_responses(responses))
+
+    def test_merge_responses(self):
+        expected_output = {
+            '2020-10-1' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+                           'a': 1},
+            '2020-10-2' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+                           'b': 2},
+            '2020-10-3' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+                           'c': 3},
+            '2020-10-4' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+                           'd': 4},
+            '2020-10-5' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+                           'e': 5},
+            '2020-10-6' : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+                           'f': 6},
+            }
+
+        data = [
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+              'a': 1},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+              'b': 2},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+              'c': 3},],
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+              'd': 4},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+              'e': 5},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+              'f': 6},],
+        ]
+
+        actual_output = merge_responses(data)
+
+        self.assertEqual(expected_output, actual_output)

@@ -680,6 +680,19 @@ def shift_sync_window(params, today):
                   'dateRange.end.year': new_end.year,}
     return current_end, new_end, new_params
 
+def merge_responses(data):
+
+    full_records = dict()
+    for page in data:
+        for element in page:
+            temp_start = element['dateRange']['start']
+            string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
+            if string_start in full_records:
+                full_records[string_start].update(element)
+            else:
+                full_records[string_start] = element
+    return full_records
+
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
 
     # start_date here is not the config's start date, it's the bookmark
