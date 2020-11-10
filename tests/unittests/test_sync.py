@@ -1,4 +1,5 @@
 import unittest
+from tap_linkedin_ads.sync import get_next_url
 from tap_linkedin_ads.sync import split_into_chunks
 
 
@@ -17,3 +18,24 @@ class TestChunking(unittest.TestCase):
         ]
 
         self.assertEqual(expected, list(actual))
+
+    def test_get_next_url(self):
+        data = {
+            'paging': {
+                'links': []
+            }
+        }
+
+        links = [{'rel': 'next', 'href': '/foo'},]
+
+        expected_1 = None
+        actual_1 = get_next_url(data)
+
+        self.assertEqual(expected_1, actual_1)
+
+        data['paging']['links'] = links
+        expected_2 = 'https://api.linkedin.com/foo'
+        actual_2 = get_next_url(data)
+
+        self.assertEqual(expected_2, actual_2)
+
