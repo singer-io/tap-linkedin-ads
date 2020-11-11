@@ -1,9 +1,9 @@
 import urllib.parse
 import datetime
 from datetime import timedelta
-import pytz
 import singer
-from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
+from singer import metrics, metadata, utils
+from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
@@ -118,8 +118,8 @@ def write_bookmark(state, stream, value):
     LOGGER.info('Write state for stream: %s, value: %s', stream, value)
     singer.write_state(state)
 
-
-def process_records(catalog, #pylint: disable=too-many-branches
+# pylint: disable=too-many-arguments,too-many-locals
+def process_records(catalog,
                     stream_name,
                     records,
                     time_extracted,
@@ -148,8 +148,7 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
                 # Reset max_bookmark_value to new value if higher
                 if bookmark_field and (bookmark_field in transformed_record):
-                    if max_bookmark_value is None or \
-                        strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
+                    if max_bookmark_value is None or strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
                         max_bookmark_value = transformed_record[bookmark_field]
 
                 if bookmark_field and (bookmark_field in transformed_record):
@@ -167,7 +166,8 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
 
 # Sync a specific parent or child endpoint.
-def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
+# pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
+def sync_endpoint(client,
                   catalog,
                   state,
                   start_date,
@@ -688,10 +688,6 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
     max_bookmark = strptime_to_utc(start_date)
     last_datetime_dt = max_bookmark - timedelta(days=7)
 
-    # This is to maintain compatibility with process_records() later
-    max_bookmark_value = start_date
-    last_datetime = start_date
-
     window_start_date = last_datetime_dt.date()
     window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
     today = datetime.date.today()
@@ -722,7 +718,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
     # with non-null values
     first_chunk = [['dateRange', 'pivot', 'pivotValue']]
 
-    chunks =  first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
+    chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
 
     # We have to append these fields in order to ensure we get them back
     # so that we can create the composite primary key for the record and
@@ -741,12 +737,8 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                       "count": endpoint_config.get('count', 100),
                       **static_params}
             query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
-            LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date) #TODO: keep?
-            for page in sync_analytics_endpoint(client,
-                                                stream_name,
-                                                endpoint_config.get('path'),
-                                                query_string,
-                                                endpoint_config.get('bookmark_query_field')):
+            LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date)
+            for page in sync_analytics_endpoint(client, stream_name, endpoint_config.get('path'), query_string):
                 if page.get(data_key):
                     responses.append(page.get(data_key))
         raw_records = merge_responses(responses)
@@ -764,7 +756,6 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                                           stream_name)[data_key]
         if not transformed_data:
             LOGGER.info('No transformed_data')
-            #max_bookmark_value = max_bookmark
         else:
             max_bookmark_value, record_count = process_records(
                 catalog=catalog,
@@ -773,27 +764,12 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                 time_extracted=time_extracted,
                 bookmark_field=bookmark_field,
                 max_bookmark_value=strftime(max_bookmark),
-                last_datetime=last_datetime,
+                last_datetime=strftime(last_datetime_dt),
                 parent=parent,
                 parent_id=parent_id)
             LOGGER.info('%s, records processed: %s', stream_name, record_count)
             LOGGER.info('%s: max_bookmark: %s', stream_name, max_bookmark_value)
             total_records += record_count
-
-        # # WE have to convert the window_end (date object) into a datetime
-        # # in order to singer.strftime() it for the bookmark
-        # bookmark_value = datetime.datetime(
-        #     year=window_end_date.year,
-        #     month=window_end_date.month,
-        #     day=window_end_date.day,
-        #     hour=0,
-        #     minute=0,
-        #     second=0,
-        #     tzinfo=pytz.UTC
-        # )
-        #max_bookmark = strptime_to_utc(max(strftime(max_bookmark), max_bookmark_value))
-
-        max_bookmark_value
 
         window_start_date, window_end_date, static_params = shift_sync_window(static_params, today)
 
@@ -803,7 +779,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
     # return total_records, strftime(max_bookmark)
     return total_records, max_bookmark_value
 
-def sync_analytics_endpoint(client, stream_name, path, query_string, bookmark_query_field=None):
+def sync_analytics_endpoint(client, stream_name, path, query_string):
     page = 1
     next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, query_string)
 
