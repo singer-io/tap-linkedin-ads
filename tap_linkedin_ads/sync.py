@@ -306,7 +306,7 @@ def sync_endpoint(client,
                                 client=client,
                                 catalog=catalog,
                                 state=state,
-                                start_date=last_datetime,
+                                last_datetime=last_datetime,
                                 stream_name=child_stream_name,
                                 path=child_path,
                                 endpoint_config=child_endpoint_config,
@@ -682,6 +682,7 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
     # `pivot`, and `pivotValue`
     MAX_CHUNK_LENGTH = 17
 
+    max_bookmark_value = strptime_to_utc(last_datetime),
     last_datetime_dt = strptime_to_utc(last_datetime) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
@@ -759,7 +760,7 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
                 records=transformed_data,
                 time_extracted=time_extracted,
                 bookmark_field=bookmark_field,
-                max_bookmark_value=strptime_to_utc(start_date),
+                max_bookmark_value=strptime_to_utc(last_datetime),
                 last_datetime=strftime(last_datetime_dt),
                 parent=parent,
                 parent_id=parent_id)
