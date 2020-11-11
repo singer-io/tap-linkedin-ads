@@ -764,7 +764,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                                           stream_name)[data_key]
         if not transformed_data:
             LOGGER.info('No transformed_data')
-            max_bookmark_value = max_bookmark
+            #max_bookmark_value = max_bookmark
         else:
             max_bookmark_value, record_count = process_records(
                 catalog=catalog,
@@ -772,7 +772,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                 records=transformed_data,
                 time_extracted=time_extracted,
                 bookmark_field=bookmark_field,
-                max_bookmark_value=max_bookmark,
+                max_bookmark_value=strftime(max_bookmark),
                 last_datetime=last_datetime,
                 parent=parent,
                 parent_id=parent_id)
@@ -791,15 +791,17 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
         #     second=0,
         #     tzinfo=pytz.UTC
         # )
+        #max_bookmark = strptime_to_utc(max(strftime(max_bookmark), max_bookmark_value))
 
-        max_bookmark = max(max_bookmark, max_bookmark_value)
+        max_bookmark_value
 
         window_start_date, window_end_date, static_params = shift_sync_window(static_params, today)
 
         if window_start_date == window_end_date:
             break
 
-    return total_records, strftime(max_bookmark)
+    # return total_records, strftime(max_bookmark)
+    return total_records, max_bookmark_value
 
 def sync_analytics_endpoint(client, stream_name, path, query_string, bookmark_query_field=None):
     page = 1
