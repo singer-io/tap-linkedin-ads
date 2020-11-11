@@ -673,7 +673,7 @@ def merge_responses(data):
     return full_records
 
 
-def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, endpoint_config, data_key, static_params,
+def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, endpoint_config, data_key, static_params,
                       bookmark_query_field=None, bookmark_field=None, id_fields=None, parent=None, parent_id=None):
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
 
@@ -682,10 +682,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
     # `pivot`, and `pivotValue`
     MAX_CHUNK_LENGTH = 17
 
-    # start_date here is not the config's start date, it's the bookmark
-    # value, which can fall back to the config's start date
-    max_bookmark = strptime_to_utc(start_date)
-    last_datetime_dt = max_bookmark - timedelta(days=7)
+    last_datetime_dt = strptime_to_utc(last_datetime) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
     window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
@@ -762,7 +759,7 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                 records=transformed_data,
                 time_extracted=time_extracted,
                 bookmark_field=bookmark_field,
-                max_bookmark_value=strftime(max_bookmark),
+                max_bookmark_value=strptime_to_utc(start_date),
                 last_datetime=strftime(last_datetime_dt),
                 parent=parent,
                 parent_id=parent_id)
