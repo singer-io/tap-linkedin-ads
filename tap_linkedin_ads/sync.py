@@ -15,11 +15,11 @@ DATE_WINDOW_SIZE = 30 # days
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
     'adUnitClicks',
-    'approximateUniqueImpressions', #Add
-    'cardClicks', #Add
-    'cardImpressions', #Add
+    'approximateUniqueImpressions',
+    'cardClicks',
+    'cardImpressions',
     'clicks',
-    'commentLikes', #Add
+    'commentLikes',
     'comments',
     'companyPageClicks',
     'conversionValueInLocalCurrency',
@@ -661,7 +661,6 @@ def shift_sync_window(params, today):
     return current_end, new_end, new_params
 
 def merge_responses(data):
-
     full_records = dict()
     for page in data:
         for element in page:
@@ -709,13 +708,13 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
                              for field in selected_fields(catalog.get_stream(stream_name))
                              if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
 
-    # When testing the API, if the fields in `field` all return `0` or
-    # `"0"`, then the API returns its empty response.
+    # When testing the API, if the fields in `field` all return `0` then
+    # the API returns its empty response.
 
     # However, the API distinguishes between a day with non-null values
-    # (even if this means the values are all `0` or `"0"`) and a day with
-    # null values. We found that requesting these fields give you the days
-    # with non-null values
+    # (even if this means the values are all `0`) and a day with null
+    # values. We found that requesting these fields give you the days with
+    # non-null values
     first_chunk = [['dateRange', 'pivot', 'pivotValue']]
 
     chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
@@ -776,7 +775,6 @@ def sync_ad_analytics(client, catalog, state, start_date, stream_name, path, end
         if window_start_date == window_end_date:
             break
 
-    # return total_records, strftime(max_bookmark)
     return total_records, max_bookmark_value
 
 def sync_analytics_endpoint(client, stream_name, path, query_string):
