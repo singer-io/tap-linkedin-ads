@@ -639,13 +639,16 @@ def selected_fields(catalog_for_stream):
 def split_into_chunks(fields, chunk_length):
     return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
 
-def shift_sync_window(params, today):
+def shift_sync_window(params, today, forced_window_size=None):
     current_end = datetime.date(
         year=params['dateRange.end.year'],
         month=params['dateRange.end.month'],
         day=params['dateRange.end.day'],
     )
-    new_end = current_end + timedelta(days=DATE_WINDOW_SIZE)
+    if forced_window_size:
+        new_end = current_end + timedelta(days=forced_window_size)
+    else:
+        new_end = current_end + timedelta(days=DATE_WINDOW_SIZE)
 
     if new_end > today:
         new_end = today
