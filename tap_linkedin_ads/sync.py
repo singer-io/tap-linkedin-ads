@@ -1,9 +1,9 @@
 import urllib.parse
 import datetime
 from datetime import timedelta
-import pytz
 import singer
-from singer import metrics, metadata, Transformer, utils, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING, should_sync_field
+from singer import metrics, metadata, utils
+from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
@@ -15,11 +15,11 @@ DATE_WINDOW_SIZE = 30 # days
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
     'adUnitClicks',
-    'approximateUniqueImpressions', #Add
-    'cardClicks', #Add
-    'cardImpressions', #Add
+    'approximateUniqueImpressions',
+    'cardClicks',
+    'cardImpressions',
     'clicks',
-    'commentLikes', #Add
+    'commentLikes',
     'comments',
     'companyPageClicks',
     'conversionValueInLocalCurrency',
@@ -118,8 +118,8 @@ def write_bookmark(state, stream, value):
     LOGGER.info('Write state for stream: %s, value: %s', stream, value)
     singer.write_state(state)
 
-
-def process_records(catalog, #pylint: disable=too-many-branches
+# pylint: disable=too-many-arguments,too-many-locals
+def process_records(catalog,
                     stream_name,
                     records,
                     time_extracted,
@@ -148,8 +148,7 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
                 # Reset max_bookmark_value to new value if higher
                 if bookmark_field and (bookmark_field in transformed_record):
-                    if max_bookmark_value is None or \
-                        strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
+                    if max_bookmark_value is None or strptime_to_utc(transformed_record[bookmark_field]) > strptime_to_utc(max_bookmark_value):
                         max_bookmark_value = transformed_record[bookmark_field]
 
                 if bookmark_field and (bookmark_field in transformed_record):
@@ -167,7 +166,8 @@ def process_records(catalog, #pylint: disable=too-many-branches
 
 
 # Sync a specific parent or child endpoint.
-def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
+# pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
+def sync_endpoint(client,
                   catalog,
                   state,
                   start_date,
@@ -294,16 +294,6 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 child_endpoint_config['params']['search.campaign.values[0]'] = campaign
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_endpoint_config['params']['campaigns[0]'] = campaign
-                                # get selected fields
-                                valid_selected_fields = [snake_case_to_camel_case(field)
-                                                         for field in selected_fields(catalog.get_stream(child_stream_name))
-                                                         if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
-
-                                field_count = len(valid_selected_fields)
-                                if field_count > 20:
-                                    raise RuntimeError("LinkedIn's API limits the field count for {} to 20 metrics (You have selected {}).".format(child_stream_name, field_count))
-
-                                child_endpoint_config['params']['fields'] = ','.join(valid_selected_fields)
 
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
                                     child_stream_name,
@@ -316,7 +306,7 @@ def sync_endpoint(client, #pylint: disable=too-many-branches,too-many-statements
                                 client=client,
                                 catalog=catalog,
                                 state=state,
-                                start_date=last_datetime,
+                                last_datetime=last_datetime,
                                 stream_name=child_stream_name,
                                 path=child_path,
                                 endpoint_config=child_endpoint_config,
@@ -646,25 +636,57 @@ def selected_fields(catalog_for_stream):
 
     return selected_fields_list
 
-def sync_ad_analytics(client,
-                      catalog,
-                      state,
-                      start_date,
-                      stream_name,
-                      path,
-                      endpoint_config,
-                      data_key,
-                      static_params,
-                      bookmark_query_field=None,
-                      bookmark_field=None,
-                      id_fields=None,
-                      parent=None,
-                      parent_id=None):
+def split_into_chunks(fields, chunk_length):
+    return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
+
+def shift_sync_window(params, today, forced_window_size=None):
+    current_end = datetime.date(
+        year=params['dateRange.end.year'],
+        month=params['dateRange.end.month'],
+        day=params['dateRange.end.day'],
+    )
+    if forced_window_size:
+        new_end = current_end + timedelta(days=forced_window_size)
+    else:
+        new_end = current_end + timedelta(days=DATE_WINDOW_SIZE)
+
+    if new_end > today:
+        new_end = today
+
+    new_params = {**params,
+                  'dateRange.start.day': current_end.day,
+                  'dateRange.start.month': current_end.month,
+                  'dateRange.start.year': current_end.year,
+
+                  'dateRange.end.day': new_end.day,
+                  'dateRange.end.month': new_end.month,
+                  'dateRange.end.year': new_end.year,}
+    return current_end, new_end, new_params
+
+def merge_responses(data):
+    full_records = dict()
+    for page in data:
+        for element in page:
+            temp_start = element['dateRange']['start']
+            string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
+            if string_start in full_records:
+                full_records[string_start].update(element)
+            else:
+                full_records[string_start] = element
+    return full_records
+
+
+def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, endpoint_config, data_key, static_params,
+                      bookmark_query_field=None, bookmark_field=None, id_fields=None, parent=None, parent_id=None):
     # pylint: disable=too-many-branches,too-many-statements,unused-argument
 
-    # start_date here is not the config's start date, it's the bookmark
-    # value, which can fall back to the config's start date
-    last_datetime_dt = strptime_to_utc(start_date) - timedelta(days=7)
+    # LinkedIn has a max of 20 fields per request. We cap the chunks at 17
+    # to make sure there's always room for us to append `dateRange`,
+    # `pivot`, and `pivotValue`
+    MAX_CHUNK_LENGTH = 17
+
+    max_bookmark_value = last_datetime
+    last_datetime_dt = strptime_to_utc(last_datetime) - timedelta(days=7)
 
     window_start_date = last_datetime_dt.date()
     window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
@@ -683,56 +705,101 @@ def sync_ad_analytics(client,
                      'dateRange.end.month': window_end_date.month,
                      'dateRange.end.year': window_end_date.year,}
 
+    valid_selected_fields = [snake_case_to_camel_case(field)
+                             for field in selected_fields(catalog.get_stream(stream_name))
+                             if snake_case_to_camel_case(field) in FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2]
+
+    # When testing the API, if the fields in `field` all return `0` then
+    # the API returns its empty response.
+
+    # However, the API distinguishes between a day with non-null values
+    # (even if this means the values are all `0`) and a day with null
+    # values. We found that requesting these fields give you the days with
+    # non-null values
+    first_chunk = [['dateRange', 'pivot', 'pivotValue']]
+
+    chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
+
+    # We have to append these fields in order to ensure we get them back
+    # so that we can create the composite primary key for the record and
+    # to merge the multiple responses based on this primary key
+    for chunk in chunks:
+        for field in ['dateRange', 'pivot', 'pivotValue']:
+            if field not in chunk:
+                chunk.append(field)
+
     total_records = 0
     while window_end_date <= today:
-        window_total_records, _ = sync_endpoint(
-            client=client,
-            catalog=catalog,
-            state=state,
-            start_date=start_date,
-            stream_name=stream_name,
-            path=endpoint_config.get('path'),
-            endpoint_config=endpoint_config,
-            data_key=endpoint_config.get('data_key', 'elements'),
-            static_params=static_params,
-            bookmark_query_field=endpoint_config.get('bookmark_query_field'),
-            bookmark_field=endpoint_config.get('bookmark_field'),
-            id_fields=endpoint_config.get('id_fields'),
-            parent=endpoint_config.get('parent'),
-            parent_id=parent_id)
+        responses = []
+        for chunk in chunks:
+            static_params['fields'] = ','.join(chunk)
+            params = {"start": 0,
+                      "count": endpoint_config.get('count', 100),
+                      **static_params}
+            query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+            LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date)
+            for page in sync_analytics_endpoint(client, stream_name, endpoint_config.get('path'), query_string):
+                if page.get(data_key):
+                    responses.append(page.get(data_key))
+        raw_records = merge_responses(responses)
+        time_extracted = utils.now()
 
-        total_records += window_total_records
+        # While we broke the ad_analytics streams out from
+        # `sync_endpoint()`, we want to process them the same. And
+        # transform_json() expects a dictionary with a key equal to
+        # `data_key` and its value is the response from the API
 
-        # WE have to convert the window_end (date object) into a datetime
-        # in order to singer.strftime() it for the bookmark
-        bookmark_value = datetime.datetime(
-            year=window_end_date.year,
-            month=window_end_date.month,
-            day=window_end_date.day,
-            hour=0,
-            minute=0,
-            second=0,
-            tzinfo=pytz.UTC
-        )
+        # Note that `transform_json()` returns the same structure we pass
+        # in. `sync_endpoint()` grabs `data_key` from the return value, so
+        # we mirror that here
+        transformed_data = transform_json({data_key: list(raw_records.values())},
+                                          stream_name)[data_key]
+        if not transformed_data:
+            LOGGER.info('No transformed_data')
+        else:
+            max_bookmark_value, record_count = process_records(
+                catalog=catalog,
+                stream_name=stream_name,
+                records=transformed_data,
+                time_extracted=time_extracted,
+                bookmark_field=bookmark_field,
+                max_bookmark_value=last_datetime,
+                last_datetime=strftime(last_datetime_dt),
+                parent=parent,
+                parent_id=parent_id)
+            LOGGER.info('%s, records processed: %s', stream_name, record_count)
+            LOGGER.info('%s: max_bookmark: %s', stream_name, max_bookmark_value)
+            total_records += record_count
 
-        max_bookmark = strftime(bookmark_value)
+        window_start_date, window_end_date, static_params = shift_sync_window(static_params, today)
 
-        window_start_date = window_end_date
-        window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
+        if window_start_date == window_end_date:
+            break
 
-        if window_end_date > today:
-            window_end_date = today
+    return total_records, max_bookmark_value
 
-            if window_start_date == window_end_date:
-                break
+def sync_analytics_endpoint(client, stream_name, path, query_string):
+    page = 1
+    next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, query_string)
 
-        static_params = {**static_params,
-                         'dateRange.start.day': window_start_date.day,
-                         'dateRange.start.month': window_start_date.month,
-                         'dateRange.start.year': window_start_date.year,
+    while next_url:
+        LOGGER.info('URL for %s: %s', stream_name, next_url)
 
-                         'dateRange.end.day': window_end_date.day,
-                         'dateRange.end.month': window_end_date.month,
-                         'dateRange.end.year': window_end_date.year,}
+        data = client.get(url=next_url, endpoint=stream_name)
+        yield data
+        next_url = get_next_url(data)
 
-    return total_records, max_bookmark
+        LOGGER.info('%s: Synced page %s', stream_name, page)
+        page = page + 1
+
+
+def get_next_url(data):
+    next_url = None
+    links = data.get('paging', {}).get('links', [])
+    for link in links:
+        rel = link.get('rel')
+        if rel == 'next':
+            href = link.get('href')
+            if href:
+                next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+    return next_url
