@@ -88,7 +88,7 @@ def transform_analytics(data_dict):
         val = data_dict['pivot_value']
         search = re.search('^urn:li:(.*):(.*)$', val)
         if search:
-            data_dict['{}'.format(key)] = val
+            data_dict[key] = val
     # Create start_at and end_at fields from nested date_range
     if 'date_range' in data_dict:
         if 'start' in data_dict['date_range']:
