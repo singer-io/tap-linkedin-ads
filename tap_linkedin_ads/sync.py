@@ -301,7 +301,7 @@ def sync_endpoint(client,
                                     parent_id)
                         child_path = child_endpoint_config.get('path')
 
-                        if child_stream_name == 'ad_analytics_by_campaign':
+                        if child_stream_name in {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}:
                             child_total_records, child_batch_bookmark_value = sync_ad_analytics(
                                 client=client,
                                 catalog=catalog,
