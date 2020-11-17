@@ -301,7 +301,7 @@ def sync_endpoint(client,
                                     parent_id)
                         child_path = child_endpoint_config.get('path')
 
-                        if child_stream_name == 'ad_analytics_by_campaign':
+                        if child_stream_name in {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}:
                             child_total_records, child_batch_bookmark_value = sync_ad_analytics(
                                 client=client,
                                 catalog=catalog,
@@ -668,11 +668,13 @@ def merge_responses(data):
     for page in data:
         for element in page:
             temp_start = element['dateRange']['start']
+            temp_pivotValue = element['pivotValue']
             string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
-            if string_start in full_records:
-                full_records[string_start].update(element)
+            primary_key = (temp_pivotValue, string_start)
+            if primary_key in full_records:
+                full_records[primary_key].update(element)
             else:
-                full_records[string_start] = element
+                full_records[primary_key] = element
     return full_records
 
 
