@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+  * Add date windowing for the `ad_analytics_by_creative` stream
+  * Add the ability to select all metrics for the
+    `ad_analytics_by_creative` stream
+  * [#20](https://github.com/singer-io/tap-linkedin-ads/pull/20)
+
 ## 1.1.0
   * Add date windowing for the `ad_analytics_by_campaign` stream
   * Add the ability to select all metrics for the
