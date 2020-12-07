@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+  * Backoff tuning [#22](https://github.com/singer-io/tap-linkedin-ads/pull/22)
+
 ## 1.2.0
   * Add date windowing for the `ad_analytics_by_creative` stream
   * Add the ability to select all metrics for the
