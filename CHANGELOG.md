@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+  * Increase the precision on floating point numbers from 1e-8 to 1e-20
+    [#24](https://github.com/singer-io/tap-linkedin-ads/pull/24)
+
 ## 1.2.1
   * Backoff tuning [#22](https://github.com/singer-io/tap-linkedin-ads/pull/22)
 
@@ -36,7 +40,7 @@
   * Add missing fields to the Ad Analytics endpoint streams: clicks, reactions, sends, etc.
 
 ## 0.0.4
-  * Change bookmarking to update after ALL batches for child nodes. Change paging logic to use next URL in links. Add 7 days buffer to account for changes/delays in ads analytics report data. 
+  * Change bookmarking to update after ALL batches for child nodes. Change paging logic to use next URL in links. Add 7 days buffer to account for changes/delays in ads analytics report data.
 
 ## 0.0.3
   * Fix sync datetime conversion issue when reading from state. Using singer-python utils strptime_to_utc.
