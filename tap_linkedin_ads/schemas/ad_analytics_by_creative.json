@@ -105,21 +105,21 @@
         "null",
         "number"
       ],
-      "multipleOf": 1e-08
+      "multipleOf": 1e-20
     },
     "cost_in_local_currency": {
       "type": [
         "null",
         "number"
       ],
-      "multipleOf": 1e-08
+      "multipleOf": 1e-20
     },
     "cost_in_usd": {
       "type": [
         "null",
         "number"
       ],
-      "multipleOf": 1e-08
+      "multipleOf": 1e-20
     },
     "date_range": {
       "type": [

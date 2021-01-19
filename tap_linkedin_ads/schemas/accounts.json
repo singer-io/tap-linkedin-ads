@@ -148,7 +148,7 @@
             "null",
             "number"
           ],
-          "multipleOf": 1e-08
+          "multipleOf": 1e-20
         },
         "currency_code": {
           "type": [
