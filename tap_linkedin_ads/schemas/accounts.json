@@ -146,9 +146,9 @@
         "amount": {
           "type": [
             "null",
-            "number"
+            "string"
           ],
-          "multipleOf": 1e-20
+          "format": "singer.decimal"
         },
         "currency_code": {
           "type": [
