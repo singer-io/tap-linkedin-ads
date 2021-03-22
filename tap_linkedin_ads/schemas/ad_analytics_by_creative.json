@@ -103,23 +103,23 @@
     "conversion_value_in_local_currency": {
       "type": [
         "null",
-        "number"
+        "string"
       ],
-      "multipleOf": 1e-20
+      "format": "singer.decimal"
     },
     "cost_in_local_currency": {
       "type": [
         "null",
-        "number"
+        "string"
       ],
-      "multipleOf": 1e-20
+      "format": "singer.decimal"
     },
     "cost_in_usd": {
       "type": [
         "null",
-        "number"
+        "string"
       ],
-      "multipleOf": 1e-20
+      "format": "singer.decimal"
     },
     "date_range": {
       "type": [
