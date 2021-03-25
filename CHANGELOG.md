@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+  * Changes multipleOf to singer.decimal in schemas and bumps singer-python version
+    [#26](https://github.com/singer-io/tap-linkedin-ads/pull/26)
+
 ## 1.2.2
   * Increase the precision on floating point numbers from 1e-8 to 1e-20
     [#24](https://github.com/singer-io/tap-linkedin-ads/pull/24)
