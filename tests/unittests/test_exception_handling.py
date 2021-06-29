@@ -75,13 +75,13 @@ class TestExceptionHandling(unittest.TestCase):
         except client.LinkedInConflictError as e:
             self.assertEquals(str(e), "HTTP-error-code: 409, Error: The API request cannot be completed because the requested operation would conflict with an existing item.")
 
-    # def test_500_error_custom_message(self, mocked_access_token, mocked_request):
-    #     mocked_request.return_value = get_response(406, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("", "")
-    #     try:
-    #         linkedIn_client.request("/abc")
-    #     except client.LinkedInInternalServiceError as e:
-    #         self.assertEquals(str(e), "HTTP-error-code: 500, Error: The request failed due to an internal error.")
+    def test_500_error_custom_message(self, mocked_access_token, mocked_request):
+        mocked_request.return_value = get_response(406, raise_error = True)
+        linkedIn_client = client.LinkedinClient("", "")
+        try:
+            linkedIn_client.request("/abc")
+        except client.LinkedInInternalServiceError as e:
+            self.assertEquals(str(e), "HTTP-error-code: 500, Error: The request failed due to an internal error.")
 
     def test_400_error_response_message(self, mocked_access_token, mocked_request):
         response_json = {"message": "Response message for status code 400"}
@@ -137,14 +137,14 @@ class TestExceptionHandling(unittest.TestCase):
         except client.LinkedInConflictError as e:
             self.assertEquals(str(e), "HTTP-error-code: 409, Error: {}".format(response_json.get('message')))
 
-    # def test_500_error_response_message(self, mocked_access_token, mocked_request):
-    #     response_json = {"message": "Response message for status code 500"}
-    #     mocked_request.return_value = get_response(500, response_json, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("", "")
-    #     try:
-    #         linkedIn_client.request("/abc")
-    #     except client.LinkedInInternalServiceError as e:
-    #         self.assertEquals(str(e), "HTTP-error-code: 500, Error: {}".format(response_json.get('message')))
+    def test_500_error_response_message(self, mocked_access_token, mocked_request):
+        response_json = {"message": "Response message for status code 500"}
+        mocked_request.return_value = get_response(500, response_json, raise_error = True)
+        linkedIn_client = client.LinkedinClient("", "")
+        try:
+            linkedIn_client.request("/abc")
+        except client.LinkedInInternalServiceError as e:
+            self.assertEquals(str(e), "HTTP-error-code: 500, Error: {}".format(response_json.get('message')))
 
     def test_error_with_empty_response(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(400, raise_error = True, content='')
@@ -216,13 +216,13 @@ class TestAccessToken(unittest.TestCase):
         except client.LinkedInConflictError as e:
             self.assertEquals(str(e), "HTTP-error-code: 409, Error: The API request cannot be completed because the requested operation would conflict with an existing item.")
 
-    # def test_500_error_custom_message(self, mocked_request):
-    #     mocked_request.return_value = get_response(406, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("", "")
-    #     try:
-    #         linkedIn_client.check_access_token()
-    #     except client.LinkedInInternalServiceError as e:
-    #         self.assertEquals(str(e), "HTTP-error-code: 500, Error: The request failed due to an internal error.")
+    def test_500_error_custom_message(self, mocked_request):
+        mocked_request.return_value = get_response(406, raise_error = True)
+        linkedIn_client = client.LinkedinClient("", "")
+        try:
+            linkedIn_client.check_access_token()
+        except client.LinkedInInternalServiceError as e:
+            self.assertEquals(str(e), "HTTP-error-code: 500, Error: The request failed due to an internal error.")
 
     def test_400_error_response_message(self, mocked_request):
         response_json = {"message": "Response message for status code 400"}
@@ -278,14 +278,14 @@ class TestAccessToken(unittest.TestCase):
         except client.LinkedInConflictError as e:
             self.assertEquals(str(e), "HTTP-error-code: 409, Error: {}".format(response_json.get('message')))
 
-    # def test_500_error_response_message(self, mocked_request):
-    #     response_json = {"message": "Response message for status code 500"}
-    #     mocked_request.return_value = get_response(500, response_json, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("", "")
-    #     try:
-    #         linkedIn_client.check_access_token()
-    #     except client.LinkedInInternalServiceError as e:
-    #         self.assertEquals(str(e), "HTTP-error-code: 500, Error: {}".format(response_json.get('message')))
+    def test_500_error_response_message(self, mocked_request):
+        response_json = {"message": "Response message for status code 500"}
+        mocked_request.return_value = get_response(500, response_json, raise_error = True)
+        linkedIn_client = client.LinkedinClient("", "")
+        try:
+            linkedIn_client.check_access_token()
+        except client.LinkedInInternalServiceError as e:
+            self.assertEquals(str(e), "HTTP-error-code: 500, Error: {}".format(response_json.get('message')))
 
     def test_error_with_empty_response(self, mocked_request):
         mocked_request.return_value = get_response(400, raise_error = True, content='')
