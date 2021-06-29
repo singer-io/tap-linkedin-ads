@@ -53,39 +53,63 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     402: LinkedInPaymentRequiredError,
     403: LinkedInForbiddenError,
     404: LinkedInNotFoundError,
-    409: LinkedInForbiddenError,
+    409: LinkedInConflictError,
     500: LinkedInInternalServiceError}
 
-
-def get_exception_for_error_code(error_code):
-    return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, LinkedInError)
+ERROR_CODE_EXCEPTION_MAPPING = {
+    400: {
+        "raise_exception": LinkedInBadRequestError,
+        "message": "The request is missing or has bad parameters."
+    },
+    401: {
+        "raise_exception": LinkedInUnauthorizedError,
+        "message": "Invalid authorization credentials."
+    },
+    402: {
+        "raise_exception": LinkedInPaymentRequiredError,
+        "message": "Payment is required to complete the operation."
+    },
+    403: {
+        "raise_exception": LinkedInForbiddenError,
+        "message": "User does not have permission to access the resource."
+    },
+    404: {
+        "raise_exception": LinkedInNotFoundError,
+        "message": "The requested resource does not exist."
+    },
+    409: {
+        "raise_exception": LinkedInConflictError,
+        "message": "The API request cannot be completed because the requested operation would conflict with an existing item."
+    },
+    500: {
+        "raise_exception": LinkedInInternalServiceError,
+        "message": "The request failed due to an internal error."
+    }
+}
 
 def raise_for_error(response):
-    try:
-        response.raise_for_status()
-    except (requests.HTTPError, requests.ConnectionError) as error:
-        try:
-            content_length = len(response.content)
-            if content_length == 0:
-                # There is nothing we can do here since LinkedIn has neither sent
-                # us a 2xx response nor a response content.
-                return
-            response = response.json()
-            if ('error' in response) or ('errorCode' in response):
-                message = '%s: %s' % (response.get('error', str(error)),
-                                      response.get('message', 'Unknown Error'))
-                error_code = response.get('status')
-                ex = get_exception_for_error_code(error_code)
-                if response.status_code == 401 and 'Expired access token' in message:
-                    LOGGER.error("Your access_token has expired as per LinkedIn’s security \
-                        policy. \n Please re-authenticate your connection to generate a new token \
-                        and resume extraction.")
-                raise ex(message)
-            else:
-                raise LinkedInError(error)
-        except (ValueError, TypeError):
-            raise LinkedInError(error)
+    # Forming a response message for raising custom exception
 
+    try:
+        response_json = response.json()
+    except Exception:
+        response_json = {}
+
+    error_code = response.status_code
+    message = "HTTP-error-code: {}, Error: {}".format(
+        error_code,
+        response_json.get('message', ERROR_CODE_EXCEPTION_MAPPING.get(
+            error_code, {}).get('message', 'An Unknown Error occurred, please try after some time.'))
+    )
+
+    ex = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get('raise_exception', LinkedInError)
+
+    if response.status_code == 401 and 'Expired access token' in message:
+        LOGGER.error("Your access_token has expired as per LinkedIn’s security \
+            policy. \n Please re-authenticate your connection to generate a new token \
+            and resume extraction.")
+
+    raise ex(message) from None
 
 class LinkedinClient:
     def __init__(self,
