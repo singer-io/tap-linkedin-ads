@@ -7,15 +7,14 @@ import singer
 LOGGER = singer.get_logger()
 
 
-class Server5xxError(Exception):
-    pass
-
-
-class Server429Error(Exception):
-    pass
-
-
 class LinkedInError(Exception):
+    pass
+
+class Server5xxError(LinkedInError):
+    pass
+
+
+class Server429Error(LinkedInError):
     pass
 
 
@@ -27,65 +26,94 @@ class LinkedInUnauthorizedError(LinkedInError):
     pass
 
 
-class LinkedInPaymentRequiredError(LinkedInError):
+class LinkedInMethodNotAllowed(LinkedInError):
     pass
 
 
 class LinkedInNotFoundError(LinkedInError):
     pass
 
-
-class LinkedInConflictError(LinkedInError):
-    pass
-
-
 class LinkedInForbiddenError(LinkedInError):
     pass
 
+class LinkedInLengthRequired(LinkedInError):
+    pass
 
-class LinkedInInternalServiceError(LinkedInError):
+class LinkedInRateLimitExceeeded(Server429Error):
+    pass
+
+class LinkedInInternalServiceError(Server5xxError):
+    pass
+
+class LinkedInGatewayTimeoutError(Server5xxError):
     pass
 
 
 ERROR_CODE_EXCEPTION_MAPPING = {
-    400: LinkedInBadRequestError,
-    401: LinkedInUnauthorizedError,
-    402: LinkedInPaymentRequiredError,
-    403: LinkedInForbiddenError,
-    404: LinkedInNotFoundError,
-    409: LinkedInForbiddenError,
-    500: LinkedInInternalServiceError}
-
-
-def get_exception_for_error_code(error_code):
-    return ERROR_CODE_EXCEPTION_MAPPING.get(error_code, LinkedInError)
+    400: {
+        "raise_exception": LinkedInBadRequestError,
+        "message": "The request is missing or has a bad parameter."
+    },
+    401: {
+        "raise_exception": LinkedInUnauthorizedError,
+        "message": "Invalid authorization credentials."
+    },
+    403: {
+        "raise_exception": LinkedInForbiddenError,
+        "message": "User doesn't have permission to access the resource."
+    },
+    404: {
+        "raise_exception": LinkedInNotFoundError,
+        "message": "The resource you have specified cannot be found."
+    },
+    405: {
+        "raise_exception": LinkedInMethodNotAllowed,
+        "message": "The provided HTTP method is not supported by the URL."
+    },
+    411: {
+        "raise_exception": LinkedInLengthRequired,
+        "message": "The server refuses to accept the request without a defined Content-Length header."
+    },
+    429: {
+        "raise_exception": LinkedInRateLimitExceeeded,
+        "message": "API rate limit exceeded, please retry after some time."
+    },
+    500: {
+        "raise_exception": LinkedInInternalServiceError,
+        "message": "An error has occurred at LinkedIn's end."
+    },
+    504: {
+        "raise_exception": LinkedInGatewayTimeoutError,
+        "message": "A gateway timeout occurred. There is a problem at LinkedIn's end."
+    }
+}
 
 def raise_for_error(response):
+    error_code = response.status_code
     try:
-        response.raise_for_status()
-    except (requests.HTTPError, requests.ConnectionError) as error:
-        try:
-            content_length = len(response.content)
-            if content_length == 0:
-                # There is nothing we can do here since LinkedIn has neither sent
-                # us a 2xx response nor a response content.
-                return
-            response = response.json()
-            if ('error' in response) or ('errorCode' in response):
-                message = '%s: %s' % (response.get('error', str(error)),
-                                      response.get('message', 'Unknown Error'))
-                error_code = response.get('status')
-                ex = get_exception_for_error_code(error_code)
-                if response.status_code == 401 and 'Expired access token' in message:
-                    LOGGER.error("Your access_token has expired as per LinkedIn’s security \
-                        policy. \n Please re-authenticate your connection to generate a new token \
-                        and resume extraction.")
-                raise ex(message)
-            else:
-                raise LinkedInError(error)
-        except (ValueError, TypeError):
-            raise LinkedInError(error)
+        response_json = response.json()
+    except Exception:
+        response_json = {}
 
+    if error_code == 404:
+        error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
+        error_description += " Please check the account numbers or you don't have access to the Ad Account."
+    elif response_json.get("message") and "see errorDetails for more information" in response_json.get("message"):
+        error_description = response_json.get("errorDetails").get("inputErrors", [{}])[0].get("code", None)
+        if not error_description:
+            error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")
+        error_description = error_description.split(":: ")[-1]
+    else:
+        error_description = response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error") if response_json == {} else response_json)
+
+    if error_code == 400:
+        error_description += " Please check that the account numbers are valid integers."
+
+    message = "HTTP-error-code: {}, Error: {}".format(
+                error_code, error_description)
+
+    exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
+    raise exc(message) from None
 
 class LinkedinClient:
     def __init__(self,
@@ -169,9 +197,6 @@ class LinkedinClient:
         with metrics.http_request_timer(endpoint) as timer:
             response = self.__session.request(method, url, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
-
-        if response.status_code >= 500:
-            raise Server5xxError()
 
         if response.status_code != 200:
             raise_for_error(response)
