@@ -13,10 +13,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
     PRIMARY_KEYS = "table-key-properties"
     REPLICATION_METHOD = "forced-replication-method"
     REPLICATION_KEYS = "valid-replication-keys"
-    INCREMENTAL = "INCREMENTAL"
-    FULL = "FULL_TABLE"
-    BOOKMARK = "bookmark"
-    START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z" # %H:%M:%SZ
     DATETIME_FMT = {
         "%Y-%m-%dT%H:%M:%SZ",
         "%Y-%m-%d %H:%M:%S",
@@ -291,18 +287,12 @@ class TestLinkedinAdsBase(unittest.TestCase):
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, [], non_selected_properties)
 
-    def timedelta_formatted(self, dtime, days=0):
-        date_stripped = dt.strptime(dtime, self.START_DATE_FORMAT)
-        return_date = date_stripped + timedelta(days=days)
-
-        return dt.strftime(return_date, self.START_DATE_FORMAT)
-
     ##########################################################################
     ### Tap Specific Methods
     ##########################################################################
 
     def is_incremental(self, stream):
-        return self.expected_metadata()[stream][self.REPLICATION_METHOD] == self.INCREMENTAL
+        return self.expected_metadata()[stream][self.REPLICATION_METHOD] == "INCREMENTAL"
 
     def dt_to_ts(self, dtime):
         for date_format in self.DATETIME_FMT:
