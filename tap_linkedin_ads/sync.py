@@ -580,7 +580,7 @@ def sync(client, config, catalog, state):
         if should_stream:
             # Add appropriate account_filter query parameters based on account_filter type
             account_filter = endpoint_config.get('account_filter', None)
-            if 'accounts' in config and account_filter is not None:
+            if config.get("accounts") and account_filter is not None:
                 account_list = config['accounts'].replace(" ", "").split(",")
                 for idx, account in enumerate(account_list):
                     if account_filter == 'search_id_values_param':
