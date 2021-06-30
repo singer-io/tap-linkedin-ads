@@ -109,6 +109,11 @@ def raise_for_error(response):
     if error_code == 400:
         error_description += " Please check that the account numbers are valid integers."
 
+    if response.status_code == 401 and 'Expired access token' in error_description:
+        LOGGER.error("Your access_token has expired as per LinkedIn’s security \
+            policy. \n Please re-authenticate your connection to generate a new token \
+            and resume extraction.")
+
     message = "HTTP-error-code: {}, Error: {}".format(
                 error_code, error_description)
 
