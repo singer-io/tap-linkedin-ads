@@ -18,3 +18,12 @@ def discover():
         ))
 
     return catalog
+
+def check_accounts_list(config):
+    account_list = config['accounts'].replace(" ", "").split(",")
+    for account in account_list:
+        try:
+            int(account)
+        except ValueError as e:
+            message = "The accounts provided in the configuration are not valid numbers."
+            raise ValueError(message) from None
