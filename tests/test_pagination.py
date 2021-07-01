@@ -18,6 +18,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
+        # added "campaigns" as it is parent stream of "ad_analytics_by_campaign"
         test_catalogs = [catalog for catalog in found_catalogs
                                       if catalog.get('stream_name') in ["ad_analytics_by_campaign", "campaigns"]]
 

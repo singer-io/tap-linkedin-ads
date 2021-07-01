@@ -1,6 +1,3 @@
-
-import os
-
 from tap_tester import connections, runner
 
 from base import TestLinkedinAdsBase
@@ -23,6 +20,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         start_date_1_epoch = self.dt_to_ts(self.start_date_1)
         start_date_2_epoch = self.dt_to_ts(self.start_date_2)
 
+        # set start date 1
         self.START_DATE = self.start_date_1
 
         expected_streams = self.expected_streams()
@@ -36,7 +34,6 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
         # run check mode
         found_catalogs_1 = self.run_and_verify_check_mode(conn_id_1)
-        # print(found_catalogs_1)
 
         # table and field selection
         test_catalogs_1_all_fields = [catalog for catalog in found_catalogs_1
@@ -52,6 +49,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         ##########################################################################
 
         print("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(self.START_DATE, self.start_date_2))
+        # set start date 2
         self.START_DATE = self.start_date_2
 
         ##########################################################################
@@ -73,13 +71,13 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         record_count_by_stream_2 = self.run_and_verify_sync(conn_id_2)
         synced_records_2 = runner.get_records_from_target_output()
 
-        # Verify the total number of records replicated in sync 1 is greater than the number
-        # of records replicated in sync 2
+        # Verify the total number of records replicated in sync 1 is 
+        # greater than the number of records replicated in sync 2
         self.assertGreater(sum(record_count_by_stream_1.values()), sum(record_count_by_stream_2.values()))
 
         for stream in expected_streams:
 
-            # skipping these fields as there is not enough data
+            # skipping these fields as there is not enough data available
             if stream in ["accounts", "campaigns", "campaign_groups"]:
                 continue
 

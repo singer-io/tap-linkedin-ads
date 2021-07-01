@@ -2,7 +2,6 @@ from tap_tester import connections
 from base import TestLinkedinAdsBase
 
 class LinkedinAdsSyncTest(TestLinkedinAdsBase):
-    """Test tap sync mode and metadata conforms to standards."""
 
     @staticmethod
     def name():

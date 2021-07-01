@@ -1,7 +1,6 @@
 import os
 import unittest
 from datetime import datetime as dt
-from datetime import timedelta
 import time
 
 import tap_tester.menagerie   as menagerie
@@ -36,19 +35,14 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return "tap-linkedin-ads"
 
     def get_properties(self, original: bool = True):
-        """
-        Maintain states for start_date and end_date
-        :param original: set to false to change the start_date or end_date
-        """
-        accounts = os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS")
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
-            "accounts": accounts
+            "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS")
         }
         if original:
             return return_value
 
-        # Reassign start and end dates
+        # Reassign start date
         return_value["start_date"] = self.START_DATE
         return return_value
 
@@ -104,7 +98,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.REPLICATION_METHOD: 'INCREMENTAL',
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
-            # for last 2 streams "date_range", "pivot", "pivot_value" inclusion automatic
             'ad_analytics_by_campaign': {
                 self.PRIMARY_KEYS: {'campaign_id', 'start_at'},
                 self.REPLICATION_METHOD: 'INCREMENTAL',
@@ -123,19 +116,10 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
-    def expected_incremental_streams(self):
-        return set(stream for stream, rep_meth in self.expected_replication_method().items()
-                   if rep_meth == self.INCREMENTAL)
-
-    def expected_full_table_streams(self):
-        return set(stream for stream, rep_meth in self.expected_replication_method().items()
-                   if rep_meth == self.FULL)
-
     def expected_streams(self):
         """A set of expected stream names"""
         return set(self.expected_metadata().keys())
 
-    
     def expected_start_date_keys(self):
         """
         return a dictionary with key of table name
@@ -163,7 +147,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 for table, properties
                 in self.expected_metadata().items()}
 
-     #########################
+    #########################
     #   Helper Methods      #
     #########################
 
