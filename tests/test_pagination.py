@@ -9,18 +9,17 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
         return "tap_tester_linkedin_ads_pagination_test"
 
     def test_run(self):
-        # page size for "ad_analytics_by_campaign"
-        page_size = 10
+        # page size for "campaign_groups" set in the tap
+        page_size = 100
         conn_id = connections.ensure_connection(self)
 
-        # Checking pagination for "ad_analytics_by_campaign" stream
-        expected_streams = ["ad_analytics_by_campaign"]
+        # Checking pagination for "campaign_groups" stream
+        expected_streams = ["campaign_groups"]
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
-        # added "campaigns" as it is parent stream of "ad_analytics_by_campaign"
         test_catalogs = [catalog for catalog in found_catalogs
-                                      if catalog.get('stream_name') in ["ad_analytics_by_campaign", "campaigns"]]
+                                      if catalog.get('stream_name') in expected_streams]
 
         self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs)
 
