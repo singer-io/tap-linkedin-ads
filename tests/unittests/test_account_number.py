@@ -1,3 +1,4 @@
+from logging import NullHandler
 from unittest import mock
 import tap_linkedin_ads
 import unittest
@@ -33,3 +34,11 @@ class TestAccountNumber(unittest.TestCase):
             self.assertEqual(str(e), 'The accounts provided in the configuration are not valid numbers.')
 
         self.assertEqual(mocked_discover.call_count, 0)
+
+    def test_empty_account_numbers(self, mocked_discover):
+        '''
+        If account number is invalid then ValueError is raised.
+        '''
+        config = {"accounts": ''}
+        tap_linkedin_ads.do_discover(config)
+        self.assertEqual(mocked_discover.call_count, 1)
