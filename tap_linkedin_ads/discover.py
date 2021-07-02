@@ -18,3 +18,13 @@ def discover():
         ))
 
     return catalog
+
+def check_accounts_list(config):
+    if config.get('accounts'):
+        account_list = config['accounts'].replace(" ", "").split(",")
+        for account in account_list:
+            try:
+                int(account)
+            except ValueError as e:
+                message = "The account '{}' provided in the configuration is having non-numeric value.".format(account)
+                raise ValueError(message) from None
