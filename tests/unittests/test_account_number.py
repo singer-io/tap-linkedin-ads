@@ -31,7 +31,7 @@ class TestAccountNumber(unittest.TestCase):
         try:
             tap_linkedin_ads.do_discover(config)
         except ValueError as e:
-            self.assertEqual(str(e), 'The accounts provided in the configuration are not valid numbers.')
+            self.assertEqual(str(e), "The account '{}' provided in the configuration is having non-numeric value.".format("sSsQS503498742"))
 
         self.assertEqual(mocked_discover.call_count, 0)
 

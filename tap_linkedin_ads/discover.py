@@ -26,5 +26,5 @@ def check_accounts_list(config):
             try:
                 int(account)
             except ValueError as e:
-                message = "The accounts provided in the configuration are not valid numbers."
+                message = "The account '{}' provided in the configuration is having non-numeric value.".format(account)
                 raise ValueError(message) from None
