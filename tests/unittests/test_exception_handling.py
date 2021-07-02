@@ -50,7 +50,7 @@ class TestExceptionHandling(unittest.TestCase):
         try:
             linkedIn_client.request("GET")
         except client.LinkedInForbiddenError as e:
-            self.assertEquals(str(e), "HTTP-error-code: 403, Error: User doesn't have permission to access the resource.")
+            self.assertEquals(str(e), "HTTP-error-code: 403, Error: User does not have permission to access the resource.")
 
     def test_404_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(404, raise_error = True)
@@ -196,7 +196,7 @@ class TestAccessToken(unittest.TestCase):
         try:
             linkedIn_client.check_access_token()
         except client.LinkedInForbiddenError as e:
-            self.assertEquals(str(e), "HTTP-error-code: 403, Error: User doesn't have permission to access the resource.")
+            self.assertEquals(str(e), "HTTP-error-code: 403, Error: User does not have permission to access the resource.")
 
     def test_404_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(404, raise_error = True)
