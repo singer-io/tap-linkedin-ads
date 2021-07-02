@@ -288,6 +288,9 @@ def sync_endpoint(client,
                             if child_stream_name == 'video_ads' and owner_id is not None:
                                 child_endpoint_config['params']['account'] = account
                                 child_endpoint_config['params']['owner'] = owner
+                            else:
+                                LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id not found.",account,account)
+                                continue
                         elif stream_name == 'campaigns':
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                             if child_stream_name == 'creatives':
@@ -580,6 +583,7 @@ def sync(client, config, catalog, state):
         if should_stream:
             # Add appropriate account_filter query parameters based on account_filter type
             account_filter = endpoint_config.get('account_filter', None)
+            # if config.get('accounts') and account_filter is not None:
             if 'accounts' in config and account_filter is not None:
                 account_list = config['accounts'].replace(" ", "").split(",")
                 for idx, account in enumerate(account_list):
