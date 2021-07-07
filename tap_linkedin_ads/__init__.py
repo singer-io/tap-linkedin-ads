@@ -41,9 +41,9 @@ def main():
             do_discover()
         elif parsed_args.catalog:
             _sync(client=client,
-                 config=parsed_args.config,
-                 catalog=parsed_args.catalog,
-                 state=state)
+                config=parsed_args.config,
+                catalog=parsed_args.catalog,
+                state=state)
 
 if __name__ == '__main__':
     main()
