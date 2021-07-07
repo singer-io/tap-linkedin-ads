@@ -16,7 +16,12 @@ class LinkedinAdsSyncTest(TestLinkedinAdsBase):
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        self.perform_and_verify_table_and_field_selection(conn_id,found_catalogs)
+        test_catalogs = [catalog for catalog in found_catalogs
+                                      if catalog.get('stream_name') in self.expected_streams() - set("ad_analytics_by_campaign", "ad_analytics_by_creative")]
+                                    # removed "ad_analytics_by_campaign" and "ad_analytics_by_creative" as
+                                    # it makes lots of api calls so sync canary test for these streams is covered in the start date test
+
+        self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 

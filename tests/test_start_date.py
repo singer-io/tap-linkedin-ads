@@ -81,6 +81,11 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
             if stream in ["accounts", "campaigns", "campaign_groups"]:
                 continue
 
+            # checking sync test for "ad_analytics_by_campaign", "ad_analytics_by_creative"
+            if stream in ["ad_analytics_by_campaign", "ad_analytics_by_creative"]:
+                self.assertGreater(record_count_by_stream_1.get(stream, 0), 0)
+                self.assertGreater(record_count_by_stream_2.get(stream, 0), 0)
+
             with self.subTest(stream=stream):
 
                 # expected values
