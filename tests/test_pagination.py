@@ -32,7 +32,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
                 # expected values
                 expected_primary_keys = self.expected_primary_keys()
 
-                # collect information for assertions from syncs 1 & 2 base on expected values
+                # collect information for assertions from sync based on expected values
                 record_count_sync = record_count_by_stream.get(stream, 0)
                 primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
                                        for message in synced_records.get(stream).get('messages')

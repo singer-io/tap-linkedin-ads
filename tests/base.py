@@ -275,9 +275,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
     ### Tap Specific Methods
     ##########################################################################
 
-    def is_incremental(self, stream):
-        return self.expected_metadata()[stream][self.REPLICATION_METHOD] == "INCREMENTAL"
-
     def dt_to_ts(self, dtime):
         for date_format in self.DATETIME_FMT:
             try:

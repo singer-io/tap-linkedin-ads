@@ -20,4 +20,6 @@ class LinkedinAdsSyncTest(TestLinkedinAdsBase):
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
-        self.assertGreater(sum(record_count_by_stream.values()), 0)
+        # check if all streams have collected records
+        for stream in self.expected_streams():
+            self.assertGreater(record_count_by_stream.get(stream, 0), 0)

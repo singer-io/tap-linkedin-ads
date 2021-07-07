@@ -100,37 +100,26 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
                 primary_keys_sync_1 = set(primary_keys_list_1)
                 primary_keys_sync_2 = set(primary_keys_list_2)
 
-                if self.is_incremental(stream):
+                # Expected bookmark key is one element in set so directly access it
+                start_date_keys_list_1 = [message.get('data').get(next(iter(expected_start_date_keys))) for message in synced_records_1.get(stream).get('messages')
+                                        if message.get('action') == 'upsert']
+                start_date_keys_list_2 = [message.get('data').get(next(iter(expected_start_date_keys))) for message in synced_records_2.get(stream).get('messages')
+                                        if message.get('action') == 'upsert']
 
-                    # Expected bookmark key is one element in set so directly access it
-                    start_date_keys_list_1 = [message.get('data').get(next(iter(expected_start_date_keys))) for message in synced_records_1.get(stream).get('messages')
-                                            if message.get('action') == 'upsert']
-                    start_date_keys_list_2 = [message.get('data').get(next(iter(expected_start_date_keys))) for message in synced_records_2.get(stream).get('messages')
-                                            if message.get('action') == 'upsert']
+                start_date_key_sync_1 = set(start_date_keys_list_1)
+                start_date_key_sync_2 = set(start_date_keys_list_2)
 
-                    start_date_key_sync_1 = set(start_date_keys_list_1)
-                    start_date_key_sync_2 = set(start_date_keys_list_2)
+                # Verify bookmark key values are greater than or equal to start date of sync 1
+                for start_date_key_value in start_date_key_sync_1:
+                    self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_1_epoch)
 
-                    # Verify bookmark key values are greater than or equal to start date of sync 1
-                    for start_date_key_value in start_date_key_sync_1:
-                        self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_1_epoch)
+                # Verify bookmark key values are greater than or equal to start date of sync 2
+                for start_date_key_value in start_date_key_sync_2:
+                    self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_2_epoch)
 
-                    # Verify bookmark key values are greater than or equal to start date of sync 2
-                    for start_date_key_value in start_date_key_sync_2:
-                        self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_2_epoch)
+                # Verify the number of records replicated in sync 1 is greater than the number
+                # of records replicated in sync 2 for stream
+                self.assertGreater(record_count_sync_1, record_count_sync_2)
 
-                    # Verify the number of records replicated in sync 1 is greater than the number
-                    # of records replicated in sync 2 for stream
-                    self.assertGreater(record_count_sync_1, record_count_sync_2)
-
-                    # Verify the records replicated in sync 2 were also replicated in sync 1
-                    self.assertTrue(primary_keys_sync_2.issubset(primary_keys_sync_1))
-
-                else:
-                    
-                    # Verify that the 2nd sync with a later start date replicates the same number of
-                    # records as the 1st sync.
-                    self.assertEqual(record_count_sync_2, record_count_sync_1)
-
-                    # Verify by primary key the same records are replicated in the 1st and 2nd syncs
-                    self.assertSetEqual(primary_keys_sync_1, primary_keys_sync_2)
+                # Verify the records replicated in sync 2 were also replicated in sync 1
+                self.assertTrue(primary_keys_sync_2.issubset(primary_keys_sync_1))
