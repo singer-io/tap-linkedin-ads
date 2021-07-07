@@ -7,7 +7,7 @@ import singer
 from singer import metadata, utils
 from tap_linkedin_ads.client import LinkedinClient
 from tap_linkedin_ads.discover import discover
-from tap_linkedin_ads.sync import sync
+from tap_linkedin_ads.sync import sync as _sync
 
 LOGGER = singer.get_logger()
 
@@ -40,7 +40,7 @@ def main():
         if parsed_args.discover:
             do_discover()
         elif parsed_args.catalog:
-            sync(client=client,
+            _sync(client=client,
                  config=parsed_args.config,
                  catalog=parsed_args.catalog,
                  state=state)

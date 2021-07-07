@@ -289,7 +289,7 @@ def sync_endpoint(client,
                                 child_endpoint_config['params']['account'] = account
                                 child_endpoint_config['params']['owner'] = owner
                             else:
-                                LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id not found.",account,account)
+                                LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id not found.",account)
                                 continue
                         elif stream_name == 'campaigns':
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
