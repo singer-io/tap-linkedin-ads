@@ -10,16 +10,16 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
 
     def test_run(self):
         # page size for "campaign_groups", "creatives" set in the tap
-        page_size = 100
+        page_size = 1
         conn_id = connections.ensure_connection(self)
 
         # Checking pagination for "campaign_groups", "creatives" stream
-        expected_streams = ["campaign_groups", "creatives"]
+        expected_streams = self.expected_streams()
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
         test_catalogs = [catalog for catalog in found_catalogs
-                                      if catalog.get('stream_name') in expected_streams + ["campaigns"]]
+                                      if catalog.get('stream_name') in expected_streams]
                                     # added "campaigns" as "creatives" is child stream of it
 
         self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs)
@@ -43,6 +43,8 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
                 self.assertGreater(record_count_sync, page_size)
 
                 if record_count_sync > page_size:
+                    print("---------------------------------------")
+                    print(stream)
                     primary_keys_list_1 = primary_keys_list[:page_size]
                     primary_keys_list_2 = primary_keys_list[page_size:2*page_size]
 
