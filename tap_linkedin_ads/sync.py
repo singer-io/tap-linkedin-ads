@@ -529,7 +529,7 @@ def sync(client, config, catalog, state):
                         'dateRange.end.day': now.day,
                         'dateRange.end.month': now.month,
                         'dateRange.end.year': now.year,
-                        'count': 1
+                        'count': 10000
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
@@ -561,7 +561,7 @@ def sync(client, config, catalog, state):
                         'dateRange.end.day': now.day,
                         'dateRange.end.month': now.month,
                         'dateRange.end.year': now.year,
-                        'count': 1
+                        'count': 10000
                     },
                     'data_key': 'elements',
                     'bookmark_field': 'end_at',
@@ -736,7 +736,7 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
         for chunk in chunks:
             static_params['fields'] = ','.join(chunk)
             params = {"start": 0,
-                      "count": endpoint_config.get('count', 1),
+                      "count": endpoint_config.get('count', 100),
                       **static_params}
             query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
             LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date)

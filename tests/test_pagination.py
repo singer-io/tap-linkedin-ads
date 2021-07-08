@@ -14,7 +14,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
         conn_id = connections.ensure_connection(self)
 
         # Checking pagination for "campaign_groups", "creatives" stream
-        expected_streams = self.expected_streams()
+        expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # table and field selection
