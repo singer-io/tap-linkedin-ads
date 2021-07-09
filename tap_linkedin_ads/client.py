@@ -26,7 +26,7 @@ class LinkedInUnauthorizedError(LinkedInError):
     pass
 
 
-class LinkedInMethodNotAllowed(LinkedInError):
+class LinkedInMethodNotAllowedError(LinkedInError):
     pass
 
 
@@ -36,10 +36,10 @@ class LinkedInNotFoundError(LinkedInError):
 class LinkedInForbiddenError(LinkedInError):
     pass
 
-class LinkedInLengthRequired(LinkedInError):
+class LinkedInLengthRequiredError(LinkedInError):
     pass
 
-class LinkedInRateLimitExceeeded(Server429Error):
+class LinkedInRateLimitExceeededError(Server429Error):
     pass
 
 class LinkedInInternalServiceError(Server5xxError):
@@ -67,15 +67,15 @@ ERROR_CODE_EXCEPTION_MAPPING = {
         "message": "The resource you have specified cannot be found."
     },
     405: {
-        "raise_exception": LinkedInMethodNotAllowed,
+        "raise_exception": LinkedInMethodNotAllowedError,
         "message": "The provided HTTP method is not supported by the URL."
     },
     411: {
-        "raise_exception": LinkedInLengthRequired,
+        "raise_exception": LinkedInLengthRequiredError,
         "message": "The server refuses to accept the request without a defined Content-Length header."
     },
     429: {
-        "raise_exception": LinkedInRateLimitExceeeded,
+        "raise_exception": LinkedInRateLimitExceeededError,
         "message": "API rate limit exceeded, please retry after some time."
     },
     500: {
@@ -96,7 +96,7 @@ def raise_for_error(response):
         response_json = {}
 
     if error_code == 404:
-        error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
+        error_description = "The resource you have specified cannot be found."
         error_description += " Please check the account numbers or you don't have access to the Ad Account."
     elif response_json.get("message") and "see errorDetails for more information" in response_json.get("message"):
         error_description = response_json.get("errorDetails").get("inputErrors", [{}])[0].get("code", None)

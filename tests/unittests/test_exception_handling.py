@@ -65,7 +65,7 @@ class TestExceptionHandling(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.request("GET")
-        except client.LinkedInMethodNotAllowed as e:
+        except client.LinkedInMethodNotAllowedError as e:
             self.assertEquals(str(e), "HTTP-error-code: 405, Error: The provided HTTP method is not supported by the URL.")
 
     def test_411_error_custom_message(self, mocked_access_token, mocked_request):
@@ -73,7 +73,7 @@ class TestExceptionHandling(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.request("GET")
-        except client.LinkedInLengthRequired as e:
+        except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: The server refuses to accept the request without a defined Content-Length header.")
 
     # 429, 500, 504 error code remain as they uses backoff time
@@ -135,7 +135,7 @@ class TestExceptionHandling(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.request("GET")
-        except client.LinkedInMethodNotAllowed as e:
+        except client.LinkedInMethodNotAllowedError as e:
             self.assertEquals(str(e), "HTTP-error-code: 405, Error: {}".format(response_json.get('message')))
 
     def test_411_error_response_message(self, mocked_access_token, mocked_request):
@@ -146,7 +146,7 @@ class TestExceptionHandling(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.request("GET")
-        except client.LinkedInLengthRequired as e:
+        except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: {}".format(response_json.get('message')))
 
     # def test_500_error_response_message(self, mocked_access_token, mocked_request):
@@ -211,7 +211,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInMethodNotAllowed as e:
+        except client.LinkedInMethodNotAllowedError as e:
             self.assertEquals(str(e), "HTTP-error-code: 405, Error: The provided HTTP method is not supported by the URL.")
 
     def test_411_error_custom_message(self, mocked_request):
@@ -219,7 +219,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInLengthRequired as e:
+        except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: The server refuses to accept the request without a defined Content-Length header.")
 
     def test_429_error_custom_message(self, mocked_request):
@@ -227,7 +227,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInRateLimitExceeeded as e:
+        except client.LinkedInRateLimitExceeededError as e:
             self.assertEquals(str(e), "HTTP-error-code: 429, Error: API rate limit exceeded, please retry after some time.")
 
     @mock.patch("time.sleep")
@@ -302,7 +302,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInMethodNotAllowed as e:
+        except client.LinkedInMethodNotAllowedError as e:
             self.assertEquals(str(e), "HTTP-error-code: 405, Error: {}".format(response_json.get('message')))
 
     def test_411_error_response_message(self, mocked_request):
@@ -313,7 +313,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInLengthRequired as e:
+        except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: {}".format(response_json.get('message')))
 
     def test_429_error_response_message(self, mocked_request):
@@ -324,7 +324,7 @@ class TestAccessToken(unittest.TestCase):
         linkedIn_client = client.LinkedinClient("access_token")
         try:
             linkedIn_client.check_access_token()
-        except client.LinkedInRateLimitExceeeded as e:
+        except client.LinkedInRateLimitExceeededError as e:
             self.assertEquals(str(e), "HTTP-error-code: 429, Error: {}".format(response_json.get('message')))
 
     @mock.patch("time.sleep")
