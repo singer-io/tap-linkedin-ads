@@ -413,7 +413,7 @@ def sync(client, config, catalog, state):
         start_date = config['start_date']
 
     if config.get("page_size"):
-        global PAGE_SIZE
+        global PAGE_SIZE # pylint: disable=global-statement
         PAGE_SIZE = int(config.get("page_size"))
 
     if config.get('date_window_size'):
