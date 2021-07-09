@@ -1,4 +1,5 @@
 from tap_tester import runner, connections
+import os
 
 from base import TestLinkedinAdsBase
 
@@ -8,10 +9,25 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
     def name():
         return "tap_tester_linkedin_ads_pagination_test"
 
+    def get_properties(self, original: bool = True):
+        return_value = {
+            "start_date" : "2018-08-21T00:00:00Z",
+            "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
+            "page_size": 1
+        }
+        if original:
+            return return_value
+
+        # Reassign start date
+        return_value["start_date"] = self.START_DATE
+        return return_value
+
     def test_run(self):
         page_size = 1
         conn_id = connections.ensure_connection(self)
 
+        # "ad_analytics_by_creative" and "ad_analytics_by_campaign" does not support pagination
+        # Documentation: https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?tabs=http
         expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 

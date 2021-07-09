@@ -37,7 +37,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
     def get_properties(self, original: bool = True):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
-            "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS")
+            "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
+            "page_size": 100
         }
         if original:
             return return_value

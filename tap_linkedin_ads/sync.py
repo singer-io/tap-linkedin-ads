@@ -11,6 +11,7 @@ LOGGER = singer.get_logger()
 
 LOOKBACK_WINDOW = 7
 DATE_WINDOW_SIZE = 30 # days
+PAGE_SIZE = 100
 
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
@@ -210,12 +211,11 @@ def sync_endpoint(client,
     # Increase the "start" by the "count" for each batch.
     # Continue until the "start" exceeds the total_records.
     start = 0 # Starting offset value for each batch API call
-    count = endpoint_config.get('count', 1) # Batch size; Number of records per API call, default = 100
     total_records = 0
     page = 1
     params = {
         'start': start,
-        'count': count,
+        'count': PAGE_SIZE,
         **static_params # adds in endpoint specific, sort, filter params
     }
     if bookmark_query_field:
@@ -411,6 +411,10 @@ def should_sync_stream(selected_streams, last_stream, stream_name):
 def sync(client, config, catalog, state):
     if 'start_date' in config:
         start_date = config['start_date']
+
+    if config.get("page_size"):
+        global PAGE_SIZE
+        PAGE_SIZE = int(config.get("page_size"))
 
     if config.get('date_window_size'):
         LOGGER.info('Using non-standard date window size of %s', config.get('date_window_size'))
