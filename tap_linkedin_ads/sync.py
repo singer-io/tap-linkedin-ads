@@ -734,6 +734,15 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
             if field not in chunk:
                 chunk.append(field)
 
+    ############### PAGINATION (for these 2 streams) ###############
+    # The Tap requests LinkedIn with one Campaign ID at one time.
+    # 1 Campaign permits 100 Ads
+    # Considering, 1 Ad is active and the existing behaviour of the tap uses 30 Day window size
+    #       and timeGranularity = DAILY(Results grouped by day) we get 30 records in one API response
+    # Considering the maximum permitted size of Ads are created, "3000" records will be returned in an API response.
+    # If “count=100” and records=100 in the API are the same then the next url will be returned and if we hit that URL, 400 error code will be returned.
+    # This case is unreachable because here “count” is 10000 and at maximum only 3000 records will be returned in an API response.
+
     total_records = 0
     while window_end_date <= today:
         responses = []
