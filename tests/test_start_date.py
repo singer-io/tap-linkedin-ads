@@ -12,7 +12,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         return "tap_tester_linkedin_ads_start_date_test"
 
     def test_run(self):
-        self.run_test('2018-01-01T00:00:00Z', '2019-08-01T00:00:00Z', self.expected_streams() - set({"accounts", "campaigns", "campaign_groups"}))
+        self.run_test('2018-01-01T00:00:00Z', '2019-08-01T00:00:00Z', self.expected_streams() - set({"campaign_groups"}))
 
     def run_test(self, date_1, date_2, streams):
         """Instantiate start date according to the desired data set and run the test"""
@@ -79,6 +79,10 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         self.assertGreater(sum(record_count_by_stream_1.values()), sum(record_count_by_stream_2.values()))
 
         for stream in expected_streams:
+
+            # skipping these fields as there is not enough data available
+            if stream in ["accounts", "campaigns"]:
+                continue
 
             # checking sync test for "ad_analytics_by_campaign", "ad_analytics_by_creative"
             if stream in ["ad_analytics_by_campaign", "ad_analytics_by_creative"]:
