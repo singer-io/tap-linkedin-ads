@@ -13,6 +13,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
     def test_run(self):
         self.run_test('2018-01-01T00:00:00Z', '2019-08-01T00:00:00Z', self.expected_streams() - set({"campaign_groups"}))
+        self.run_test('2019-01-01T00:00:00Z', '2021-01-01T00:00:00Z', set({"campaigns", "creatives"}))
 
     def run_test(self, date_1, date_2, streams):
         """Instantiate start date according to the desired data set and run the test"""
