@@ -50,7 +50,7 @@ class TestExceptionHandling(unittest.TestCase):
         try:
             client.request("GET")
         except _client.LinkedInBadRequestError as e:
-            self.assertEquals(str(e), "HTTP-error-code: 400, Error: Invalid Urn Format. Key long is in invalid format. Urn urn:li:sponsoredAccount:aaa. Please check that the account numbers are valid integers.")
+            self.assertEquals(str(e), "HTTP-error-code: 400, Error: " + str(json.get("errorDetails")) + " Please check that the account numbers are valid integers.")
 
     def test_400_error_simple_json(self, mocked_access_token, mocked_request):
         json = {"message": "Invalid params for account.",

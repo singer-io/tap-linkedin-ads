@@ -64,7 +64,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     },
     404: {
         "raise_exception": LinkedInNotFoundError,
-        "message": "The resource you have specified cannot be found."
+        "message": "The resource you have specified cannot be found. Please check the account numbers or you don't have access to the Ad Account."
     },
     405: {
         "raise_exception": LinkedInMethodNotAllowedError,
@@ -96,14 +96,13 @@ def raise_for_error(response):
         response_json = {}
 
     if error_code == 404:
-        error_description = "The resource you have specified cannot be found."
-        error_description += " Please check the account numbers or you don't have access to the Ad Account."
-    elif response_json.get("message") and "see errorDetails for more information" in response_json.get("message"):
-        error_description = response_json.get("errorDetails").get("inputErrors", [{}])[0].get("code", None)
-        if not error_description:
-            error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")
-        error_description = error_description.split(":: ")[-1]
+        # 404 returns "Not Found" so getting custom message
+        error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
+    elif response_json.get("message") and response_json.get("errorDetails"):
+        # get "errorDetails" from the response
+        error_description = str(response_json.get("errorDetails"))
     else:
+        # get message from the reponse if present or get custom message if not present
         error_description = response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error") if response_json == {} else response_json)
 
     if error_code == 400:
