@@ -12,14 +12,10 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         return "tap_tester_linkedin_ads_start_date_test"
 
     def test_run(self):
-        self.run_test('2018-01-01T00:00:00Z', '2019-08-01T00:00:00Z', set({"accounts", "video_ads", "account_users"}))
-        self.run_test('2019-01-01T00:00:00Z', '2021-01-01T00:00:00Z', set({"accounts", "campaigns", "campaign_groups", "ad_analytics_by_campaign", "ad_analytics_by_creative"}))
-
-    def run_test(self, date_1, date_2, streams):
         """Instantiate start date according to the desired data set and run the test"""
 
-        self.start_date_1 = date_1
-        self.start_date_2 = date_2
+        self.start_date_1 = '2018-01-01T00:00:00Z'
+        self.start_date_2 = '2019-08-01T00:00:00Z'
 
         start_date_1_epoch = self.dt_to_ts(self.start_date_1)
         start_date_2_epoch = self.dt_to_ts(self.start_date_2)
@@ -27,7 +23,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         # set start date 1
         self.START_DATE = self.start_date_1
 
-        expected_streams = streams
+        expected_streams = self.expected_streams()
 
         ##########################################################################
         ### First Sync
@@ -82,7 +78,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         for stream in expected_streams:
 
             # skipping these fields as there is not enough data available
-            if stream in ["accounts"]:
+            if stream in ["accounts", "campaigns", "campaign_groups"]:
                 continue
 
             # checking sync test for "ad_analytics_by_campaign", "ad_analytics_by_creative"
@@ -128,7 +124,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
                 # Verify the number of records replicated in sync 1 is greater than the number
                 # of records replicated in sync 2 for stream
-                self.assertGreater(record_count_sync_1, record_count_sync_2)
+                self.assertGreaterEqual(record_count_sync_1, record_count_sync_2)
 
                 # Verify the records replicated in sync 2 were also replicated in sync 1
                 self.assertTrue(primary_keys_sync_2.issubset(primary_keys_sync_1))
