@@ -78,7 +78,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         for stream in expected_streams:
 
             # skipping these fields as there is not enough data available
-            if stream in ["accounts", "campaigns", "campaign_groups"]:
+            if stream in ["accounts"]:
                 continue
 
             # checking sync test for "ad_analytics_by_campaign", "ad_analytics_by_creative"
