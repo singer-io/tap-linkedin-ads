@@ -15,7 +15,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     DATETIME_FMT = {
         "%Y-%m-%dT%H:%M:%SZ",
         "%Y-%m-%d %H:%M:%S",
-        "%Y-%m-%dT%H:%M:%S.000000Z"
+        "%Y-%m-%dT%H:%M:%S.%fZ"
     }
     START_DATE = ""
 
