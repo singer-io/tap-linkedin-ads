@@ -64,7 +64,7 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     },
     404: {
         "raise_exception": LinkedInNotFoundError,
-        "message": "The resource you have specified cannot be found. Please check the account numbers or you don't have access to the Ad Account."
+        "message": "The resource you have specified cannot be found. Either the accounts provided are invalid or you do not have access to the Ad Account."
     },
     405: {
         "raise_exception": LinkedInMethodNotAllowedError,
@@ -98,15 +98,12 @@ def raise_for_error(response):
     if error_code == 404:
         # 404 returns "Not Found" so getting custom message
         error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
-    elif response_json.get("message") and response_json.get("errorDetails"):
+    elif response_json.get("errorDetails"):
         # get "errorDetails" from the response
-        error_description = str(response_json.get("errorDetails"))
+        error_description = response_json.get("errorDetails")
     else:
         # get message from the reponse if present or get custom message if not present
-        error_description = response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error") if response_json == {} else response_json)
-
-    if error_code == 400:
-        error_description += " Please check that the account numbers are valid integers."
+        error_description = response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error"))
 
     if response.status_code == 401 and 'Expired access token' in error_description:
         LOGGER.error("Your access_token has expired as per LinkedIn’s security \
