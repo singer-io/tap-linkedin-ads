@@ -98,12 +98,9 @@ def raise_for_error(response):
     if error_code == 404:
         # 404 returns "Not Found" so getting custom message
         error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
-    elif response_json.get("errorDetails"):
-        # get "errorDetails" from the response
-        error_description = response_json.get("errorDetails")
     else:
         # get message from the reponse if present or get custom message if not present
-        error_description = response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error"))
+        error_description = response_json.get("errorDetails", response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")))
 
     if response.status_code == 401 and 'Expired access token' in error_description:
         LOGGER.error("Your access_token has expired as per LinkedIn’s security \

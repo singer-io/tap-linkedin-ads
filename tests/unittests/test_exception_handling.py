@@ -76,13 +76,6 @@ class TestExceptionHandling(unittest.TestCase):
         except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: The server refuses to accept the request without a defined Content-Length header.")
 
-    # 429, 500, 504 error code remain as they uses backoff time
-    # def test_500_error_custom_message(self, mocked_access_token, mocked_request):
-    #     mocked_request.return_value = get_response(500, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("access_token")
-    #     with self.assertRaises(client.Server5xxError):
-    #         linkedIn_client.request("GET")
-
     def test_400_error_response_message(self, mocked_access_token, mocked_request):
         response_json = {"message": "Invalid params for account.",
                             "status": 400,
@@ -148,13 +141,6 @@ class TestExceptionHandling(unittest.TestCase):
             linkedIn_client.request("GET")
         except client.LinkedInLengthRequiredError as e:
             self.assertEquals(str(e), "HTTP-error-code: 411, Error: {}".format(response_json.get('message')))
-
-    # def test_500_error_response_message(self, mocked_access_token, mocked_request):
-    #     response_json = {"message": "Response message for status code 500"}
-    #     mocked_request.return_value = get_response(500, response_json, raise_error = True)
-    #     linkedIn_client = client.LinkedinClient("access_token")
-    #     with self.assertRaises(client.Server5xxError):
-    #         linkedIn_client.request("GET")
 
     @mock.patch("tap_linkedin_ads.client.LOGGER.error")
     def test_401_error_expired_access_token(self, mocked_logger, mocked_access_token, mocked_request):
