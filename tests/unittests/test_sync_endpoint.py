@@ -39,4 +39,4 @@ class TestSyncEndpoint(unittest.TestCase):
 
         account = 'urn:li:sponsoredAccount:111111111'
 
-        mocked_logger.assert_called_with('Skipping video_ads call for %s account as reference_organization_id not found.',account)
+        mocked_logger.assert_called_with('Skipping video_ads call for %s account as reference_organization_id is not found.',account)

@@ -218,9 +218,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
         catalogs = menagerie.get_catalogs(conn_id)
 
-        print("+=+=+=+=+=")
-        print(catalogs)
-
         # Ensure our selection affects the catalog
         expected_selected = [tc.get('stream_name') for tc in test_catalogs]
         for cat in catalogs:
