@@ -152,9 +152,7 @@ class TestExceptionHandling(unittest.TestCase):
         try:
             linkedIn_client.request("GET")
         except client.LinkedInUnauthorizedError as e:
-            mocked_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security \
-            policy. \n Please re-authenticate your connection to generate a new token \
-            and resume extraction.")
+            mocked_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
             self.assertEquals(str(e), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
 
 @mock.patch("requests.Session.get")
@@ -349,7 +347,5 @@ class TestAccessToken(unittest.TestCase):
         try:
             linkedIn_client.check_access_token()
         except client.LinkedInUnauthorizedError as e:
-            mocked_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security \
-            policy. \n Please re-authenticate your connection to generate a new token \
-            and resume extraction.")
+            mocked_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
             self.assertEquals(str(e), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
