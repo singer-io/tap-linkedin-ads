@@ -103,9 +103,7 @@ def raise_for_error(response):
         error_description = response_json.get("errorDetails", response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")))
 
     if response.status_code == 401 and 'Expired access token' in error_description:
-        LOGGER.error("Your access_token has expired as per LinkedIn’s security \
-            policy. \n Please re-authenticate your connection to generate a new token \
-            and resume extraction.")
+        LOGGER.error("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
 
     message = "HTTP-error-code: {}, Error: {}".format(
                 error_code, error_description)
