@@ -75,12 +75,16 @@ def get_schemas():
         )
 
         # Add additional metadata
+        mdata_map = metadata.to_map(mdata)
         if stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-            mdata_map = metadata.to_map(mdata)
             mdata_map[('properties', 'date_range')]['inclusion'] = 'automatic'
             mdata_map[('properties', 'pivot')]['inclusion'] = 'automatic'
             mdata_map[('properties', 'pivot_value')]['inclusion'] = 'automatic'
-            mdata = metadata.to_list(mdata_map)
+
+        for replication_key in stream_metadata.get('replication_keys'):
+            mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
+            
+        mdata = metadata.to_list(mdata_map)
 
         field_metadata[stream_name] = mdata
 
