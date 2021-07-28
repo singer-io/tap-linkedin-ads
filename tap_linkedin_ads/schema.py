@@ -83,7 +83,7 @@ def get_schemas():
 
         for replication_key in stream_metadata.get('replication_keys'):
             mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
-            
+
         mdata = metadata.to_list(mdata_map)
 
         field_metadata[stream_name] = mdata
