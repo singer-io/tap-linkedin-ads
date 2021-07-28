@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:tap-tester-v4
+      - image: 218546966473.dkr.ecr.us-east-1.amazonaws.com/circle-ci:stitch-tap-tester
     steps:
       - checkout
       - add_ssh_keys
@@ -22,7 +22,7 @@ jobs:
           name: 'JSON Validator'
           command: |
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            stitch-validate-json /usr/local/share/virtualenvs/tap-linkedin-ads/lib/python*/site-packages/tap_linkedin_ads/schemas/*.json
+            stitch-validate-json tap_linkedin_ads/schemas/*.json
       - run:
           name: 'Unit Tests'
           command: |
@@ -31,22 +31,12 @@ jobs:
             nosetests tests/unittests/
       - run:
           when: always
-          name: 'Integration Tests Setup'
-          command: |
-            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/sandbox dev_env.sh
-      - run:
           name: 'Integration Tests'
           command: |
-            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/sandbox dev_env.sh
+            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            run-test --tap=tap-linkedin-ads \
-                     --target=target-stitch \
-                     --orchestrator=stitch-orchestrator \
-                     --email=harrison+sandboxtest@stitchdata.com \
-                     --password=$SANDBOX_PASSWORD \
-                     --client-id=50 \
-                     tests
+            run-test --tap=tap-linkedin-ads tests
 workflows:
   version: 2
   commit:
