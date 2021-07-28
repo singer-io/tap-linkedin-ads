@@ -7,7 +7,6 @@ import os
 from tap_tester import menagerie
 import tap_tester.runner as runner
 import tap_tester.connections as connections
-from tap_tester.scenario import SCENARIOS
 
 
 class LinkedinAdsSyncTest(unittest.TestCase):
@@ -205,6 +204,3 @@ class LinkedinAdsSyncTest(unittest.TestCase):
                 second_state['bookmarks'][stream],
                 first_state['bookmarks'][stream]
             )
-
-
-SCENARIOS.add(LinkedinAdsSyncTest)
