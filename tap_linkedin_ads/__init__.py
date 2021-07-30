@@ -18,10 +18,11 @@ REQUIRED_CONFIG_KEYS = [
     'accounts'
 ]
 
-def do_discover(config):
+def do_discover(client, config):
 
     LOGGER.info('Starting discover')
-    check_accounts_list(config)
+    check_accounts_list(config) # Check that accounts are valid numbers.
+    client.check_accounts(config) # Check that accounts are valid LinkedIn Ads account.
     catalog = discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
@@ -39,7 +40,7 @@ def main():
             state = parsed_args.state
 
         if parsed_args.discover:
-            do_discover(parsed_args.config)
+            do_discover(client, parsed_args.config)
         elif parsed_args.catalog:
             sync(client=client,
                  config=parsed_args.config,
