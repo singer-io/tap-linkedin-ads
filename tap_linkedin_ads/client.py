@@ -140,7 +140,7 @@ class LinkedinClient:
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
-    
+
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
             invalid_account = []
@@ -148,8 +148,7 @@ class LinkedinClient:
                 response = self.__session.get(
                     url='https://api.linkedin.com/v2/adAccountUsersV2?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
                     headers=headers)
-                # Account users API will return 404 if provided account is valid number
-                # but invalid LinkedIn account
+                # Account users API will return 404 if provided account is valid number but invalid LinkedIn Ads account
                 if response.status_code == 404:
                     invalid_account.append(account)
                 elif response.status_code != 200:
