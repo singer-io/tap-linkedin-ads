@@ -83,7 +83,7 @@ class TestValidLinkedInAccount(unittest.TestCase):
 
     def test_valid_linkedIn_accounts(self, mocked_request, mocked_discover):
         '''
-        If account number is valid then discover will be called
+        If accounts are valid LinkedIn Ads accounts then discover will be called
         '''
         mocked_request.return_value = get_response(200, raise_error = True)
         config = {"accounts": "1111, 2222"}
@@ -93,7 +93,7 @@ class TestValidLinkedInAccount(unittest.TestCase):
 
     def test_invalid_linkedIn_accounts(self, mocked_request, mocked_discover):
         '''
-        If account number is valid then discover will be called
+        If accounts are invalid LinkedIn Ads accounts then Exception raised with explanatory message
         '''
         mocked_request.return_value = get_response(404, raise_error = True)
         config = {"accounts": "1111, 2222"}
@@ -102,6 +102,6 @@ class TestValidLinkedInAccount(unittest.TestCase):
             tap_linkedin_ads.do_discover(client, config)
         except Exception as e:
             expected_invalid_accounts = ["1111", "2222"]
-            self.assertEqual(str(e), "These account are invalid LinkedIn Ads accounts from provided accounts:{}".format(expected_invalid_accounts))
+            self.assertEqual(str(e), "These accounts are invalid LinkedIn Ads accounts from provided accounts:{}".format(expected_invalid_accounts))
 
         self.assertEqual(mocked_discover.call_count, 0)
