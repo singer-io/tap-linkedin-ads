@@ -47,7 +47,7 @@ class LinkedinAdsDiscoveryTest(TestLinkedinAdsBase):
 
                 # automatic fields will be only primary keys as 
                 # replication keys are not automatically replicated
-                expected_automatic_fields = expected_primary_keys | set()
+                expected_automatic_fields = expected_primary_keys | expected_replication_keys
 
                 # add "date_range", "pivot", "pivot_value" as automatic
                 # for "ad_analytics_by_campaign" and "ad_analytics_by_creative"
