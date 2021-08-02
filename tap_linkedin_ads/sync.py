@@ -12,6 +12,7 @@ LOGGER = singer.get_logger()
 
 LOOKBACK_WINDOW = 7
 DATE_WINDOW_SIZE = 30 # days
+PAGE_SIZE = 100
 
 FIELDS_AVAILABLE_FOR_AD_ANALYTICS_V2 = {
     'actionClicks',
@@ -211,12 +212,11 @@ def sync_endpoint(client,
     # Increase the "start" by the "count" for each batch.
     # Continue until the "start" exceeds the total_records.
     start = 0 # Starting offset value for each batch API call
-    count = endpoint_config.get('count', 100) # Batch size; Number of records per API call, default = 100
     total_records = 0
     page = 1
     params = {
         'start': start,
-        'count': count,
+        'count': PAGE_SIZE,
         **static_params # adds in endpoint specific, sort, filter params
     }
     if bookmark_query_field:
@@ -418,6 +418,10 @@ def sync(client, config, catalog, state):
     if 'start_date' in config:
         start_date = config['start_date']
 
+    if config.get("page_size"):
+        global PAGE_SIZE # pylint: disable=global-statement
+        PAGE_SIZE = int(config.get("page_size"))
+
     if config.get('date_window_size'):
         LOGGER.info('Using non-standard date window size of %s', config.get('date_window_size'))
         global DATE_WINDOW_SIZE # pylint: disable=global-statement
@@ -586,7 +590,7 @@ def sync(client, config, catalog, state):
         if should_stream:
             # Add appropriate account_filter query parameters based on account_filter type
             account_filter = endpoint_config.get('account_filter', None)
-            if 'accounts' in config and account_filter is not None:
+            if config.get("accounts") and account_filter is not None:
                 account_list = config['accounts'].replace(" ", "").split(",")
                 for idx, account in enumerate(account_list):
                     if account_filter == 'search_id_values_param':
@@ -735,6 +739,15 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
         for field in ['dateRange', 'pivot', 'pivotValue']:
             if field not in chunk:
                 chunk.append(field)
+
+    ############### PAGINATION (for these 2 streams) ###############
+    # The Tap requests LinkedIn with one Campaign ID at one time.
+    # 1 Campaign permits 100 Ads
+    # Considering, 1 Ad is active and the existing behaviour of the tap uses 30 Day window size
+    #       and timeGranularity = DAILY(Results grouped by day) we get 30 records in one API response
+    # Considering the maximum permitted size of Ads are created, "3000" records will be returned in an API response.
+    # If “count=100” and records=100 in the API are the same then the next url will be returned and if we hit that URL, 400 error code will be returned.
+    # This case is unreachable because here “count” is 10000 and at maximum only 3000 records will be returned in an API response.
 
     total_records = 0
     while window_end_date <= today:
