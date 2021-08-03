@@ -45,8 +45,7 @@ class LinkedinAdsDiscoveryTest(TestLinkedinAdsBase):
                 expected_primary_keys = self.expected_primary_keys()[stream]
                 expected_replication_keys = self.expected_replication_keys()[stream]
 
-                # automatic fields will be only primary keys as 
-                # replication keys are not automatically replicated
+                # add primary keys and replication keys in automatically replicated keys to check
                 expected_automatic_fields = expected_primary_keys | expected_replication_keys
 
                 # add "date_range", "pivot", "pivot_value" as automatic
