@@ -148,13 +148,15 @@ class LinkedinClient:
                 response = self.__session.get(
                     url='https://api.linkedin.com/v2/adAccountUsersV2?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
                     headers=headers)
+
+                # Account users API will return 400 if account is not in number format.
                 # Account users API will return 404 if provided account is valid number but invalid LinkedIn Ads account
-                if response.status_code == 404:
+                if response.status_code in [400, 404]:
                     invalid_account.append(account)
                 elif response.status_code != 200:
                     raise_for_error(response)
             if invalid_account:
-                error_message = 'These accounts are invalid LinkedIn Ads accounts from provided accounts:{}'.format(invalid_account)
+                error_message = 'Invalid Linked Ads accounts provided during the configuration:{}'.format(invalid_account)
                 raise Exception(error_message) from None
 
     @backoff.on_exception(
