@@ -1,6 +1,7 @@
 import urllib.parse
 import datetime
 from datetime import timedelta
+import copy
 import singer
 from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
@@ -248,6 +249,8 @@ def sync_endpoint(client,
             LOGGER.info('No transformed_data')
             break # No data results
 
+        pre_singer_transformed_data = copy.deepcopy(transformed_data)
+
         # Process records and get the max_bookmark_value and record_count for the set of records
         max_bookmark_value, record_count = process_records(
             catalog=catalog,
@@ -270,7 +273,7 @@ def sync_endpoint(client,
                                                       child_stream_name)
                 if should_stream:
                     # For each parent record
-                    for record in transformed_data:
+                    for record in pre_singer_transformed_data:
                         i = 0
                         # Set parent_id
                         for id_field in id_fields:
@@ -288,6 +291,9 @@ def sync_endpoint(client,
                             if child_stream_name == 'video_ads' and owner_id is not None:
                                 child_endpoint_config['params']['account'] = account
                                 child_endpoint_config['params']['owner'] = owner
+                            else:
+                                LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
+                                continue
                         elif stream_name == 'campaigns':
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                             if child_stream_name == 'creatives':
