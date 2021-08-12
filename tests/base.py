@@ -111,6 +111,16 @@ class TestLinkedinAdsBase(unittest.TestCase):
             }
         }
 
+    def expected_automatic_fields(self):
+        """
+        return a dictionary with key of table name
+        and value as a set of automatic key fields
+        """
+        auto_fields = {}
+        for k, v in self.expected_metadata().items():
+            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(v.get(self.REPLICATION_KEYS, set()))
+        return auto_fields
+
     def expected_replication_method(self):
         """return a dictionary with key of table name and value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, None)
