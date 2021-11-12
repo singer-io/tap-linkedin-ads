@@ -33,7 +33,8 @@ def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
     with LinkedinClient(access_token=parsed_args.config['access_token'],
-                        user_agent=parsed_args.config['user_agent']) as client:
+                        user_agent=parsed_args.config['user_agent'],
+                        timeout_from_config=parsed_args.config.get('request_timeout')) as client:
         state = {}
         if parsed_args.state:
             state = parsed_args.state
