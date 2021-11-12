@@ -199,18 +199,18 @@ class LinkedinClient:
 
     @backoff.on_exception(
         backoff.expo,
+        requests.Timeout,
+        max_tries=5,
+        factor=2
+    )
+    @backoff.on_exception(
+        backoff.expo,
         (Server5xxError, requests.exceptions.ConnectionError, Server429Error),
         # Choosing a max time of 10 minutes since documentation for the
         # [ads reporting api](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#data-throttling) says
         # "Data limit for all queries over a 5 min interval: 45 million metric values(where metric value is the value for a metric specified in the fields parameter)."
         max_time=600, # seconds
         jitter=backoff.full_jitter,
-    )
-    @backoff.on_exception(
-        backoff.expo,
-        requests.Timeout,
-        max_tries=5,
-        factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
         if not self.__verified:
