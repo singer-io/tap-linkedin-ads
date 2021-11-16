@@ -1,5 +1,6 @@
 import backoff
 import requests
+from requests.exceptions import Timeout, ConnectionError
 
 from singer import metrics
 import singer
@@ -133,6 +134,16 @@ class LinkedinClient:
             # set the default timeout of 300 seconds
             self.request_timeout = REQUEST_TIMEOUT
 
+    # during 'Timeout' error there is also possibility of 'ConnectionError',
+    # hence added backoff for 'ConnectionError' too.
+    @backoff.on_exception(backoff.expo,
+                          Timeout,
+                          max_tries=5,
+                          factor=2)
+    @backoff.on_exception(backoff.expo,
+                          ConnectionError,
+                          max_tries=5,
+                          factor=2)
     def __enter__(self):
         self.__verified = self.check_access_token()
         return self
@@ -140,14 +151,8 @@ class LinkedinClient:
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
-    # during 'Timeout' error there is also possibility of 'ConnectionError',
-    # hence added backoff for 'ConnectionError' too.
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, requests.exceptions.Timeout),
-                          max_tries=5,
-                          factor=2)
-    @backoff.on_exception(backoff.expo,
-                          (requests.exceptions.ConnectionError),
+                          Server5xxError,
                           max_tries=5,
                           factor=2)
     def check_access_token(self): #pylint: disable=inconsistent-return-statements

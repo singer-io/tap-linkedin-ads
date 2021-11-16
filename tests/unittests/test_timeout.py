@@ -98,12 +98,12 @@ class TestTimeoutValue(unittest.TestCase):
         self.assertEquals(300, cl.request_timeout)
 
 @mock.patch("time.sleep")
-class TestTimeoutAndConnectionErrorBackoff(unittest.TestCase):
+@mock.patch("requests.Session.request")
+class TestTimeoutBackoff(unittest.TestCase):
     """
-        Verify that we backoff for 5 times for the 'Timeout' error and 'ConnectionError'
+        Verify that we backoff for 5 times for the 'Timeout' error
     """
 
-    @mock.patch("requests.Session.get")
     def test_timeout_error__check_access_token(self, mocked_request, mocked_sleep):
 
         # mock request and raise the 'Timeout' error
@@ -115,45 +115,17 @@ class TestTimeoutAndConnectionErrorBackoff(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(access_token=config['access_token'],
-                                   user_agent=config['user_agent'],
-                                   timeout_from_config=config.get('request_timeout'))
-
         try:
-            # function call
-            cl.check_access_token()
+            with client.LinkedinClient(access_token=config['access_token'],
+                                       user_agent=config['user_agent'],
+                                       timeout_from_config=config.get('request_timeout')) as cl:
+                pass
         except requests.Timeout:
             pass
 
         # verify that we backoff for 5 times
         self.assertEquals(mocked_request.call_count, 5)
 
-    @mock.patch("requests.Session.get")
-    def test_connection_error__check_access_token(self, mocked_request, mocked_sleep):
-
-        # mock request and raise the 'ConnectionError'
-        mocked_request.side_effect = requests.ConnectionError
-
-        config = {
-            "access_token": "test_access_token",
-            "user_agent": "test_user_agent"
-        }
-
-        # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(access_token=config['access_token'],
-                                   user_agent=config['user_agent'],
-                                   timeout_from_config=config.get('request_timeout'))
-
-        try:
-            # function call
-            cl.check_access_token()
-        except requests.ConnectionError:
-            pass
-
-        # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
-
-    @mock.patch("requests.Session.get")
     def test_timeout_error__check_accounts(self, mocked_request, mocked_sleep):
 
         # mock request and raise the 'Timeout' error
@@ -179,7 +151,60 @@ class TestTimeoutAndConnectionErrorBackoff(unittest.TestCase):
         # verify that we backoff for 5 times
         self.assertEquals(mocked_request.call_count, 5)
 
-    @mock.patch("requests.Session.get")
+    def test_timeout_error__request(self, mocked_request, mocked_sleep):
+
+        # mock request and raise the 'Timeout' error
+        mocked_request.side_effect = requests.Timeout
+
+        config = {
+            "access_token": "test_access_token",
+            "user_agent": "test_user_agent",
+            "accounts": "1, 2"
+        }
+
+        # initialize 'LinkedinClient'
+        cl = client.LinkedinClient(access_token=config['access_token'],
+                                   user_agent=config['user_agent'],
+                                   timeout_from_config=config.get('request_timeout'))
+
+        try:
+            # function call
+            cl.request('GET')
+        except requests.Timeout:
+            pass
+
+        # verify that we backoff for 5 times
+        self.assertEquals(mocked_request.call_count, 5)
+
+@mock.patch("time.sleep")
+@mock.patch("requests.Session.request")
+class TestConnectionErrorBackoff(unittest.TestCase):
+    """
+        Verify that we backoff for 5 times for the 'ConnectionError'
+    """
+
+    def test_connection_error__check_access_token(self, mocked_request, mocked_sleep):
+
+        # mock request and raise the 'ConnectionError'
+        mocked_request.side_effect = requests.ConnectionError
+
+        config = {
+            "access_token": "test_access_token",
+            "user_agent": "test_user_agent"
+        }
+
+        # initialize 'LinkedinClient'
+        try:
+            with client.LinkedinClient(access_token=config['access_token'],
+                                       user_agent=config['user_agent'],
+                                       timeout_from_config=config.get('request_timeout')) as cl:
+                pass
+        except requests.ConnectionError:
+            pass
+
+        # verify that we backoff for 5 times
+        self.assertEquals(mocked_request.call_count, 5)
+
     def test_connection_error__check_accounts(self, mocked_request, mocked_sleep):
 
         # mock request and raise the 'ConnectionError'
@@ -200,33 +225,6 @@ class TestTimeoutAndConnectionErrorBackoff(unittest.TestCase):
             # function call
             cl.check_accounts(config)
         except requests.ConnectionError:
-            pass
-
-        # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
-
-    @mock.patch("tap_linkedin_ads.client.LinkedinClient.check_access_token")
-    @mock.patch("requests.Session.request")
-    def test_timeout_error__request(self, mocked_request, mocked_check_access_token, mocked_sleep):
-
-        # mock request and raise the 'Timeout' error
-        mocked_request.side_effect = requests.Timeout
-
-        config = {
-            "access_token": "test_access_token",
-            "user_agent": "test_user_agent",
-            "accounts": "1, 2"
-        }
-
-        # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(access_token=config['access_token'],
-                                   user_agent=config['user_agent'],
-                                   timeout_from_config=config.get('request_timeout'))
-
-        try:
-            # function call
-            cl.request('GET')
-        except requests.Timeout:
             pass
 
         # verify that we backoff for 5 times
