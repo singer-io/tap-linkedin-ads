@@ -1,6 +1,5 @@
 import backoff
 import requests
-from requests.exceptions import Timeout, ConnectionError
 
 from singer import metrics
 import singer
@@ -137,11 +136,11 @@ class LinkedinClient:
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
     @backoff.on_exception(backoff.expo,
-                          Timeout,
+                          requests.exceptions.Timeout,
                           max_tries=5,
                           factor=2)
     @backoff.on_exception(backoff.expo,
-                          ConnectionError,
+                          requests.exceptions.ConnectionError,
                           max_tries=5,
                           factor=2)
     def __enter__(self):
