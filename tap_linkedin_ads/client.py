@@ -136,11 +136,7 @@ class LinkedinClient:
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
     @backoff.on_exception(backoff.expo,
-                          requests.exceptions.Timeout,
-                          max_tries=5,
-                          factor=2)
-    @backoff.on_exception(backoff.expo,
-                          requests.exceptions.ConnectionError,
+                          (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
                           factor=2)
     def __enter__(self):
