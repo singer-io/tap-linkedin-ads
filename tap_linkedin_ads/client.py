@@ -134,6 +134,8 @@ class LinkedinClient:
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
+    # as 'check_access_token' is also called in 'request' hence added backoff here
+    # instead of 'check_access_token' to avoid backoff 25 times
     @backoff.on_exception(backoff.expo,
                           (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
