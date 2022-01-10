@@ -6,6 +6,8 @@ import singer
 
 LOGGER = singer.get_logger()
 
+# set default timeout of 300 seconds
+REQUEST_TIMEOUT = 300
 
 class LinkedInError(Exception):
     pass
@@ -114,13 +116,30 @@ def raise_for_error(response):
 class LinkedinClient:
     def __init__(self,
                  access_token,
-                 user_agent=None):
+                 user_agent=None,
+                 timeout_from_config=None):
         self.__access_token = access_token
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__base_url = None
         self.__verified = False
 
+        # if the 'timeout_from_config' value is 0, "0", "" or not passed then set default value of 300 seconds.
+        if timeout_from_config and float(timeout_from_config):
+            # update the request timeout for the requests
+            self.request_timeout = float(timeout_from_config)
+        else:
+            # set the default timeout of 300 seconds
+            self.request_timeout = REQUEST_TIMEOUT
+
+    # during 'Timeout' error there is also possibility of 'ConnectionError',
+    # hence added backoff for 'ConnectionError' too.
+    # as 'check_access_token' is also called in 'request' hence added backoff here
+    # instead of 'check_access_token' to avoid backoff 25 times
+    @backoff.on_exception(backoff.expo,
+                          (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
+                          max_tries=5,
+                          factor=2)
     def __enter__(self):
         self.__verified = self.check_access_token()
         return self
@@ -143,7 +162,8 @@ class LinkedinClient:
         response = self.__session.get(
             # Simple endpoint that returns 1 Account record (to check API/token access):
             url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
-            headers=headers)
+            headers=headers,
+            timeout=self.request_timeout)
         if response.status_code != 200:
             LOGGER.error('Error status_code = %s', response.status_code)
             raise_for_error(response)
@@ -154,8 +174,10 @@ class LinkedinClient:
             else:
                 return False
 
+    # during 'Timeout' error there is also possibility of 'ConnectionError',
+    # hence added backoff for 'ConnectionError' too.
     @backoff.on_exception(backoff.expo,
-                          Server5xxError,
+                          (Server5xxError, requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
                           factor=2)
     def check_accounts(self, config):
@@ -171,7 +193,8 @@ class LinkedinClient:
             for account in account_list:
                 response = self.__session.get(
                     url='https://api.linkedin.com/v2/adAccountUsersV2?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
-                    headers=headers)
+                    headers=headers,
+                    timeout=self.request_timeout)
 
                 # Account users API will return 400 if account is not in number format.
                 # Account users API will return 404 if provided account is valid number but invalid LinkedIn Ads account
@@ -191,6 +214,13 @@ class LinkedinClient:
         # "Data limit for all queries over a 5 min interval: 45 million metric values(where metric value is the value for a metric specified in the fields parameter)."
         max_time=600, # seconds
         jitter=backoff.full_jitter,
+    )
+    # backoff for 'Timeout' error
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.Timeout,
+        max_tries=5,
+        factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
         if not self.__verified:
@@ -220,7 +250,7 @@ class LinkedinClient:
             kwargs['headers']['Content-Type'] = 'application/json'
 
         with metrics.http_request_timer(endpoint) as timer:
-            response = self.__session.request(method, url, **kwargs)
+            response = self.__session.request(method, url, timeout=self.request_timeout, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code != 200:
