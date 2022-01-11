@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.4
+  * Add Request Timeout [#36](https://github.com/singer-io/tap-linkedin-ads/pull/36)
+  * Handling 4xx responses for adCampaignGroup [#28](https://github.com/singer-io/tap-linkedin-ads/pull/28)
+  * Check Invalid account in discovery mode [#35](https://github.com/singer-io/tap-linkedin-ads/pull/35)
+  * Make Replication Key automatic [#33](https://github.com/singer-io/tap-linkedin-ads/pull/33)
+  * Improve test coverage [#30](https://github.com/singer-io/tap-linkedin-ads/pull/30)
+
 ## 1.2.3
   * Changes multipleOf to singer.decimal in schemas and bumps singer-python version
     [#26](https://github.com/singer-io/tap-linkedin-ads/pull/26)
