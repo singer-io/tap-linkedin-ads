@@ -17,7 +17,7 @@ jobs:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-linkedin-ads/bin/activate
-            pylint tap-linkedin-ads --disable 'consider-using-f-string,use-list-literal,use-dict-literal'
+            pylint tap_linkedin_ads --disable 'consider-using-f-string,use-list-literal,use-dict-literal'
       - run:
           name: 'JSON Validator'
           command: |
