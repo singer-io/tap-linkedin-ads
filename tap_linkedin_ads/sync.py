@@ -660,8 +660,7 @@ def shift_sync_window(params, today, forced_window_size=None):
     else:
         new_end = current_end + timedelta(days=DATE_WINDOW_SIZE)
 
-    if new_end > today:
-        new_end = today
+    new_end = min(new_end, today)
 
     new_params = {**params,
                   'dateRange.start.day': current_end.day,
@@ -704,8 +703,7 @@ def sync_ad_analytics(client, catalog, state, last_datetime, stream_name, path, 
     window_end_date = window_start_date + timedelta(days=DATE_WINDOW_SIZE)
     today = datetime.date.today()
 
-    if window_end_date > today:
-        window_end_date = today
+    window_end_date = min(window_end_date, today)
 
     # Override the default start and end dates
     static_params = {**static_params,
