@@ -1,5 +1,6 @@
 import backoff
 import requests
+import time
 
 from singer import metrics
 import singer
@@ -160,7 +161,7 @@ class LinkedinClient:
         }
         response = self.__session.post(
             url='https://www.linkedin.com/oauth/v2/accessToken',
-            headers={},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
             params=params)
         
         if response.status_code != 200:
@@ -181,7 +182,8 @@ class LinkedinClient:
             raise Exception('Error: Missing client_secret.')
         
         self.get_access_token(self.__refresh_token, self.__client_id, self.__client_secret)
-
+        LOGGER.info("access_token generated, sleep for 60 seconds.")
+        time.sleep(60)
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
