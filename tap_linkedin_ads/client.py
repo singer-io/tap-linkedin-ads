@@ -115,10 +115,14 @@ def raise_for_error(response):
 
 class LinkedinClient:
     def __init__(self,
-                 access_token,
+                 refresh_token,
+                 client_id,
+                 client_secret,
                  user_agent=None,
                  timeout_from_config=None):
-        self.__access_token = access_token
+        self.__refresh_token = refresh_token
+        self.__client_id = client_id
+        self.__client_secret = client_secret
         self.__user_agent = user_agent
         self.__session = requests.Session()
         self.__base_url = None
@@ -147,13 +151,37 @@ class LinkedinClient:
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
+    def get_access_token(self, refresh_token, client_id, client_secret):
+        params = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+        response = self.__session.post(
+            url='https://www.linkedin.com/oauth/v2/accessToken',
+            headers={},
+            params=params)
+        
+        if response.status_code != 200:
+            LOGGER.error('Error status_code = %s, cannot get access token', response.status_code)
+        else:
+            self.__access_token = response.json()['access_token']
+
     @backoff.on_exception(backoff.expo,
                           Server5xxError,
                           max_tries=5,
                           factor=2)
     def check_access_token(self): #pylint: disable=inconsistent-return-statements
-        if self.__access_token is None:
-            raise Exception('Error: Missing access_token.')
+        if self.__refresh_token is None:
+            raise Exception('Error: Missing refresh_token.')
+        if self.__client_id is None:
+            raise Exception('Error: Missing client_id.')
+        if self.__client_secret is None:
+            raise Exception('Error: Missing client_secret.')
+        
+        self.get_access_token(self.__refresh_token, self.__client_id, self.__client_secret)
+
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent

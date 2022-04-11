@@ -14,7 +14,9 @@ LOGGER = singer.get_logger()
 REQUIRED_CONFIG_KEYS = [
     'start_date',
     'user_agent',
-    'access_token',
+    'refresh_token',
+    'client_id',
+    'client_secret',
     'accounts'
 ]
 
@@ -32,7 +34,9 @@ def main():
 
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-    with LinkedinClient(access_token=parsed_args.config['access_token'],
+    with LinkedinClient(refresh_token=parsed_args.config['refresh_token'],
+                        client_id=parsed_args.config['client_id'],
+                        client_secret=parsed_args.config['client_secret'],
                         user_agent=parsed_args.config['user_agent'],
                         timeout_from_config=parsed_args.config.get('request_timeout')) as client:
         state = {}
