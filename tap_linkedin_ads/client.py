@@ -1,10 +1,14 @@
 import backoff
 import requests
+from datetime import datetime, timedelta
 
 from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
+BASE_URL = 'https://api.linkedin.com/v2'
+LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
+
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -114,23 +118,44 @@ def raise_for_error(response):
     raise exc(message) from None
 
 class LinkedinClient:
-    def __init__(self,
-                 access_token,
-                 user_agent=None,
-                 timeout_from_config=None):
-        self.__access_token = access_token
-        self.__user_agent = user_agent
-        self.__session = requests.Session()
-        self.__base_url = None
-        self.__verified = False
+    # def __init__(self,
+    #              access_token,
+    #              user_agent=None,
+    #              timeout_from_config=None):
+    #     self.__access_token = access_token
+    #     self.__user_agent = user_agent
+    #     self.__session = requests.Session()
+    #     self.__base_url = None
+    #     self.__verified = False
 
-        # if the 'timeout_from_config' value is 0, "0", "" or not passed then set default value of 300 seconds.
-        if timeout_from_config and float(timeout_from_config):
-            # update the request timeout for the requests
-            self.request_timeout = float(timeout_from_config)
-        else:
-            # set the default timeout of 300 seconds
-            self.request_timeout = REQUEST_TIMEOUT
+    #     # if the 'timeout_from_config' value is 0, "0", "" or not passed then set default value of 300 seconds.
+    #     if timeout_from_config and float(timeout_from_config):
+    #         # update the request timeout for the requests
+    #         self.request_timeout = float(timeout_from_config)
+    #     else:
+    #         # set the default timeout of 300 seconds
+    #         self.request_timeout = REQUEST_TIMEOUT
+
+    def __init__(self,
+                 client_id,
+                 client_secret,
+                 refresh_token,
+                 request_timeout=REQUEST_TIMEOUT,
+                 user_agent=None):
+        self.__client_id = client_id
+        self.__client_secret = client_secret
+        self.__refresh_token = refresh_token
+        self.__user_agent = user_agent
+        self.__access_token = None
+        self.__expires = None
+        self.__session = requests.Session()
+        self.base_url = None
+        # if request_timeout is other than 0,"0" or "" then use request_timeout
+        if request_timeout and float(request_timeout):
+            request_timeout = float(request_timeout)
+        else: # If value is 0,"0" or "" then set default to 300 seconds.
+            request_timeout = REQUEST_TIMEOUT
+        self.request_timeout = request_timeout
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -146,6 +171,49 @@ class LinkedinClient:
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
+
+    @backoff.on_exception(backoff.expo,
+                          Server5xxError,
+                          max_tries=5,
+                          factor=2)
+    def get_access_token(self):
+        print("+++++++++++++++++++get_Access_token")
+        # The refresh_token never expires and may be used many times to generate each access_token
+        # Since the refresh_token does not expire, it is not included in get access_token response
+        if self.__access_token is not None and self.__expires > datetime.utcnow():
+            return
+
+        headers = {}
+        if self.__user_agent:
+            headers['User-Agent'] = self.__user_agent
+
+        response = self.__session.post(
+            url=LINKEDIN_TOKEN_URI,
+            headers=headers,
+            data={
+                'grant_type': 'refresh_token',
+                'client_id': self.__client_id,
+                'client_secret': self.__client_secret,
+                'refresh_token': self.__refresh_token,
+            },
+            timeout=self.request_timeout)
+
+        if response.status_code >= 500:
+            raise Server5xxError()
+
+        if response.status_code != 200:
+            raise_for_error(response)
+
+        data = response.json()
+        print("+++++++++++++++++++")
+        print(data)
+        self.__access_token = data['access_token']
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+        LOGGER.info('Authorized, token expires = {}'.format(self.__expires))
+
+    def __enter__(self):
+        self.get_access_token()
+        return self
 
     @backoff.on_exception(backoff.expo,
                           Server5xxError,
@@ -223,6 +291,8 @@ class LinkedinClient:
         factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
+        print("+++++++++++request")
+        self.get_access_token()
         if not self.__verified:
             self.__verified = self.check_access_token()
 
