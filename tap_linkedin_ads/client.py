@@ -1,6 +1,6 @@
+from datetime import datetime, timedelta
 import backoff
 import requests
-from datetime import datetime, timedelta
 
 from singer import metrics
 import singer
@@ -117,8 +117,8 @@ def raise_for_error(response):
     exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
     raise exc(message) from None
 
-class LinkedinClient:
-    def __init__(self,
+class LinkedinClient: # pylint: disable=too-many-instance-attributes
+    def __init__(self, # pylint: disable=too-many-arguments
                  client_id,
                  client_secret,
                  refresh_token,
@@ -131,7 +131,8 @@ class LinkedinClient:
         self.__access_token = None
         self.__expires = None
         self.__session = requests.Session()
-        self.base_url = None
+        self.__base_url = None
+        self.__verified = None
         # if request_timeout is other than 0,"0" or "" then use request_timeout
         if request_timeout and float(request_timeout):
             request_timeout = float(request_timeout)
@@ -159,6 +160,7 @@ class LinkedinClient:
                           max_tries=5,
                           factor=2)
     def get_access_token(self):
+        """"""
         # The refresh_token never expires and may be used many times to generate each access_token
         # Since the refresh_token does not expire, it is not included in get access_token response
         if self.__access_token is not None and self.__expires > datetime.utcnow():
@@ -189,10 +191,6 @@ class LinkedinClient:
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
         LOGGER.info('Authorized, token expires = {}'.format(self.__expires))
-
-    def __enter__(self):
-        self.get_access_token()
-        return self
 
     @backoff.on_exception(backoff.expo,
                           Server5xxError,

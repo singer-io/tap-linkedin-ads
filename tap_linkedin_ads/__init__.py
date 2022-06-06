@@ -32,11 +32,11 @@ def do_discover(client, config):
 def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
     with LinkedinClient(parsed_args.config['client_id'],
-                      parsed_args.config['client_secret'],
-                      parsed_args.config['refresh_token'],
-                      parsed_args.config.get('request_timeout'),
-                      parsed_args.config['user_agent'],
-                      ) as client:
+                        parsed_args.config['client_secret'],
+                        parsed_args.config['refresh_token'],
+                        parsed_args.config.get('request_timeout'),
+                        parsed_args.config['user_agent'],
+                       ) as client:
 
         state = {}
         if parsed_args.state:
@@ -46,8 +46,8 @@ def main():
             do_discover(client, parsed_args.config)
         elif parsed_args.catalog:
             _sync(client=client,
-                 config=config,
-                 catalog=parsed_args.catalog,
-                 state=state)
+                  config=config,
+                  catalog=parsed_args.catalog,
+                  state=state)
 if __name__ == '__main__':
     main()
