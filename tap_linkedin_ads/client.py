@@ -190,7 +190,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         data = response.json()
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
-        LOGGER.info('Authorized, token expires = {}'.format(self.__expires))
+        LOGGER.info('Authorized, token expires = %s', format(self.__expires))
 
     @backoff.on_exception(backoff.expo,
                           Server5xxError,
