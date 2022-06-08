@@ -46,7 +46,7 @@ class TestValidLinkedInAccount(unittest.TestCase):
         '''
         mocked_request.return_value = get_response(200, raise_error = True)
         config = {"accounts": "1111, 2222"}
-        client = _client.LinkedinClient('')
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         tap_linkedin_ads.do_discover(client, config)
         self.assertEquals(mocked_discover.call_count, 1)
 
@@ -56,7 +56,7 @@ class TestValidLinkedInAccount(unittest.TestCase):
         '''
         mocked_request.return_value = get_response(404, raise_error = True)
         config = {"accounts": "1111, 2222"}
-        client = _client.LinkedinClient('')
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             tap_linkedin_ads.do_discover(client, config)
         except Exception as e:
@@ -71,7 +71,7 @@ class TestValidLinkedInAccount(unittest.TestCase):
         '''
         mocked_request.return_value = get_response(400, raise_error = True)
         config = {"accounts": "aaa, bbb"}
-        client = _client.LinkedinClient('')
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             tap_linkedin_ads.do_discover(client, config)
         except Exception as e:

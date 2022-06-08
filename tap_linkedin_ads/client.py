@@ -149,7 +149,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           max_tries=5,
                           factor=2)
     def __enter__(self):
-        self.__verified = self.check_access_token()
+        self.__verified = self.get_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -301,7 +301,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         if response.status_code != 200:
             raise_for_error(response)
-
+        print("+++++++++++++++++")
+        print(response.json())
         return response.json()
 
     def get(self, url=None, path=None, **kwargs):
