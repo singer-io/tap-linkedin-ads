@@ -181,9 +181,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             },
             timeout=self.request_timeout)
 
-        if response.status_code >= 500:
-            raise Server5xxError()
-
         if response.status_code != 200:
             raise_for_error(response)
 
@@ -270,7 +267,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def request(self, method, url=None, path=None, **kwargs):
         self.get_access_token()
         if not self.__verified:
-            self.__verified = self.check_access_token()
+            self.__verified = self.get_access_token()
 
         if not url and self.__base_url is None:
             self.__base_url = 'https://api.linkedin.com/v2'
