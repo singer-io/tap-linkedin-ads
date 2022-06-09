@@ -21,7 +21,10 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def setUp(self):
         missing_envs = [x for x in [
-            "TAP_LINKEDIN_ADS_ACCESS_TOKEN", "TAP_LINKEDIN_ADS_ACCOUNTS"
+            "TAP_LINKEDIN_ADS_CLIENT_ID",
+            "TAP_LINKEDIN_ADS_CLIENT_SECRET",
+            "TAP_LINKEDIN_ADS_REFRESH_TOKEN",
+            "TAP_LINKEDIN_ADS_ACCOUNTS"
         ] if os.getenv(x) is None]
         if missing_envs:
             raise Exception("Missing environment variables: {}".format(missing_envs))
@@ -38,6 +41,9 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
+            # "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
+            # "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
+            # "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN"),
             "page_size": 100
         }
         if original:
@@ -49,8 +55,9 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def get_credentials(self):
         return {
-            'access_token': os.getenv("TAP_LINKEDIN_ADS_ACCESS_TOKEN")
-        }
+            "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
+            "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
+            "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN"),        }
 
     @staticmethod
     def expected_check_streams():

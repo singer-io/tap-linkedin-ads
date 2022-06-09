@@ -10,12 +10,12 @@ from tap_linkedin_ads.discover import discover
 from tap_linkedin_ads.sync import sync as _sync
 
 LOGGER = singer.get_logger()
+REQUEST_TIMEOUT = 300
 
 REQUIRED_CONFIG_KEYS = [
     'client_id',
     'client_secret',
     'refresh_token',
-    'request_timeout',
     'user_agent',
 ]
 
@@ -34,7 +34,8 @@ def main():
     with LinkedinClient(parsed_args.config['client_id'],
                         parsed_args.config['client_secret'],
                         parsed_args.config['refresh_token'],
-                        parsed_args.config.get('request_timeout'),
+                        REQUEST_TIMEOUT,
+                       # parsed_args.config.get('request_timeout'),
                         parsed_args.config['user_agent'],
                        ) as client:
 
