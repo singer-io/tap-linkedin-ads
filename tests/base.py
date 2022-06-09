@@ -41,9 +41,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            # "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
-            # "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
-            # "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN"),
             "page_size": 100
         }
         if original:
