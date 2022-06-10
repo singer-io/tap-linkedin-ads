@@ -11,6 +11,7 @@ from tap_linkedin_ads.sync import sync as _sync
 
 
 LOGGER = singer.get_logger()
+REQUEST_TIMEOUT = 300
 
 REQUIRED_CONFIG_KEYS = [
     'client_id',

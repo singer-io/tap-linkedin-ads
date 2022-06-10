@@ -298,8 +298,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         if response.status_code != 200:
             raise_for_error(response)
-        print("+++++++++++++++++")
-        print(response.json())
         return response.json()
 
     def get(self, url=None, path=None, **kwargs):
