@@ -132,7 +132,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__expires = None
         self.__session = requests.Session()
         self.__base_url = None
-        self.__verified = None
         # if request_timeout is other than 0,"0" or "" then use request_timeout
         if request_timeout and float(request_timeout):
             request_timeout = float(request_timeout)
@@ -239,9 +238,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     )
     def request(self, method, url=None, path=None, **kwargs):
         self.fetch_and_set_access_token()
-        if not self.__verified:
-            self.__verified = self.fetch_and_set_access_token()
-
         if not url and self.__base_url is None:
             self.__base_url = 'https://api.linkedin.com/v2'
 
