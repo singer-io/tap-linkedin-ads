@@ -23,7 +23,7 @@ def get_response(status_code, json={}, raise_error=False):
     return Mockresponse(status_code, json, raise_error)
 
 @mock.patch("requests.Session.request")
-@mock.patch("tap_linkedin_ads.client.LinkedinClient.check_access_token")
+@mock.patch("tap_linkedin_ads.client.LinkedinClient.fetch_and_set_access_token")
 class TestExceptionHandling(unittest.TestCase):
     def test_400_error_detailed_json(self, mocked_access_token, mocked_request):
         json = {

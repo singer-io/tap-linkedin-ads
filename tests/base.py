@@ -54,8 +54,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return {
             "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
             "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
-            "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN"),        
-            'access_token': os.getenv("TAP_LINKEDIN_ADS_ACCESS_TOKEN")
+            "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN"),
+            "access_token": os.getenv("TAP_LINKEDIN_ADS_ACCESS_TOKEN")
             }
 
     @staticmethod

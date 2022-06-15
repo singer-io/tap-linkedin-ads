@@ -149,7 +149,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           max_tries=5,
                           factor=2)
     def __enter__(self):
-        self.__verified = self.get_access_token()
+        self.fetch_and_set_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -159,7 +159,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    def get_access_token(self):
+    def fetch_and_set_access_token(self):
         """"""
         # The refresh_token never expires and may be used many times to generate each access_token
         # Since the refresh_token does not expire, it is not included in get access_token response
@@ -188,33 +188,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
         LOGGER.info('Authorized, token expires = %s', format(self.__expires))
-
-    @backoff.on_exception(backoff.expo,
-                          Server5xxError,
-                          max_tries=5,
-                          factor=2)
-    def check_access_token(self): #pylint: disable=inconsistent-return-statements
-        if self.__access_token is None:
-            raise Exception('Error: Missing access_token.')
-        headers = {}
-        if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
-        headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Accept'] = 'application/json'
-        response = self.__session.get(
-            # Simple endpoint that returns 1 Account record (to check API/token access):
-            url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
-            headers=headers,
-            timeout=self.request_timeout)
-        if response.status_code != 200:
-            LOGGER.error('Error status_code = %s', response.status_code)
-            raise_for_error(response)
-        else:
-            resp = response.json()
-            if 'elements' in resp: #pylint: disable=simplifiable-if-statement
-                return True
-            else:
-                return False
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -265,9 +238,9 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
-        self.get_access_token()
+        self.fetch_and_set_access_token()
         if not self.__verified:
-            self.__verified = self.get_access_token()
+            self.__verified = self.fetch_and_set_access_token()
 
         if not url and self.__base_url is None:
             self.__base_url = 'https://api.linkedin.com/v2'

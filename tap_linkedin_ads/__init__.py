@@ -31,6 +31,7 @@ def do_discover(client, config):
 @singer.utils.handle_top_exception(LOGGER)
 def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
+    config = parsed_args.config
     with LinkedinClient(parsed_args.config['client_id'],
                         parsed_args.config['client_secret'],
                         parsed_args.config['refresh_token'],
@@ -41,9 +42,8 @@ def main():
         state = {}
         if parsed_args.state:
             state = parsed_args.state
-        config = parsed_args.config
         if parsed_args.discover:
-            do_discover(client, parsed_args.config)
+            do_discover(client, config)
         elif parsed_args.catalog:
             _sync(client=client,
                   config=config,
