@@ -23,7 +23,7 @@ def get_response(status_code, json={}, raise_error=False):
     return Mockresponse(status_code, json, raise_error)
 
 @mock.patch("requests.Session.request")
-@mock.patch("tap_linkedin_ads.client.LinkedinClient.check_access_token")
+@mock.patch("tap_linkedin_ads.client.LinkedinClient.fetch_and_set_access_token")
 class TestExceptionHandling(unittest.TestCase):
     def test_400_error_detailed_json(self, mocked_access_token, mocked_request):
         json = {
@@ -46,7 +46,7 @@ class TestExceptionHandling(unittest.TestCase):
 
         mocked_request.return_value = get_response(400, json = json, raise_error = True)
 
-        client = _client.LinkedinClient("access_token")
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             client.request("GET")
         except _client.LinkedInBadRequestError as e:
@@ -59,7 +59,7 @@ class TestExceptionHandling(unittest.TestCase):
 
         mocked_request.return_value = get_response(400, json = json, raise_error = True)
 
-        client = _client.LinkedinClient("access_token")
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             client.request("GET")
         except _client.LinkedInBadRequestError as e:
@@ -68,7 +68,7 @@ class TestExceptionHandling(unittest.TestCase):
     def test_400_error_empty_json(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(400, raise_error = True)
 
-        client = _client.LinkedinClient("access_token")
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             client.request("GET")
         except _client.LinkedInBadRequestError as e:
@@ -81,7 +81,7 @@ class TestExceptionHandling(unittest.TestCase):
 
         mocked_request.return_value = get_response(404, json = json, raise_error = True)
 
-        client = _client.LinkedinClient("access_token")
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             client.request("GET")
         except _client.LinkedInNotFoundError as e:
@@ -90,7 +90,7 @@ class TestExceptionHandling(unittest.TestCase):
     def test_404_error_empty_json(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(404, raise_error = True)
 
-        client = _client.LinkedinClient("access_token")
+        client = _client.LinkedinClient('client_id','client_secret','refresh_token')
         try:
             client.request("GET")
         except _client.LinkedInNotFoundError as e:

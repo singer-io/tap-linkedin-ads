@@ -1,7 +1,9 @@
 {
-  "start_date": "2019-01-01T00:00:00Z",
+  "client_id": "abc",
+  "client_secret": "xyz",
   "user_agent": "tap-linkedin-ads <api_user_email@your_company.com>",
-  "access_token": "xxx",
-  "accounts": null,
+  "refresh_token": "xyz",
+  "accounts":"null",
+  "start_date": "2019-01-01T00:00:00Z",
   "request_timeout": 300
 }
