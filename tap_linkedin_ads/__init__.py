@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from os import access
 import sys
 import json
 import argparse
@@ -14,11 +15,10 @@ LOGGER = singer.get_logger()
 REQUEST_TIMEOUT = 300
 
 REQUIRED_CONFIG_KEYS = [
-    'client_id',
-    'client_secret',
-    'refresh_token',
-    'user_agent',
+    'access_token',
+    'user_agent'
 ]
+
 
 def do_discover(client, config):
     LOGGER.info('Starting discover')
@@ -32,12 +32,14 @@ def do_discover(client, config):
 def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
     config = parsed_args.config
-    with LinkedinClient(parsed_args.config['client_id'],
-                        parsed_args.config['client_secret'],
-                        parsed_args.config['refresh_token'],
+
+    with LinkedinClient(parsed_args.config.get('client_id', None),
+                        parsed_args.config.get('client_secret', None),
+                        parsed_args.config.get('refresh_token', None),
+                        parsed_args.config.get('access_token'),
                         REQUEST_TIMEOUT,
-                        parsed_args.config['user_agent'],
-                       ) as client:
+                        parsed_args.config['user_agent']
+                        ) as client:
 
         state = {}
         if parsed_args.state:
@@ -49,5 +51,7 @@ def main():
                   config=config,
                   catalog=parsed_args.catalog,
                   state=state)
+
+
 if __name__ == '__main__':
     main()

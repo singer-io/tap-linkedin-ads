@@ -30,7 +30,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_400_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(400, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("GET")
         except client.LinkedInBadRequestError as e:
@@ -38,7 +38,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_401_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(401, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInUnauthorizedError as e:
@@ -46,7 +46,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_403_error_custom_message(self,mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(403, raise_error = True)
-        linkedIn_client = client.LinkedinClient("client_id","client_secret","refresh_token")
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInForbiddenError as e:
@@ -54,7 +54,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_404_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(404, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInNotFoundError as e:
@@ -62,7 +62,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_405_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(405, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInMethodNotAllowedError as e:
@@ -70,7 +70,7 @@ class TestExceptionHandling(unittest.TestCase):
 
     def test_411_error_custom_message(self, mocked_access_token, mocked_request):
         mocked_request.return_value = get_response(411, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInLengthRequiredError as e:
@@ -81,7 +81,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 400,
                             "code": "BAD_REQUEST"}
         mocked_request.return_value = get_response(400, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInBadRequestError as e:
@@ -92,7 +92,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 401,
                             "code": "UNAUTHORIZED"}
         mocked_request.return_value = get_response(401, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInUnauthorizedError as e:
@@ -103,7 +103,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 403,
                             "code": "FORBIDDEN"}
         mocked_request.return_value = get_response(403, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInForbiddenError as e:
@@ -114,7 +114,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 404,
                             "code": "NOT_FOUND"}
         mocked_request.return_value = get_response(404, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInNotFoundError as e:
@@ -125,7 +125,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 405,
                             "code": "METHOD_NOT_ALLOWED"}
         mocked_request.return_value = get_response(405, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInMethodNotAllowedError as e:
@@ -136,7 +136,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 411,
                             "code": "LENGTH_REQUIRED"}
         mocked_request.return_value = get_response(411, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInLengthRequiredError as e:
@@ -148,7 +148,7 @@ class TestExceptionHandling(unittest.TestCase):
                             "status": 401,
                             "code": "UNAUTHORIZED"}
         mocked_request.return_value = get_response(401, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.request("POST")
         except client.LinkedInUnauthorizedError as e:
@@ -160,7 +160,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_400_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(400, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInBadRequestError as e:
@@ -168,7 +168,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_401_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(401, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInUnauthorizedError as e:
@@ -176,7 +176,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_403_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(403, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInForbiddenError as e:
@@ -184,7 +184,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_404_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(404, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInNotFoundError as e:
@@ -192,7 +192,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_405_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(405, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInMethodNotAllowedError as e:
@@ -200,7 +200,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_411_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(411, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInLengthRequiredError as e:
@@ -208,7 +208,7 @@ class TestAccessToken(unittest.TestCase):
 
     def test_429_error_custom_message(self, mocked_request):
         mocked_request.return_value = get_response(429, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInRateLimitExceeededError as e:
@@ -217,7 +217,7 @@ class TestAccessToken(unittest.TestCase):
     @mock.patch("time.sleep")
     def test_500_error_custom_message(self, mocked_sleep, mocked_request):
         mocked_request.return_value = get_response(500, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInInternalServiceError as e:
@@ -227,7 +227,7 @@ class TestAccessToken(unittest.TestCase):
     @mock.patch("time.sleep")
     def test_504_error_custom_message(self, mocked_sleep, mocked_request):
         mocked_request.return_value = get_response(504, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInGatewayTimeoutError as e:
@@ -239,7 +239,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 400,
                             "code": "BAD_REQUEST"}
         mocked_request.return_value = get_response(400, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInBadRequestError as e:
@@ -250,7 +250,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 401,
                             "code": "UNAUTHORIZED"}
         mocked_request.return_value = get_response(401, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInUnauthorizedError as e:
@@ -261,7 +261,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 403,
                             "code": "FORBIDDEN"}
         mocked_request.return_value = get_response(403, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInForbiddenError as e:
@@ -272,7 +272,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 404,
                             "code": "NOT_FOUND"}
         mocked_request.return_value = get_response(404, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInNotFoundError as e:
@@ -283,7 +283,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 405,
                             "code": "METHOD_NOT_ALLOWED"}
         mocked_request.return_value = get_response(405, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInMethodNotAllowedError as e:
@@ -294,7 +294,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 411,
                             "code": "LENGTH_REQUIRED"}
         mocked_request.return_value = get_response(411, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInLengthRequiredError as e:
@@ -305,7 +305,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 429,
                             "code": "RATELIMIT_EXCEEDED"}
         mocked_request.return_value = get_response(429, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInRateLimitExceeededError as e:
@@ -317,7 +317,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 500,
                             "code": "INTERNAL_ERROR"}
         mocked_request.return_value = get_response(500, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInInternalServiceError as e:
@@ -330,7 +330,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 504,
                             "code": "GATEWAY_TIMEOUT"}
         mocked_request.return_value = get_response(504, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInGatewayTimeoutError as e:
@@ -343,7 +343,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 401,
                             "code": "UNAUTHORIZED"}
         mocked_request.return_value = get_response(401, response_json, raise_error = True)
-        linkedIn_client = client.LinkedinClient('client_id','client_secret','refresh_token')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         try:
             linkedIn_client.fetch_and_set_access_token()
         except client.LinkedInUnauthorizedError as e:

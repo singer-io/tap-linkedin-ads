@@ -13,6 +13,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent"
         }
 
@@ -20,6 +21,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -31,6 +33,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "request_timeout": 100
         }
@@ -39,6 +42,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -50,6 +54,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "request_timeout": "100"
         }
@@ -58,6 +63,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -69,6 +75,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "request_timeout": ""
         }
@@ -77,6 +84,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -88,6 +96,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "request_timeout": 0.0
         }
@@ -96,6 +105,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -107,6 +117,7 @@ class TestTimeoutValue(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "request_timeout": "0.0"
         }
@@ -115,6 +126,7 @@ class TestTimeoutValue(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -137,6 +149,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
         }
 
@@ -145,6 +158,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             with client.LinkedinClient(client_id=config['client_id'],
             client_secret=config['client_secret'],
             refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
             user_agent=config['user_agent'],
             request_timeout=config.get('request_timeout')) as cl:
                 pass
@@ -163,6 +177,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "accounts": "1, 2"
         }
@@ -171,6 +186,7 @@ class TestTimeoutBackoff(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -192,6 +208,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "accounts": "1, 2"
         }
@@ -200,6 +217,7 @@ class TestTimeoutBackoff(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
@@ -228,6 +246,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "user_agent": "test_user_agent"
         }
@@ -235,10 +254,11 @@ class TestConnectionErrorBackoff(unittest.TestCase):
         # initialize 'LinkedinClient'
         try:
             with client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout')) as cl:
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout')) as cl:
                 pass
         except requests.ConnectionError:
             pass
@@ -255,6 +275,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "refresh_token":"test_refresh_token",
+            "access_token":"test_access_token",
             "user_agent": "test_user_agent",
             "accounts": "1, 2"
         }
@@ -263,6 +284,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
         cl = client.LinkedinClient(client_id=config['client_id'],
         client_secret=config['client_secret'],
         refresh_token=config['refresh_token'],
+        access_token=config['access_token'],
         user_agent=config['user_agent'],
         request_timeout=config.get('request_timeout'))
 
