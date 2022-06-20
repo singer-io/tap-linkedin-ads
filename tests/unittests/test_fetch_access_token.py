@@ -34,9 +34,3 @@ class TestFetchAccessToken(unittest.TestCase):
         cl=LinkedinClient('client_id', 'client_secret', 'refresh_token', 'old_access_token')
         cl.fetch_and_set_access_token()
         self.assertEquals(cl.access_token, 'new_access_token')
-
-
-
-
-
-

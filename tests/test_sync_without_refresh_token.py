@@ -116,7 +116,7 @@ class AllFieldsWithExpiredAccessToken(AllFields):
             self.assertIn("HTTP-error-code: 401, Error: The token used in the request has expired", str(e))
 
 
-class AllFieldsWithInvaidAccessToken(AllFields):
+class AllFieldsWithInvalidAccessToken(AllFields):
     """This method run all fileds test by setting invalid access token in the config properties"""
 
     @staticmethod
