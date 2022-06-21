@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from os import access
 import sys
 import json
 import argparse
