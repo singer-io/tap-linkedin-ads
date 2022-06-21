@@ -165,12 +165,13 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           max_tries=5,
                           factor=2)
     def fetch_and_set_access_token(self):
-        """"""
-        # The refresh_token never expires and may be used many times to generate each access_token
-        # Since the refresh_token does not expire, it is not included in get access_token response
+        """
+        This method generates new access token if the refresh token is provided.
 
-        # if refresh token is not provided then we are assumeing that it is old connection
-        # and client has provided valid access_token already
+        Note: Linkedin-ads access token expires in 90 days, where as refresh token expires in 365 days.
+        """
+        # If refresh token is not provided then we are assumeing that it is an old connection
+        # and client has provided the valid access_token already
         if not self.__refresh_token:
             return
 

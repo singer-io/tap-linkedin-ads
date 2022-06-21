@@ -18,12 +18,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is default as request timeout is not passed in config
         self.assertEquals(300, cl.request_timeout)
@@ -39,12 +40,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is same as the value passed in the config
         self.assertEquals(100.0, cl.request_timeout)
@@ -60,12 +62,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is same as the value passed in the config
         self.assertEquals(100.0, cl.request_timeout)
@@ -81,12 +84,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is default as request timeout is empty in the config
         self.assertEquals(300, cl.request_timeout)
@@ -102,12 +106,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is default as request timeout is zero in the config
         self.assertEquals(300, cl.request_timeout)
@@ -123,12 +128,13 @@ class TestTimeoutValue(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is default as request timeout is zero in the config
         self.assertEquals(300, cl.request_timeout)
@@ -155,12 +161,13 @@ class TestTimeoutBackoff(unittest.TestCase):
 
         # initialize 'LinkedinClient'
         try:
-            with client.LinkedinClient(client_id=config['client_id'],
-            client_secret=config['client_secret'],
-            refresh_token=config['refresh_token'],
-            access_token=config['access_token'],
-            user_agent=config['user_agent'],
-            request_timeout=config.get('request_timeout')) as cl:
+            with client.LinkedinClient(
+                client_id=config['client_id'],
+                client_secret=config['client_secret'],
+                refresh_token=config['refresh_token'],
+                access_token=config['access_token'],
+                user_agent=config['user_agent'],
+                request_timeout=config.get('request_timeout')) as cl:
                 pass
         except requests.Timeout:
             pass
@@ -183,12 +190,13 @@ class TestTimeoutBackoff(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         try:
             # function call
@@ -214,12 +222,13 @@ class TestTimeoutBackoff(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         try:
             # function call
@@ -253,12 +262,13 @@ class TestConnectionErrorBackoff(unittest.TestCase):
 
         # initialize 'LinkedinClient'
         try:
-            with client.LinkedinClient(client_id=config['client_id'],
-            client_secret=config['client_secret'],
-            refresh_token=config['refresh_token'],
-            access_token=config['access_token'],
-            user_agent=config['user_agent'],
-            request_timeout=config.get('request_timeout')) as cl:
+            with client.LinkedinClient(
+                client_id=config['client_id'],
+                client_secret=config['client_secret'],
+                refresh_token=config['refresh_token'],
+                access_token=config['access_token'],
+                user_agent=config['user_agent'],
+                request_timeout=config.get('request_timeout')) as cl:
                 pass
         except requests.ConnectionError:
             pass
@@ -281,12 +291,13 @@ class TestConnectionErrorBackoff(unittest.TestCase):
         }
 
         # initialize 'LinkedinClient'
-        cl = client.LinkedinClient(client_id=config['client_id'],
-        client_secret=config['client_secret'],
-        refresh_token=config['refresh_token'],
-        access_token=config['access_token'],
-        user_agent=config['user_agent'],
-        request_timeout=config.get('request_timeout'))
+        cl = client.LinkedinClient(
+            client_id=config['client_id'],
+            client_secret=config['client_secret'],
+            refresh_token=config['refresh_token'],
+            access_token=config['access_token'],
+            user_agent=config['user_agent'],
+            request_timeout=config.get('request_timeout'))
 
         try:
             # function call
