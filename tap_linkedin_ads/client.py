@@ -168,7 +168,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         """
         This method generates new access token if the refresh token is provided.
 
-        Note: Linkedin-ads access token expires in 90 days, where as refresh token expires in 365 days.
+        Note: Linkedin-ads access token expires in 60 days, where as refresh token expires in 365 days.
         """
         # If refresh token is not provided then we are assumeing that it is an old connection
         # and client has provided the valid access_token already
