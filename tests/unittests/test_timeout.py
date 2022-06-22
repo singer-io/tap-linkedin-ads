@@ -14,8 +14,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "client_secret": "test_client_secret",
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
-                  "user_agent": "test_user_agent"
-                  }
+                  "user_agent": "test_user_agent"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -34,8 +33,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "request_timeout": 100
-                  }
+                  "request_timeout": 100}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -74,8 +72,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "request_timeout": ""
-                  }
+                  "request_timeout": ""}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -94,8 +91,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "request_timeout": 0.0
-                  }
+                  "request_timeout": 0.0}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -114,8 +110,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "request_timeout": "0.0"
-                  }
+                  "request_timeout": "0.0"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -145,8 +140,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                   "client_secret": "test_client_secret",
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
-                  "user_agent": "test_user_agent",
-                  }
+                  "user_agent": "test_user_agent"}
 
         # initialize 'LinkedinClient'
         try:
@@ -173,8 +167,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "accounts": "1, 2"
-                  }
+                  "accounts": "1, 2"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -203,8 +196,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "accounts": "1, 2"
-                  }
+                  "accounts": "1, 2"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
@@ -241,8 +233,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "user_agent": "test_user_agent"
-                  }
+                  "user_agent": "test_user_agent"}
 
         # initialize 'LinkedinClient'
         try:
@@ -269,8 +260,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "accounts": "1, 2"
-                  }
+                  "accounts": "1, 2"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
