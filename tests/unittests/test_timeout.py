@@ -52,8 +52,7 @@ class TestTimeoutValue(unittest.TestCase):
                   "refresh_token": "test_refresh_token",
                   "access_token": "test_access_token",
                   "user_agent": "test_user_agent",
-                  "request_timeout": "100"
-                  }
+                  "request_timeout": "100"}
 
         # initialize 'LinkedinClient'
         cl = client.LinkedinClient(client_id=config['client_id'],
