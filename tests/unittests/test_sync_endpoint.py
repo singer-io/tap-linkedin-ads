@@ -16,7 +16,7 @@ class TestSyncEndpoint(unittest.TestCase):
     @mock.patch("tap_linkedin_ads.sync.write_schema")
     def test_sync_endpoint_for_reference_organization_id_is_None(self,mock_write_schema,mock_get_selected_streams,mock_process_records,mock_client,mock_should_sync_stream,mock_get_bookmark,mocked_logger):
         
-        client=LinkedinClient('client_id','client_secret','refresh_token')
+        client=LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         catalog = None
         state={'currently_syncing': 'accounts'}
         start_date='2019-06-01T00:00:00Z'
