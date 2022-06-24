@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.6
+  * Fixed 1.2.5 release issues [#43](https://github.com/singer-io/tap-linkedin-ads/pull/43)
+
 ## 1.2.5
   * Auto access-token refresh [#41](https://github.com/singer-io/tap-linkedin-ads/pull/41)
   
