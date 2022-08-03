@@ -86,6 +86,7 @@ def get_503_response(*args, **kwargs):
 class TestBackoffHandling(unittest.TestCase):
     """
     Test that functions are backing off expected times/till expected time.
+    NOTE: Skipping test case to check backoff of 'request` method for 500, 504, 503, 429 and ConnectionError as for each error it takes 10 min.
     """
 
     @parameterized.expand([
@@ -130,28 +131,6 @@ class TestBackoffHandling(unittest.TestCase):
 
         # Verify that `session.get` was called 5 times
         self.assertEqual(mock_requests.call_count, 5)
-
-    @parameterized.expand([
-        (get_500_response, client.LinkedInInternalServiceError),
-        (get_504_response, client.LinkedInGatewayTimeoutError),
-        (get_503_response, client.Server5xxError),
-        (get_429_response, client.Server429Error),
-        (requests.exceptions.ConnectionError, requests.exceptions.ConnectionError),
-    ])
-    @mock.patch("requests.Session.request")
-    def test_requests_backoff(self, mock_response, error, mock_requests):
-        """
-        Test `request` method will backoff for 600 seconds for 5xx, 429 and ConnectionError.
-        """
-        mock_requests.side_effect = mock_response
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
-        start_time = time.time()
-        with self.assertRaises(error) as e:
-            linkedIn_client.request("GET")
-        end_time = time.time()
-
-        # Verify that `session.request` was called till 600 seconds
-        self.assertGreaterEqual(end_time-start_time, 600)
 
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.request")
@@ -257,7 +236,7 @@ class TestAccessToken(unittest.TestCase):
     ])
     def test_custom_error_message(self, mock_request, mock_sleep, error_code, mock_response, error, message):
         """
-        Test that exception is raised with the custom error message.
+        Test that exception is raised with the custom message.
         """
         mock_request.return_value = mock_response
         expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
