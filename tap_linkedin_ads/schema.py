@@ -1,53 +1,10 @@
 import os
 import json
 from singer import metadata
+from tap_linkedin_ads.streams import STREAMS
 
 # Reference:
 #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
-
-STREAMS = {
-    'accounts': {
-        'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'video_ads': {
-        'key_properties': ['content_reference'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'account_users': {
-        'key_properties': ['account_id', 'user_person_id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'campaign_groups': {
-        'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'campaigns': {
-        'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'creatives': {
-        'key_properties': ['id'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['last_modified_time']
-    },
-    'ad_analytics_by_campaign': {
-        'key_properties': ['campaign_id', 'start_at'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['end_at']
-    },
-    'ad_analytics_by_creative': {
-        'key_properties': ['creative_id', 'start_at'],
-        'replication_method': 'INCREMENTAL',
-        'replication_keys': ['end_at']
-    }
-}
-
 
 def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
@@ -69,9 +26,9 @@ def get_schemas():
         #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
         mdata = metadata.get_standard_metadata(
             schema=schema,
-            key_properties=stream_metadata.get('key_properties', None),
-            valid_replication_keys=stream_metadata.get('replication_keys', None),
-            replication_method=stream_metadata.get('replication_method', None)
+            key_properties=(hasattr(stream_metadata, 'key_properties') or None) and stream_metadata.key_properties,
+            valid_replication_keys=(hasattr(stream_metadata, 'replication_keys') or None) and stream_metadata.replication_keys,
+            replication_method=(hasattr(stream_metadata, 'replication_method') or None) and stream_metadata.replication_method
         )
 
         # Add additional metadata
@@ -81,7 +38,7 @@ def get_schemas():
             mdata_map[('properties', 'pivot')]['inclusion'] = 'automatic'
             mdata_map[('properties', 'pivot_value')]['inclusion'] = 'automatic'
 
-        for replication_key in stream_metadata.get('replication_keys'):
+        for replication_key in stream_metadata.replication_keys:
             mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
 
         mdata = metadata.to_list(mdata_map)
