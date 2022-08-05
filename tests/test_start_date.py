@@ -11,11 +11,32 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
     def name():
         return "tap_tester_linkedin_ads_start_date_test"
 
+    def get_properties(self, original: bool = True):
+        """Returns the connection properties"""
+        return {
+            "start_date" : self.START_DATE,
+            "accounts": "503491473,502890776",
+        }
+
     def test_run(self):
-        """Instantiate start date according to the desired data set and run the test"""
+
+        expected_streams = {"account_users"}
+        self.run_start_date(expected_streams, "2021-08-07T00:00:00Z")
+
+        self.run_start_date(self.expected_streams() - expected_streams, "2019-08-01T00:00:00Z")
+
+    def run_start_date(self, expected_streams, start_date_2):
+        """
+        Instantiate start_date according to the desired data set and run the test.
+
+        • Verify the total number of records replicated in sync1 is greater than sync2
+        • Verify bookmark key values are greater than or equal to the start_date of sync1 and sync2
+        • Verify the number of records replicated in sync 1 is greater than the number of records replicated in sync 2 for the stream
+        • Verify the records replicated in sync 2 were also replicated in sync 1
+        """
 
         self.start_date_1 = '2018-01-01T00:00:00Z'
-        self.start_date_2 = '2019-08-01T00:00:00Z'
+        self.start_date_2 = start_date_2
 
         start_date_1_epoch = self.dt_to_ts(self.start_date_1)
         start_date_2_epoch = self.dt_to_ts(self.start_date_2)
@@ -23,7 +44,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         # set start date 1
         self.START_DATE = self.start_date_1
 
-        expected_streams = self.expected_streams()
+        expected_replication_methods = self.expected_replication_method()
 
         ##########################################################################
         ### First Sync
@@ -91,6 +112,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
                 # expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
                 expected_start_date_keys = self.expected_start_date_keys()[stream]
+                expected_replication_method = expected_replication_methods[stream]
 
                 # collect information for assertions from syncs 1 & 2 base on expected values
                 record_count_sync_1 = record_count_by_stream_1.get(stream, 0)
@@ -99,7 +121,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
                                        for message in synced_records_1.get(stream).get('messages')
                                        if message.get('action') == 'upsert']
                 primary_keys_list_2 = [tuple(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
-                                       for message in synced_records_2.get(stream).get('messages')
+                                       for message in synced_records_2.get(stream, {}).get('messages', [])
                                        if message.get('action') == 'upsert']
 
                 primary_keys_sync_1 = set(primary_keys_list_1)
@@ -114,17 +136,28 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
                 start_date_key_sync_1 = set(start_date_keys_list_1)
                 start_date_key_sync_2 = set(start_date_keys_list_2)
 
-                # Verify bookmark key values are greater than or equal to start date of sync 1
-                for start_date_key_value in start_date_key_sync_1:
-                    self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_1_epoch)
+                if expected_replication_method == self.INCREMENTAL:
 
-                # Verify bookmark key values are greater than or equal to start date of sync 2
-                for start_date_key_value in start_date_key_sync_2:
-                    self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_2_epoch)
+                    # Verify bookmark key values are greater than or equal to start_date of sync 1
+                    for start_date_key_value in start_date_key_sync_1:
+                        self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_1_epoch)
 
-                # Verify the number of records replicated in sync 1 is greater than the number
-                # of records replicated in sync 2 for stream
-                self.assertGreaterEqual(record_count_sync_1, record_count_sync_2)
+                    # Verify bookmark key values are greater than or equal to start_date of sync 2
+                    for start_date_key_value in start_date_key_sync_2:
+                        self.assertGreaterEqual(self.dt_to_ts(start_date_key_value), start_date_2_epoch)
 
-                # Verify the records replicated in sync 2 were also replicated in sync 1
-                self.assertTrue(primary_keys_sync_2.issubset(primary_keys_sync_1))
+                    # Verify the number of records replicated in sync 1 is greater than the number
+                    # of records replicated in sync 2 for stream
+                    self.assertGreaterEqual(record_count_sync_1, record_count_sync_2)
+
+                    # Verify the records replicated in sync 2 were also replicated in sync 1
+                    self.assertTrue(primary_keys_sync_2.issubset(primary_keys_sync_1))
+
+                else:
+
+                    # Verify that the 2nd sync with a later start_date replicates the same number of
+                    # records as the 1st sync.
+                    self.assertEqual(record_count_sync_2, record_count_sync_1)
+
+                    # Verify by primary key the same records are replicated in the 1st and 2nd syncs
+                    self.assertSetEqual(primary_keys_sync_1, primary_keys_sync_2)

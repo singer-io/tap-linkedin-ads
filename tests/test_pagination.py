@@ -9,6 +9,14 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
     def name():
         return "tap_tester_linkedin_ads_pagination_test"
 
+    def get_properties(self, original: bool = True):
+        """Returns the connection properties"""
+        return {
+            "start_date" : "2018-08-21T00:00:00Z",
+            "accounts": "503491473,502890776",
+            "page_size": 100
+        }
+
     def test_run(self):
         page_size = 1
         conn_id = connections.ensure_connection(self)
@@ -39,7 +47,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
                                        for message in synced_records.get(stream).get('messages')
                                        if message.get('action') == 'upsert']
 
-                # verify records are more than page size so multiple page is working
+                # verify records are more than page size so multiple pages are working
                 self.assertGreater(record_count_sync, page_size)
 
                 if record_count_sync > page_size:
