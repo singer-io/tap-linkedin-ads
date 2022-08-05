@@ -10,6 +10,15 @@ from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
 
+FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
+    'campaign',
+    'campaignId',
+    'startAt',
+    'endAt',
+    'creative',
+    'creativeId'
+}
+
 def write_bookmark(state, value, stream_name):
     """
     Write the bookmark in the state corresponding to the stream.
@@ -75,7 +84,7 @@ def get_next_url(data):
 
 def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     """
-    Move ahead to the date window by date_window_size
+    Move ahead date window by date_window_size and update params with the new date window.
     """
     current_end = datetime.date(
         year=params['dateRange.end.year'],
@@ -101,14 +110,20 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     return current_end, new_end, new_params
 
 def merge_responses(data):
+    """
+
+    """
     full_records = dict()
+    # Loop through each page of data
     for page in data:
+        # Loop through each record of the page
         for element in page:
             temp_start = element['dateRange']['start']
             temp_pivotValue = element['pivotValue']
             string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
             primary_key = (temp_pivotValue, string_start)
             if primary_key in full_records:
+                # Update existing record with same primary key
                 full_records[primary_key].update(element)
             else:
                 full_records[primary_key] = element
@@ -428,6 +443,8 @@ class LinkedInAds:
         # `pivot`, and `pivotValue`
         MAX_CHUNK_LENGTH = 17
 
+        bookmark_field = next(iter(self.replication_keys))
+
         max_bookmark_value = last_datetime
         last_datetime_dt = strptime_to_utc(last_datetime) - timedelta(days=7)
 
@@ -450,7 +467,8 @@ class LinkedInAds:
                         'dateRange.end.year': window_end_date.year,}
 
         valid_selected_fields = [snake_case_to_camel_case(field)
-                                for field in selected_fields(catalog.get_stream(self.tap_stream_id))]
+                                for field in selected_fields(catalog.get_stream(self.tap_stream_id))
+                                if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS]
 
         # When testing the API, if the fields in `field` all return `0` then
         # the API returns its empty response.
@@ -510,9 +528,9 @@ class LinkedInAds:
             else:
                 max_bookmark_value, record_count = self.process_records(
                     catalog=catalog,
-                    stream_name=self.tap_stream_id,
                     records=transformed_data,
                     time_extracted=time_extracted,
+                    bookmark_field=bookmark_field,
                     max_bookmark_value=last_datetime,
                     last_datetime=strftime(last_datetime_dt),
                     parent_id=parent_id)
