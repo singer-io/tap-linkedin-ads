@@ -75,6 +75,12 @@
         "integer"
       ]
     },
+    "processing_state": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "reference": {
       "type": [
         "null",
@@ -99,6 +105,18 @@
             "null",
             "string"
           ]
+        },
+        "RejectionReason": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
         }
       }
     },
@@ -161,6 +179,24 @@
             }
           ]
         }
+      }
+    },
+    "test": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "serving_statuses": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
       }
     },
     "version": {

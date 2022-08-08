@@ -128,6 +128,36 @@
         "null",
         "string"
       ]
+    },
+    "total_budget":{
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currencyCode": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "amount": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "test": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "allowed_campaign_types": {
+      "type": [
+        "null",
+        "string"
+      ]
     }
   }
 }

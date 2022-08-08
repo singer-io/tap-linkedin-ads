@@ -217,6 +217,30 @@
         "string"
       ]
     },
+    "total_budget":{
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currencyCode": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "amount": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "version_tag":{
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "locale": {
       "type": [
         "null",
@@ -429,11 +453,70 @@
         "string"
       ]
     },
+    "objective_type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "offsite_delivery_enabled": {
       "type": [
         "null",
         "boolean"
       ]
+    },
+    "offsite_preferences":{
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "iabCategories":{
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "exclude": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "additionalProperties": false,
+              "items":{
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            }
+          }
+        },
+        "publisherRestrictionFiles":{
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "exclude": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "additionalProperties": false,
+              "items":{
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "id": {
       "type": [
@@ -445,6 +528,24 @@
       "type": [
         "null",
         "boolean"
+      ]
+    },
+    "test": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "format": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "pacing_strategy": {
+      "type": [
+        "null",
+        "string"
       ]
     },
     "account": {
