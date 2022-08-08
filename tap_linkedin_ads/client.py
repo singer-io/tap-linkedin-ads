@@ -115,7 +115,7 @@ def raise_for_error(response):
                 error_code, error_description)
 
     if error_code not in ERROR_CODE_EXCEPTION_MAPPING and error_code > 500:
-        # raise `Server5xxError` for all 5xx unknown error
+        # Raise `Server5xxError` for all 5xx unknown error
         exc = Server5xxError
     else:
         exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
