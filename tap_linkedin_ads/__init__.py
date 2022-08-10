@@ -6,7 +6,7 @@ import argparse
 import singer
 from singer import metadata, utils
 from tap_linkedin_ads.client import LinkedinClient, REQUEST_TIMEOUT
-from tap_linkedin_ads.discover import discover
+from tap_linkedin_ads.discover import discover as _discover
 from tap_linkedin_ads.sync import sync as _sync
 
 
@@ -22,7 +22,7 @@ REQUIRED_CONFIG_KEYS = [
 def do_discover(client, config):
     LOGGER.info('Starting discover')
     client.check_accounts(config)
-    catalog = discover()
+    catalog = _discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
 

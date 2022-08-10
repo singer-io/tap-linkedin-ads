@@ -1,6 +1,4 @@
 import singer
-from singer import metadata
-from singer import should_sync_field
 from tap_linkedin_ads.streams import STREAMS, write_bookmark
 
 LOGGER = singer.get_logger()
@@ -12,7 +10,7 @@ PAGE_SIZE = 100
 def update_currently_syncing(state, stream_name):
     """
     Currently syncing sets the stream currently being delivered in the state.
-    If the integration is interrupted, this state property is used to identify the 
+    If the integration is interrupted, this state property is used to identify the
     starting point to continue from.
 
     Reference: https://github.com/singer-io/singer-python/blob/master/singer/bookmarks.py#L41-L46
@@ -43,7 +41,7 @@ def get_parent_streams(selected_streams):
             parent_streams.append(stream_name)
         elif parent_stream:
             # Append un-selected parent streams of selected children
-            if parent_stream not in selected_streams:
+            if parent_stream not in selected_streams and parent_stream not in parent_streams:
                 parent_streams.append(parent_stream)
 
     return parent_streams
@@ -57,12 +55,12 @@ def get_page_size(config):
     if page_size == "":
         return PAGE_SIZE
     try:
-        if type(page_size) == float:
+        if isinstance(page_size, float):
             raise Exception
 
         page_size = int(page_size)
         if page_size <= 0:
-            # Raise an exception if negative page_size is given in the config. 
+            # Raise an exception if negative page_size is given in the config.
             raise Exception
         return page_size
     except Exception:
@@ -142,7 +140,5 @@ def sync(client, config, catalog, state):
             write_bookmark(state, max_bookmark_value, stream_name)
 
         update_currently_syncing(state, None)
-        LOGGER.info('Synced: %s, total_records: %s',
-                                stream_name,
-                                total_records)
+        LOGGER.info('Synced: %s, total_records: %s', stream_name, total_records)
         LOGGER.info('FINISHED Syncing: %s', stream_name)
