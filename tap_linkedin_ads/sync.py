@@ -126,7 +126,6 @@ def sync(client, config, catalog, state):
         if stream_name in selected_streams:
             stream_obj.write_schema(catalog)
 
-        # pylint: disable=duplicate-code
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
             client=client,
             catalog=catalog,

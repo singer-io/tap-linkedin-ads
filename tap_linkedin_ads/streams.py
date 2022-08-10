@@ -391,7 +391,6 @@ class LinkedInAds:
                                 date_window_size=date_window_size,
                                 parent_id=parent_id)
                         else:
-                            # pylint: disable=duplicate-code
                             child_total_records, child_batch_bookmark_value = child_obj.sync_endpoint(
                                 client=client,
                                 catalog=catalog,
