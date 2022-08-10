@@ -278,7 +278,7 @@ class TestCheckAccounts(unittest.TestCase):
     """
     Test exception handling for `check_accounts` method of client.
     """
-    _client = client.LinkedinClient("","","","", "","", "USR_AGENT")
+    _client = client.LinkedinClient("","","", "","", "USR_AGENT")
 
     @parameterized.expand([
         (400,),
