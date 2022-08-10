@@ -16,10 +16,11 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'startAt',
     'endAt',
     'creative',
-    'creativeId',
+    'creativeId'
 }
 
-FIELDS_UNAVAILABLE_FOR_STREAMS = {
+# Given Map is of fields that currently are not supported by API 
+FIELDS_UNACCEPTED_BY_API = {
     "ad_analytics_by_creative": {
         "averageDailyReachMetrics",
         "averagePreviousSevenDayReachMetrics",
@@ -58,6 +59,13 @@ def selected_fields(catalog_for_stream):
     return selected_fields_list
 
 def split_into_chunks(fields, chunk_length):
+    """
+    Return list of chunk_length fields for total fields.
+    Example:
+
+    Args: fields = [1, 2, 3, 4, 5], chunk_length = 2
+    Return: [[1, 2], [3, 4], [5]]
+    """
     return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
 
 def sync_analytics_endpoint(client, stream_name, path, query_string):
@@ -81,7 +89,7 @@ def sync_analytics_endpoint(client, stream_name, path, query_string):
 
 def get_next_url(data):
     """
-    Prepare and return URL to fetch next page of records.
+    Prepare and return the URL to fetch the next page of records.
     """
     next_url = None
     links = data.get('paging', {}).get('links', [])
@@ -123,7 +131,9 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
 
 def merge_responses(data):
     """
-
+    Prepare map with key as primary key and value as the record itself for analytics streams.
+    The primary key is a combination of pivotValue and start date fields value.
+    Update existing records with the same primary key value.
     """
     full_records = dict()
     # Loop through each page of data
@@ -145,23 +155,23 @@ class LinkedInAds:
     """
     A base class representing tap-linkedin-ads streams
     properties:
-    
+
         tap_stream_id        : stream name for the endpoint
         replicaiton_method   : replication method of given streams. Possible values: FULL_TABLE, INCREMENTAL
         replicaion_keys      : Replications keys for an incremental stream
-        key_properties       : Primary keys for given stream
+        key_properties       : Primary keys for a given stream
         path                 : API endpoint relative path, when added to the base URL, creates the full path
         account_filter       : Method for Account filtering. Each uses a different query pattern/parameter:
             search_id_values_param, search_account_values_param, accounts_param
         params               : Query, sort, and other endpoint specific parameters
         data_key             : JSON element containing the records for the endpoint
-        bookmark_query_field : Typically a date-time field used for filtering the query
+        bookmark_query_field : Typically a date-time field is used for filtering the query
         bookmark_field       : Replication key field, typically a date-time, used for filtering the results
             and setting the state
         foreign_key            : Primary key of the Parent stream.
         children             : A collection of child endpoints (where the endpoint path includes the parent id)
-        parent               : On each of the children, name of parent stream
-    
+        parent               : On each of the children, name of the parent stream
+
     """
     tap_stream_id = None
     replicaiton_method = None
@@ -261,14 +271,14 @@ class LinkedInAds:
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
     def sync_endpoint(self,
-                    client,
-                    catalog,
-                    state,
-                    page_size,
-                    start_date,
-                    selected_streams,
-                    date_window_size,
-                    parent_id=None):
+                      client,
+                      catalog,
+                      state,
+                      page_size,
+                      start_date,
+                      selected_streams,
+                      date_window_size,
+                      parent_id=None):
         """
         Sync a specific parent or child endpoint.
         """
@@ -331,13 +341,11 @@ class LinkedInAds:
             transformed_data = [] # initialize the record list
             if self.data_key in data:
                 transformed_data = transform_json(data, self.tap_stream_id)[self.data_key]
-
             if not transformed_data or transformed_data is None:
                 LOGGER.info('No transformed_data')
                 break # No data results
 
             pre_singer_transformed_data = copy.deepcopy(transformed_data)
-
             if self.tap_stream_id in selected_streams:
                 # Process records and gets the max_bookmark_value and record_count for the set of records
                 max_bookmark_value, record_count = self.process_records(
@@ -382,7 +390,7 @@ class LinkedInAds:
                                 child_stream_params['campaigns[0]'] = campaign
 
                         # Update params for the child stream
-                        child_obj.params= child_stream_params
+                        child_obj.params = child_stream_params
                         LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
                                     child_stream_name,
                                     self.tap_stream_id,
@@ -393,7 +401,7 @@ class LinkedInAds:
                             child_total_records, child_batch_bookmark_value = child_obj.sync_ad_analytics(
                                 client=client,
                                 catalog=catalog,
-                                last_datetime=last_datetime,
+                                last_datetime=child_obj.get_bookmark(state, start_date),
                                 date_window_size=date_window_size,
                                 parent_id=parent_id)
                         else:
@@ -471,24 +479,24 @@ class LinkedInAds:
 
         # Override the default start and end dates
         static_params = {**self.params,
-                        'dateRange.start.day': window_start_date.day,
-                        'dateRange.start.month': window_start_date.month,
-                        'dateRange.start.year': window_start_date.year,
-                        'dateRange.end.day': window_end_date.day,
-                        'dateRange.end.month': window_end_date.month,
-                        'dateRange.end.year': window_end_date.year,}
+                         'dateRange.start.day': window_start_date.day,
+                         'dateRange.start.month': window_start_date.month,
+                         'dateRange.start.year': window_start_date.year,
+                         'dateRange.end.day': window_end_date.day,
+                         'dateRange.end.month': window_end_date.month,
+                         'dateRange.end.year': window_end_date.year,}
 
         valid_selected_fields = [snake_case_to_camel_case(field)
                                 for field in selected_fields(catalog.get_stream(self.tap_stream_id))
                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
-                                    FIELDS_UNAVAILABLE_FOR_STREAMS.get(self.tap_stream_id, set()))]
+                                    FIELDS_UNACCEPTED_BY_API.get(self.tap_stream_id, set()))]
 
         # When testing the API, if the fields in `field` all return `0` then
         # the API returns its empty response.
 
         # However, the API distinguishes between a day with non-null values
         # (even if this means the values are all `0`) and a day with null
-        # values. We found that requesting these fields give you the days with
+        # values. We found that requesting these fields gives you the days with
         # non-null values
         first_chunk = [['dateRange', 'pivot', 'pivotValue']]
 
@@ -505,11 +513,11 @@ class LinkedInAds:
         ############### PAGINATION (for these 2 streams) ###############
         # The Tap requests LinkedIn with one Campaign ID at one time.
         # 1 Campaign permits 100 Ads
-        # Considering, 1 Ad is active and the existing behaviour of the tap uses 30 Day window size
+        # Considering, 1 Ad is active and the existing behavior of the tap uses 30 Day window size
         #       and timeGranularity = DAILY(Results grouped by day) we get 30 records in one API response
         # Considering the maximum permitted size of Ads are created, "3000" records will be returned in an API response.
-        # If “count=100” and records=100 in the API are the same then the next url will be returned and if we hit that URL, 400 error code will be returned.
-        # This case is unreachable because here “count” is 10000 and at maximum only 3000 records will be returned in an API response.
+        # If “count=100” and records=100 in the API are the same then the next URL will be returned and if we hit that URL, 400 error code will be returned.
+        # This case is unreachable because here “count” is 10000 and at maximum, only 3000 records will be returned in an API response.
 
         total_records = 0
         while window_end_date <= today:
@@ -517,7 +525,7 @@ class LinkedInAds:
             for chunk in chunks:
                 static_params['fields'] = ','.join(chunk)
                 params = {"start": 0,
-                        **static_params}
+                          **static_params}
                 query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
                 LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date)
                 for page in sync_analytics_endpoint(client, self.tap_stream_id, self.path, query_string):
@@ -535,7 +543,7 @@ class LinkedInAds:
             # in. `sync_endpoint()` grabs `data_key` from the return value, so
             # we mirror that here
             transformed_data = transform_json({self.data_key: list(raw_records.values())},
-                                            self.tap_stream_id)[self.data_key]
+                                              self.tap_stream_id)[self.data_key]
             if not transformed_data:
                 LOGGER.info('No transformed_data')
             else:
@@ -600,7 +608,7 @@ class AccountUsers(LinkedInAds):
     replication_keys = ["last_modified_time"]
     replication_method = "INCREMENTAL"
     key_properties = ["account_id", "user_person_id"]
-    account_filter="accounts_param"
+    account_filter = "accounts_param"
     path = "adAccountUsers"
     data_key = "elements"
     params = {
