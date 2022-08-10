@@ -37,9 +37,6 @@ KNOWN_MISSING_FIELDS = {
     },
     "ad_analytics_by_campaign": {
         "lead_generation_mail_interest_clicks",
-        "average_daily_reach_metrics",
-        "average_previous_seven_day_reach_metrics",
-        "average_previous_thirty_day_reach_metrics",
         "approximate_unique_impressions",
     },
 }

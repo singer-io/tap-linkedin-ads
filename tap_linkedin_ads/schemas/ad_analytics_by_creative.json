@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "landing_page_clicks": {
@@ -11,49 +14,112 @@
     "average_daily_reach_metrics": {
       "type": [
         "null",
-        "number"
-      ]
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "approximate_cost_in_currency_per_thousand_members_reached": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_reach": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_frequency": {
+          "type": [
+            "null",
+            "number"
+          ]
+        }
+      }
     },
     "average_previous_seven_day_reach_metrics": {
       "type": [
         "null",
-        "number"
-      ]
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "approximate_cost_in_currency_per_thousand_members_reached": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_reach": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_frequency": {
+          "type": [
+            "null",
+            "number"
+          ]
+        }
+      }
     },
     "average_previous_thirty_day_reach_metrics": {
       "type": [
         "null",
-        "number"
-      ]
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "approximate_cost_in_currency_per_thousand_members_reached": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_reach": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "approximate_frequency": {
+          "type": [
+            "null",
+            "number"
+          ]
+        }
+      }
     },
     "document_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "document_first_quartile_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "document_midpoint_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "document_third_quartile_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "download_clicks": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "job_applications": {
@@ -119,19 +185,19 @@
     "talent_leads": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "viral_document_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "viral_document_first_quartile_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "full_screen_plays": {
@@ -143,19 +209,19 @@
     "viral_document_midpoint_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "viral_document_third_quartile_completions": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "viral_download_clicks": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "viral_job_applications": {
@@ -215,7 +281,7 @@
     "viral_registrations": {
       "type": [
         "null",
-        "number"
+        "integer"
       ]
     },
     "approximate_unique_impressions": {

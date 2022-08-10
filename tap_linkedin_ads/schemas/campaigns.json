@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "targeting": {
@@ -14,7 +17,10 @@
             {
               "type": "array",
               "items": {
-                "type": "object",
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "type": {
@@ -49,7 +55,10 @@
             {
               "type": "array",
               "items": {
-                "type": "object",
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "type": {
@@ -100,7 +109,10 @@
                 {
                   "type": "array",
                   "items": {
-                    "type": "object",
+                    "type": [
+                      "null",
+                      "object"
+                    ],
                     "additionalProperties": false,
                     "properties": {
                       "type": {
@@ -217,11 +229,14 @@
         "string"
       ]
     },
-    "total_budget":{
-      "type": "object",
+    "total_budget": {
+      "type": [
+        "null",
+        "object"
+      ],
       "additionalProperties": false,
       "properties": {
-        "currencyCode": {
+        "currency_code": {
           "type": [
             "null",
             "string"
@@ -235,7 +250,7 @@
         }
       }
     },
-    "version_tag":{
+    "version_tag": {
       "type": [
         "null",
         "string"
@@ -465,14 +480,14 @@
         "boolean"
       ]
     },
-    "offsite_preferences":{
+    "offsite_preferences": {
       "type": [
         "null",
         "object"
       ],
       "additionalProperties": false,
       "properties": {
-        "iabCategories":{
+        "iab_categories": {
           "type": [
             "null",
             "object"
@@ -485,7 +500,7 @@
                 "array"
               ],
               "additionalProperties": false,
-              "items":{
+              "items": {
                 "type": [
                   "null",
                   "string"
@@ -494,7 +509,7 @@
             }
           }
         },
-        "publisherRestrictionFiles":{
+        "publisherRestrictionFiles": {
           "type": [
             "null",
             "object"
@@ -507,7 +522,7 @@
                 "array"
               ],
               "additionalProperties": false,
-              "items":{
+              "items": {
                 "type": [
                   "null",
                   "string"

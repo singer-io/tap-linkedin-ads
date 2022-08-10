@@ -42,7 +42,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            "page_size": 100
+            "page_size": 100,
+            "date_window_size": 1000
         }
         if original:
             return return_value

@@ -161,6 +161,10 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
+    @backoff.on_exception(backoff.expo,
+                          (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
+                          max_tries=5,
+                          factor=2)
     def is_token_expired(self):
         """
         Function to check if the access token is expired.
@@ -172,7 +176,10 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         payload='client_id={}&client_secret={}&token={}'.format(self.__client_id,self.__client_secret, self.__access_token)
         response = self.__session.post("https://www.linkedin.com/oauth/v2/introspectToken", headers=headers, data=payload)
 
-        # Substracting 2days(172800 seconds) before expiration date for the possibility of sync runs for long time
+        if response.status_code != 200:
+            raise_for_error(response)
+
+        # Subtracting 2 days from the expiration date to avoid the failure of the token in case of a longer sync run.
         return response.json()['expires_at'] - 172800 < current_time
 
     @backoff.on_exception(backoff.expo,

@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "campaign": {
@@ -106,7 +109,7 @@
             "string"
           ]
         },
-        "RejectionReason": {
+        "rejection_reason": {
           "type": [
             "null",
             "array"
@@ -156,7 +159,10 @@
             {
               "type": "array",
               "items": {
-                "type": "object",
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "key": {

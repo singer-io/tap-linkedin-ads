@@ -50,7 +50,8 @@ class TestBackoffHandling(unittest.TestCase):
     ])
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.post")
-    def test_fetch_and_set_token_backoff_2(self, mock_response, error, mock_requests, mock_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.is_token_expired")
+    def test_fetch_and_set_token_backoff_2(self, mock_response, error, mock_token_expired, mock_requests, mock_sleep):
         """
         Test `fetch_and_set_access_token` will backoff 5 times for Timeout and ConnectionError.
         """

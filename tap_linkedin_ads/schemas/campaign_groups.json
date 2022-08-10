@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "run_schedule": {
@@ -129,11 +132,14 @@
         "string"
       ]
     },
-    "total_budget":{
-      "type": "object",
+    "total_budget": {
+      "type": [
+        "null",
+        "object"
+      ],
       "additionalProperties": false,
       "properties": {
-        "currencyCode": {
+        "currency_code": {
           "type": [
             "null",
             "string"
