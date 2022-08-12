@@ -26,12 +26,18 @@ KNOWN_MISSING_FIELDS = {
         "total_budget_ends_at",
         "total_budget",
         "reference_person_id",
+        "notified_on_new_features_enabled",
     },
     "ad_analytics_by_creative": {
         "lead_generation_mail_interest_clicks",
+        "average_previous_seven_day_reach_metrics",
+        "average_previous_thirty_day_reach_metrics",
+        "approximate_unique_impressions",
+        "average_daily_reach_metrics",
     },
     "ad_analytics_by_campaign": {
         "lead_generation_mail_interest_clicks",
+        "approximate_unique_impressions",
     },
 }
 
@@ -42,13 +48,6 @@ class AllFields(TestLinkedinAdsBase):
     def name():
         return "tap_tester_linkedin_ads_all_fields"
 
-    def get_properties(self, original: bool = True):
-        return  {
-            "start_date" : "2018-08-01T00:00:00Z",
-            "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            "page_size": 100
-        }
-
     def test_run(self):
         """
         Ensure running the tap with all streams and fields selected results in the
@@ -57,7 +56,7 @@ class AllFields(TestLinkedinAdsBase):
         - Verify that more than just the automatic fields are replicated for each stream.
         """
 
-        expected_streams = self.expected_streams() - {'ad_analytics_by_creative', 'ad_analytics_by_campaign'}
+        expected_streams = self.expected_streams()
         
         # instantiate connection
         conn_id = connections.ensure_connection(self)

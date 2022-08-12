@@ -22,6 +22,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         "%Y-%m-%d %H:%M:%S",
         "%Y-%m-%dT%H:%M:%S.%fZ"
     }
+    START_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    RECORD_REPLICATION_KEY_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     START_DATE = ""
     BOOKMARK_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     INCREMENTAL = "INCREMENTAL"
@@ -48,7 +50,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            "page_size": 100
+            "page_size": 100,
+            "date_window_size": 1000
         }
         if original:
             return return_value
@@ -352,10 +355,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
     ### Tap Specific Methods
     ##########################################################################
 
-    def dt_to_ts(self, dtime):
-        for date_format in self.DATETIME_FMT:
-            try:
-                date_stripped = int(time.mktime(dt.strptime(dtime, date_format).timetuple()))
-                return date_stripped
-            except ValueError:
-                continue
+    def dt_to_ts(self, dtime, date_format):
+        """Convert datetime with a format to timestamp"""
+        return int(time.mktime(dt.strptime(dtime, date_format).timetuple()))

@@ -60,11 +60,9 @@ class BookmarkTest(TestLinkedinAdsBase):
         # Update State Between Syncs
         ##########################################################################
 
-        new_states = {'bookmarks': dict()}
         simulated_states = self.calculated_states_by_stream(
             first_sync_bookmarks)
-        for stream, new_state in simulated_states.items():
-            new_states['bookmarks'][stream] = new_state
+        new_states = {'bookmarks': simulated_states}
         menagerie.set_state(conn_id, new_states)
 
         ##########################################################################

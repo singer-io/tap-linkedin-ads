@@ -1,4 +1,12 @@
+import re
 
+from tap_tester import menagerie, connections
+
+from base import TestLinkedinAdsBase
+
+class LinkedinAdsDiscoveryTest(TestLinkedinAdsBase):
+
+    def name(self):
         return "tap_tester_linedin_ads_discovery_test"
 
     def test_run(self):
