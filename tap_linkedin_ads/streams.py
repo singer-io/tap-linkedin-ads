@@ -415,15 +415,7 @@ class LinkedInAds:
                         LOGGER.info('FINISHED Syncing: %s', child_stream_name)
 
             # Pagination: Get next_url
-            next_url = None
-            links = data.get('paging', {}).get('links', [])
-            for link in links:
-                rel = link.get('rel')
-                if rel == 'next':
-                    # Get URL to fetch next page
-                    href = link.get('href')
-                    if href:
-                        next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+            next_url = get_next_url(data)
 
             if self.tap_stream_id in selected_streams:
                 LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
