@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
+import time
 import backoff
 import requests
-import time
 
 from singer import metrics
 import singer
@@ -173,7 +173,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        payload='client_id={}&client_secret={}&token={}'.format(self.__client_id,self.__client_secret, self.__access_token)
+        payload = 'client_id={}&client_secret={}&token={}'.format(self.__client_id, self.__client_secret, self.__access_token)
         response = self.__session.post("https://www.linkedin.com/oauth/v2/introspectToken", headers=headers, data=payload)
 
         if response.status_code != 200:

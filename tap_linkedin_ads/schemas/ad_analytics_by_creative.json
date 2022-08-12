@@ -21,20 +21,23 @@
         "approximate_cost_in_currency_per_thousand_members_reached": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_reach": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_frequency": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         }
       }
     },
@@ -48,20 +51,23 @@
         "approximate_cost_in_currency_per_thousand_members_reached": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_reach": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_frequency": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         }
       }
     },
@@ -75,20 +81,23 @@
         "approximate_cost_in_currency_per_thousand_members_reached": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_reach": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         },
         "approximate_frequency": {
           "type": [
             "null",
-            "number"
-          ]
+            "string"
+          ],
+          "format": "singer.decimal"
         }
       }
     },
@@ -125,14 +134,16 @@
     "job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "impressions": {
       "type": [
@@ -143,44 +154,51 @@
     "post_click_job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "post_click_job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "post_click_registrations": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "post_view_job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "post_view_job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "post_view_registrations": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "registrations": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "talent_leads": {
       "type": [
@@ -227,44 +245,51 @@
     "viral_job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_post_click_job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_post_click_job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_post_click_registrations": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_post_view_job_applications": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_post_view_job_apply_clicks": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "video_completions": {
       "type": [
@@ -275,8 +300,9 @@
     "viral_post_view_registrations": {
       "type": [
         "null",
-        "number"
-      ]
+        "string"
+      ],
+      "format": "singer.decimal"
     },
     "viral_registrations": {
       "type": [

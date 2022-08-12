@@ -149,7 +149,8 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "format": "singer.decimal"
         }
       }
     },
@@ -162,8 +163,14 @@
     "allowed_campaign_types": {
       "type": [
         "null",
-        "string"
-      ]
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
     }
   }
 }

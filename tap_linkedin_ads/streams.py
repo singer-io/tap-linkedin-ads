@@ -1,8 +1,8 @@
-import singer
 import urllib.parse
 import copy
 import datetime
 from datetime import timedelta
+import singer
 from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
@@ -19,7 +19,7 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'creativeId'
 }
 
-# Given Map is of fields that currently are not supported by API 
+# Given Map is of fields that currently are not supported by API
 FIELDS_UNACCEPTED_BY_API = {
     "ad_analytics_by_creative": {
         "averageDailyReachMetrics",
@@ -49,7 +49,7 @@ def selected_fields(catalog_for_stream):
     mdata = metadata.to_map(catalog_for_stream.metadata)
     fields = catalog_for_stream.schema.properties.keys()
 
-    selected_fields_list = list()
+    selected_fields_list = []
     # Loop through all fields of the given stream
     for field in fields:
         field_metadata = mdata.get(('properties', field))
@@ -116,8 +116,7 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     else:
         new_end = current_end + timedelta(days=date_window_size)
 
-    if new_end > today:
-        new_end = today
+    new_end = min(new_end, today)
 
     new_params = {**params,
                   'dateRange.start.day': current_end.day,
@@ -135,7 +134,7 @@ def merge_responses(data):
     The primary key is a combination of pivotValue and start date fields value.
     Update existing records with the same primary key value.
     """
-    full_records = dict()
+    full_records = {}
     # Loop through each page of data
     for page in data:
         # Loop through each record of the page
@@ -364,7 +363,6 @@ class LinkedInAds:
                 if child_stream_name in selected_streams:
                     # For each parent record
                     child_obj = STREAMS[child_stream_name]()
-                    child_bookmark = child_obj.get_bookmark(state, start_date)
 
                     for record in pre_singer_transformed_data:
 
@@ -474,8 +472,7 @@ class LinkedInAds:
         today = datetime.date.today()
 
         # Reset end_date of date window if it is greater than today
-        if window_end_date > today:
-            window_end_date = today
+        window_end_date = min(window_end_date, today)
 
         # Override the default start and end dates
         static_params = {**self.params,
@@ -487,9 +484,9 @@ class LinkedInAds:
                          'dateRange.end.year': window_end_date.year,}
 
         valid_selected_fields = [snake_case_to_camel_case(field)
-                                for field in selected_fields(catalog.get_stream(self.tap_stream_id))
-                                if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
-                                    FIELDS_UNACCEPTED_BY_API.get(self.tap_stream_id, set()))]
+                                 for field in selected_fields(catalog.get_stream(self.tap_stream_id))
+                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
+                                     FIELDS_UNACCEPTED_BY_API.get(self.tap_stream_id, set()))]
 
         # When testing the API, if the fields in `field` all return `0` then
         # the API returns its empty response.

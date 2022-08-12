@@ -37,10 +37,10 @@ class TestIsTokenExpire(unittest.TestCase):
 
         mock_request.return_value = get_response(200,{"expires_at": mock_expires})
         _client = client.LinkedinClient("CLIENT_ID","CLIENT_SECRET","REFRESH_TOKEN","ACCESS_TOKEN")
-        retuen_value = _client.is_token_expired()
+        return_value = _client.is_token_expired()
 
         # Verify returned boolean value is expected
-        self.assertEqual(retuen_value, expected_value)
+        self.assertEqual(return_value, expected_value)
 
     @parameterized.expand([
         (400, client.LinkedInBadRequestError, "The request is missing or has a bad parameter."),
@@ -78,7 +78,6 @@ class TestIsTokenExpire(unittest.TestCase):
         Test that function back off 5 times for Timeout and connection error.
         """
         mock_request.side_effect = error
-        # expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
         linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
         with self.assertRaises(error) as e:
             linkedIn_client.is_token_expired()

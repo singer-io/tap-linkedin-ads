@@ -11,6 +11,12 @@
         "string"
       ]
     },
+    "campaign_contact":{
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "account_id": {
       "type": [
         "null",
