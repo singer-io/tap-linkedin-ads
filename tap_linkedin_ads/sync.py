@@ -23,9 +23,9 @@ def update_currently_syncing(state, stream_name):
         singer.set_currently_syncing(state, stream_name)
     singer.write_state(state)
 
-def get_parent_streams(selected_streams):
+def get_streams_to_sync(selected_streams):
     """
-    Get lists of parent streams to call sync method.
+    Get lists of streams to call the sync method.
     For children, ensure that dependent parent_stream is included even if it is not selected.
     """
     parent_streams = []
@@ -93,12 +93,12 @@ def sync(client, config, catalog, state):
     last_stream = singer.get_currently_syncing(state)
     LOGGER.info('last/currently syncing stream: %s', last_stream)
 
-    # Get the list of parent streams(to sync stream itself or its child stream) for which
+    # Get the list of streams(to sync stream itself or its child stream) for which
     # sync method needs to be called
-    parent_streams = get_parent_streams(selected_streams)
+    stream_to_sync = get_streams_to_sync(selected_streams)
 
-    # Loop through all parent streams
-    for stream_name in parent_streams:
+    # Loop through all `stream_to_sync` streams
+    for stream_name in stream_to_sync:
         stream_obj = STREAMS[stream_name]()
 
         # Add appropriate account_filter query parameters based on account_filter type

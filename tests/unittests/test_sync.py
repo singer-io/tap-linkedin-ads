@@ -3,7 +3,7 @@ from unittest import mock
 from parameterized import parameterized
 from singer.schema import Schema
 from singer.catalog import Catalog, CatalogEntry
-from tap_linkedin_ads.sync import get_page_size, get_parent_streams, update_currently_syncing, sync
+from tap_linkedin_ads.sync import get_page_size, get_streams_to_sync, update_currently_syncing, sync
 from tap_linkedin_ads.client import LinkedinClient
 
 DEFAULT_PAGE_SIZE = 100
@@ -109,12 +109,12 @@ class TestSyncUtils(unittest.TestCase):
         ['test_multiple_child_selected', ['accounts', 'ad_analytics_by_campaign', 'ad_analytics_by_creative'], ['accounts', 'campaigns']],
         ['test_parent_child_both_selected', ['ad_analytics_by_creative', 'campaigns'], ['campaigns']]
     ])
-    def test_get_parent_streams(self, name, selected_streams, expected_parent_streams):
+    def test_get_streams_to_sync(self, name, selected_streams, expected_parent_streams):
         """
-        Test that get_parent_streams function return valid list of stream names for which 
+        Test that get_streams_to_sync function return valid list of stream names for which 
         sync_endpoints method require to call.
         """
-        actual_parent_streams = get_parent_streams(selected_streams)
+        actual_parent_streams = get_streams_to_sync(selected_streams)
         
         self.assertEqual(expected_parent_streams, actual_parent_streams)
     
