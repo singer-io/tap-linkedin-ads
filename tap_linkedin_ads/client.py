@@ -173,7 +173,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        payload = 'client_id={}&client_secret={}&token={}'.format(self.__client_id, self.__client_secret, self.__access_token)
+        payload='client_id={}&client_secret={}&token={}'.format(self.__client_id,self.__client_secret, self.__access_token)
         response = self.__session.post("https://www.linkedin.com/oauth/v2/introspectToken", headers=headers, data=payload)
 
         if response.status_code != 200:
@@ -218,7 +218,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         data = response.json()
         self.__access_token = data['access_token']
-        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_at'])
         LOGGER.info('Authorized, token expires = %s', format(self.__expires))
 
         # Waiting 30 seconds after generating a new token
