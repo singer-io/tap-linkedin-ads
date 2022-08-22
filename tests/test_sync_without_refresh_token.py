@@ -96,8 +96,6 @@ class AllFields(TestLinkedinAdsBase):
                     expected_all_keys.remove('total_budget_ends_at')
                     expected_all_keys.remove('total_budget')
                     expected_all_keys.remove('reference_person_id')
-                elif stream in ["ad_analytics_by_creative","ad_analytics_by_campaign"]:
-                    expected_all_keys.remove('lead_generation_mail_interest_clicks')
                 self.assertSetEqual(expected_all_keys, actual_all_keys)
 
 

@@ -105,7 +105,7 @@ class TestStreamsUtils(unittest.TestCase):
         ['test_single_page', [None], 1],
         ['test_multiple_page', ["next_url", None], 2]
     ])
-    @mock.patch('tap_linkedin_ads.client.LinkedinClient.get', return_value=[])
+    @mock.patch('tap_linkedin_ads.client.LinkedinClient.request', return_value=[])
     @mock.patch('tap_linkedin_ads.streams.get_next_url')
     def test_sync_analytics_endpoint(self, name, next_url, expected_call_count, mock_next_url, mock_get):
         """
@@ -315,7 +315,7 @@ class TestLinkedInAds(unittest.TestCase):
     ])
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.sync_ad_analytics", return_value=(1, "2019-07-31T15:07:00.000000Z"))
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
-    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.request")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.process_records")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.write_schema")
     def test_sync_endpoint(self, name, selected_streams, stream_obj, mock_response, expected_write_schema_count, mock_record_count,
@@ -342,7 +342,7 @@ class TestLinkedInAds(unittest.TestCase):
 
     @mock.patch("tap_linkedin_ads.sync.LOGGER.warning")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
-    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.request")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.process_records")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.write_schema")
     def test_sync_endpoint_for_reference_organization_id_is_None(self, mock_write_schema,mock_process_records,mock_client,mock_get_bookmark,
@@ -391,3 +391,25 @@ class TestLinkedInAds(unittest.TestCase):
         self.assertEqual(actual_max_bookmark, expected_max_bookmark)
         # Verify total no of records
         self.assertEqual(actual_record_count, expected_record_count)
+
+    @mock.patch('singer.write_schema', side_effect=OSError('error'))
+    @mock.patch('tap_linkedin_ads.streams.LOGGER.info')
+    def test_write_schema(self, mock_logger, mock_write_schema):
+        """
+        Test that tap handle OSError while writing the schema.
+        """
+        with self.assertRaises(OSError) as e:
+            ACCOUNT_OBJ.write_schema(CATALOG)
+
+        mock_logger.assert_called_with('OS Error writing schema for: %s', 'accounts')
+
+    @mock.patch('singer.write_record', side_effect=OSError('error'))
+    @mock.patch('tap_linkedin_ads.streams.LOGGER.info')
+    def test_write_record(self, mock_logger, mock_write_record):
+        """
+        Test that tap handle OSError while writing the record.
+        """
+        with self.assertRaises(OSError) as e:
+            ACCOUNT_OBJ.write_record([], '')
+        
+        mock_logger.assert_called_with('record: %s', [])

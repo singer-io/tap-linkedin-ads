@@ -28,7 +28,7 @@ def get_streams_to_sync(selected_streams):
     Get lists of streams to call the sync method.
     For children, ensure that dependent parent_stream is included even if it is not selected.
     """
-    parent_streams = []
+    streams_to_sync = []
 
     # Loop thru all selected streams
     for stream_name in selected_streams:
@@ -38,13 +38,13 @@ def get_streams_to_sync(selected_streams):
 
         # Append selected parent streams
         if not parent_stream:
-            parent_streams.append(stream_name)
+            streams_to_sync.append(stream_name)
         elif parent_stream:
             # Append un-selected parent streams of selected children
-            if parent_stream not in selected_streams and parent_stream not in parent_streams:
-                parent_streams.append(parent_stream)
+            if parent_stream not in selected_streams and parent_stream not in streams_to_sync:
+                streams_to_sync.append(parent_stream)
 
-    return parent_streams
+    return streams_to_sync
 
 def get_page_size(config):
     """

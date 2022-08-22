@@ -26,7 +26,7 @@ class TestFetchAccessToken(unittest.TestCase):
         cl.fetch_and_set_access_token()
         self.assertEquals(cl.access_token, 'access_token')
     
-    @mock.patch("requests.Session.post")
+    @mock.patch("requests.Session.request")
     def test_fetch_access_token_with_refresh_token(self, mock_session_post):
         """Test that when refresh token is passed in config properties, conection uses the new access token"""
         mock_session_post.return_value = Mockresponse(200, {'access_token': 'new_access_token', 'expires_in': 86400})
