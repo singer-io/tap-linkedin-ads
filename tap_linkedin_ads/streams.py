@@ -10,6 +10,8 @@ from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
 
 LOGGER = singer.get_logger()
 
+# Below fields are a list of foreign keys(primary key of a parent) and replication keys that API can not accept in the parameters.
+# We will skip these fields while passing selected fields in the API parameters.
 FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'campaign',
     'campaignId',
@@ -111,12 +113,8 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
         month=params['dateRange.end.month'],
         day=params['dateRange.end.day'],
     )
-    if forced_window_size:
-        new_end = current_end + timedelta(days=forced_window_size)
-    else:
-        new_end = current_end + timedelta(days=date_window_size)
 
-    new_end = min(new_end, today)
+    new_end = min(today, current_end + timedelta(days=(forced_window_size if forced_window_size else date_window_size)))
 
     new_params = {**params,
                   'dateRange.start.day': current_end.day,
@@ -167,7 +165,7 @@ class LinkedInAds:
         bookmark_query_field : Typically a date-time field is used for filtering the query
         bookmark_field       : Replication key field, typically a date-time, used for filtering the results
             and setting the state
-        foreign_key            : Primary key of the Parent stream.
+        foreign_key          : Primary key of the Parent stream.
         children             : A collection of child endpoints (where the endpoint path includes the parent id)
         parent               : On each of the children, name of the parent stream
 
@@ -427,15 +425,7 @@ class LinkedInAds:
                         LOGGER.info('FINISHED Syncing: %s', child_stream_name)
 
             # Pagination: Get next_url
-            next_url = None
-            links = data.get('paging', {}).get('links', [])
-            for link in links:
-                rel = link.get('rel')
-                if rel == 'next':
-                    # Get URL to fetch next page
-                    href = link.get('href')
-                    if href:
-                        next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+            next_url = get_next_url(data)
 
             if self.tap_stream_id in selected_streams:
                 LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
@@ -483,6 +473,8 @@ class LinkedInAds:
                          'dateRange.end.month': window_end_date.month,
                          'dateRange.end.year': window_end_date.year,}
 
+        # Here, valid_selected_fields is a list of fields that the user has selected.
+        # API accepts these fields in the parameter and returns its value in the response.
         valid_selected_fields = [snake_case_to_camel_case(field)
                                  for field in selected_fields(catalog.get_stream(self.tap_stream_id))
                                  if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
