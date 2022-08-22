@@ -39,7 +39,7 @@ def get_streams_to_sync(selected_streams):
         # Append selected parent streams
         if not parent_stream:
             streams_to_sync.append(stream_name)
-        elif parent_stream:
+        else:
             # Append un-selected parent streams of selected children
             if parent_stream not in selected_streams and parent_stream not in streams_to_sync:
                 streams_to_sync.append(parent_stream)
