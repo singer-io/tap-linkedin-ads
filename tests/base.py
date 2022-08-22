@@ -1,6 +1,8 @@
 import os
 import unittest
 from datetime import datetime as dt
+from datetime import timedelta
+import dateutil.parser
 import time
 import backoff
 import requests
@@ -20,7 +22,13 @@ class TestLinkedinAdsBase(unittest.TestCase):
         "%Y-%m-%d %H:%M:%S",
         "%Y-%m-%dT%H:%M:%S.%fZ"
     }
+    START_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    RECORD_REPLICATION_KEY_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     START_DATE = ""
+    BOOKMARK_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    INCREMENTAL = "INCREMENTAL"
+    FULL_TABLE = "FULL_TABLE"
+    ADITIONAL_AUTOMATIC = "aditional-automatic-fields"
 
     def setUp(self):
         missing_envs = [x for x in [
@@ -42,7 +50,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            "page_size": 100
+            "page_size": 100,
+            "date_window_size": 1000
         }
         if original:
             return return_value
@@ -66,7 +75,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                           factor=2)
     def fetch_access_token(self):
         """This method generates the Access token for connections where refresh token is not passed in config properties"""
-        # When refresh token is not provided then we are assumeing that it is old connection
+        # When a refresh token is not provided then we are assuming that it is an old connection
         # and client has provided valid access_token already
         BASE_URL = 'https://api.linkedin.com/v2'
         LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
@@ -109,43 +118,45 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return {
             'accounts': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'video_ads': {
                 self.PRIMARY_KEYS: {'content_reference'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaign_groups': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaigns': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'creatives': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'ad_analytics_by_campaign': {
                 self.PRIMARY_KEYS: {'campaign_id', 'start_at'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
-                self.REPLICATION_KEYS: {'end_at'}
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'end_at'},
+                self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             },
             'ad_analytics_by_creative': {
                 self.PRIMARY_KEYS: {'creative_id', 'start_at'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
-                self.REPLICATION_KEYS: {'end_at'}
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.REPLICATION_KEYS: {'end_at'},
+                self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             }
         }
 
@@ -156,7 +167,9 @@ class TestLinkedinAdsBase(unittest.TestCase):
         """
         auto_fields = {}
         for k, v in self.expected_metadata().items():
-            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(v.get(self.REPLICATION_KEYS, set()))
+            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(
+                v.get(self.REPLICATION_KEYS, set())).union(
+                    v.get(self.ADITIONAL_AUTOMATIC, set()))
         return auto_fields
 
     def expected_replication_method(self):
@@ -171,7 +184,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_start_date_keys(self):
         """
-        return a dictionary with key of table name
+        return a dictionary with the key of the table name
         and value as a set of start_date key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -180,7 +193,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_primary_keys(self):
         """
-        return a dictionary with key of table name
+        return a dictionary with the key of the table name
         and value as a set of primary key fields
         """
         return {table: properties.get(self.PRIMARY_KEYS, set())
@@ -189,7 +202,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_replication_keys(self):
         """
-        return a dictionary with key of table name
+        return a dictionary with the key of the table name
         and value as a set of replication key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -203,7 +216,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     def run_and_verify_check_mode(self, conn_id):
         """
         Run the tap in check mode and verify it succeeds.
-        This should be ran prior to field selection and initial sync.
+        This should be run before field selection and initial sync.
         Return the connection id and found catalogs from menagerie.
         """
         # run in check mode
@@ -253,7 +266,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                                                      select_all_fields=True,
                                                      non_selected_properties=[]):
         """
-        Perform table and field selection based off of the streams to select
+        Perform table and field selection based on the streams to select
         set and field selection parameters.
         Verify this results in the expected streams selected and all or no
         fields selected for those streams.
@@ -289,7 +302,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                         self.assertTrue(field_selected, msg="Field not selected.")
             else:
                 # Verify only automatic fields are selected
-                expected_automatic_fields = self.expected_primary_keys().get(cat['stream_name'])
+                expected_automatic_fields = self.expected_automatic_fields().get(cat['stream_name'])
                 selected_fields = self.get_selected_fields_from_metadata(catalog_entry['metadata'])
                 self.assertEqual(expected_automatic_fields, selected_fields)
 
@@ -322,14 +335,26 @@ class TestLinkedinAdsBase(unittest.TestCase):
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, [], non_selected_properties)
 
+    def calculated_states_by_stream(self, current_state):
+        """
+        Returns a state prevised to current state.
+        """
+        timedelta_by_stream = {stream: [0,0,1]  # {stream_name: [days, hours, minutes], ...}
+                                for stream in self.expected_streams()}
+        stream_to_calculated_state = {stream: "" for stream in current_state['bookmarks'].keys()}
+
+        for stream, state in current_state['bookmarks'].items():
+            state_as_datetime = dateutil.parser.parse(state)
+            days, hours, minutes = timedelta_by_stream[stream]
+            calculated_state_as_datetime = state_as_datetime - timedelta(days=days, hours=hours, minutes=minutes)
+            calculated_state_formatted = dt.strftime(calculated_state_as_datetime, self.BOOKMARK_FORMAT)
+            stream_to_calculated_state[stream] = calculated_state_formatted
+        return stream_to_calculated_state
+
     ##########################################################################
     ### Tap Specific Methods
     ##########################################################################
 
-    def dt_to_ts(self, dtime):
-        for date_format in self.DATETIME_FMT:
-            try:
-                date_stripped = int(time.mktime(dt.strptime(dtime, date_format).timetuple()))
-                return date_stripped
-            except ValueError:
-                continue
+    def dt_to_ts(self, dtime, date_format):
+        """Convert datetime with a format to timestamp"""
+        return int(time.mktime(dt.strptime(dtime, date_format).timetuple()))
