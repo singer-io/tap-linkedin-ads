@@ -101,6 +101,18 @@ class TestStreamsUtils(unittest.TestCase):
         # Verify that `test_split_into_chunks` return 2 list of 17 fields for total 34 fields.
         self.assertEqual(expected, list(actual))
 
+    def test_split_into_chunks_for_less_fields_than_max_length(self):
+        """
+        Test that `test_split_into_chunks` split 15 fields into single chunk
+        """
+        fields = list(range(15))
+        actual = split_into_chunks(fields, MAX_CHUNK_LENGTH)
+        expected = [
+            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14]
+        ]
+
+        # Verify that `test_split_into_chunks` return single list of 15 fields.
+        self.assertEqual(expected, list(actual))
     @parameterized.expand([
         ['test_single_page', [None], 1],
         ['test_multiple_page', ["next_url", None], 2]
