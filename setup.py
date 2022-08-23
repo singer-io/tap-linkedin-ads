@@ -15,8 +15,8 @@ setup(name='tap-linkedin-ads',
       ],
       extras_require={
         'dev': [
-            'ipdb==0.11',
-            'pylint==2.4.4',
+            'ipdb',
+            'pylint',
         ]
       },
       entry_points='''
