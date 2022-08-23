@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import backoff
 import requests
 
@@ -5,6 +6,9 @@ from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
+BASE_URL = 'https://api.linkedin.com/v2'
+LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
+
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -113,24 +117,33 @@ def raise_for_error(response):
     exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
     raise exc(message) from None
 
-class LinkedinClient:
-    def __init__(self,
+class LinkedinClient: # pylint: disable=too-many-instance-attributes
+    def __init__(self, # pylint: disable=too-many-arguments
+                 client_id,
+                 client_secret,
+                 refresh_token,
                  access_token,
-                 user_agent=None,
-                 timeout_from_config=None):
-        self.__access_token = access_token
+                 request_timeout=REQUEST_TIMEOUT,
+                 user_agent=None):
+        self.__client_id = client_id
+        self.__client_secret = client_secret
+        self.__refresh_token = refresh_token
         self.__user_agent = user_agent
+        self.__access_token = access_token
+        self.__expires = None
         self.__session = requests.Session()
         self.__base_url = None
-        self.__verified = False
+        # if request_timeout is other than 0,"0" or "" then use request_timeout
+        if request_timeout and float(request_timeout):
+            request_timeout = float(request_timeout)
+        else: # If value is 0,"0" or "" then set default to 300 seconds.
+            request_timeout = REQUEST_TIMEOUT
+        self.request_timeout = request_timeout
 
-        # if the 'timeout_from_config' value is 0, "0", "" or not passed then set default value of 300 seconds.
-        if timeout_from_config and float(timeout_from_config):
-            # update the request timeout for the requests
-            self.request_timeout = float(timeout_from_config)
-        else:
-            # set the default timeout of 300 seconds
-            self.request_timeout = REQUEST_TIMEOUT
+
+    @property
+    def access_token(self):
+        return self.__access_token
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -141,7 +154,7 @@ class LinkedinClient:
                           max_tries=5,
                           factor=2)
     def __enter__(self):
-        self.__verified = self.check_access_token()
+        self.fetch_and_set_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -151,28 +164,39 @@ class LinkedinClient:
                           Server5xxError,
                           max_tries=5,
                           factor=2)
-    def check_access_token(self): #pylint: disable=inconsistent-return-statements
-        if self.__access_token is None:
-            raise Exception('Error: Missing access_token.')
+    def fetch_and_set_access_token(self):
+        """
+        This method generates new access token if the refresh token is provided.
+
+        Note: Linkedin-ads access token expires in 60 days, where as refresh token expires in 365 days.
+        """
+        # If refresh token is not provided then we are assumeing that it is an old connection
+        # and client has provided the valid access_token already
+        if not self.__refresh_token:
+            return
+
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
-        headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Accept'] = 'application/json'
-        response = self.__session.get(
-            # Simple endpoint that returns 1 Account record (to check API/token access):
-            url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
+
+        response = self.__session.post(
+            url=LINKEDIN_TOKEN_URI,
             headers=headers,
+            data={
+                'grant_type': 'refresh_token',
+                'client_id': self.__client_id,
+                'client_secret': self.__client_secret,
+                'refresh_token': self.__refresh_token,
+            },
             timeout=self.request_timeout)
+
         if response.status_code != 200:
-            LOGGER.error('Error status_code = %s', response.status_code)
             raise_for_error(response)
-        else:
-            resp = response.json()
-            if 'elements' in resp: #pylint: disable=simplifiable-if-statement
-                return True
-            else:
-                return False
+
+        data = response.json()
+        self.__access_token = data['access_token']
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+        LOGGER.info('Authorized, token expires = %s', format(self.__expires))
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -223,9 +247,7 @@ class LinkedinClient:
         factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
-        if not self.__verified:
-            self.__verified = self.check_access_token()
-
+        self.fetch_and_set_access_token()
         if not url and self.__base_url is None:
             self.__base_url = 'https://api.linkedin.com/v2'
 
@@ -255,7 +277,6 @@ class LinkedinClient:
 
         if response.status_code != 200:
             raise_for_error(response)
-
         return response.json()
 
     def get(self, url=None, path=None, **kwargs):

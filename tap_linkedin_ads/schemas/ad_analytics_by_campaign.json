@@ -232,7 +232,7 @@
         "integer"
       ]
     },
-    "lead_generation_mail_interest_clicks": {
+    "lead_generation_mail_interested_clicks": {
       "type": [
         "null",
         "integer"
