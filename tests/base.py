@@ -151,14 +151,14 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'end_at'},
-                self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
+                self.ADDITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             },
             'ad_analytics_by_creative': {
                 self.PRIMARY_KEYS: {'creative_id', 'start_at'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'end_at'},
-                self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
+                self.ADDITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             }
         }
 
@@ -171,7 +171,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
         for k, v in self.expected_metadata().items():
             auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(
                 v.get(self.REPLICATION_KEYS, set())).union(
-                    v.get(self.ADITIONAL_AUTOMATIC, set()))
+                    v.get(self.ADDITIONAL_AUTOMATIC, set()))
         return auto_fields
 
     def expected_replication_method(self):
