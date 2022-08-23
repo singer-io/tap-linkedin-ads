@@ -449,8 +449,7 @@ class LinkedInAds:
         today = datetime.date.today()
 
         # Reset end_date of date window if it is greater than today
-        if window_end_date > today:
-            window_end_date = today
+        window_end_date = min(window_end_date, today)
 
         # Override the default start and end dates
         static_params = {**self.params,
