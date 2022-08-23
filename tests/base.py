@@ -32,7 +32,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     BOOKMARK_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     INCREMENTAL = "INCREMENTAL"
     FULL_TABLE = "FULL_TABLE"
-    ADITIONAL_AUTOMATIC = "aditional-automatic-fields"
+    ADDITIONAL_AUTOMATIC = "additional-automatic-fields"
     OBEYS_START_DATE = "obey-start-date"
 
     def setUp(self):
