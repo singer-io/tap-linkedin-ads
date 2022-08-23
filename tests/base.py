@@ -2,18 +2,22 @@ import os
 import unittest
 from datetime import datetime as dt
 from datetime import timedelta
-import dateutil.parser
 import time
+import dateutil.parser
 import backoff
 import requests
-import json
 
-import tap_tester.menagerie   as menagerie
-import tap_tester.connections as connections
-import tap_tester.runner      as runner
+from tap_tester import menagerie, connections, runner
 
 
 class TestLinkedinAdsBase(unittest.TestCase):
+    """
+    Setup expectations for test sub-classes.
+    Metadata describing streams.
+    A bunch of shared methods that are used in tap-tester tests.
+    Shared tap-specific methods (as needed).
+    """
+
     PRIMARY_KEYS = "table-key-properties"
     REPLICATION_METHOD = "forced-replication-method"
     REPLICATION_KEYS = "valid-replication-keys"
@@ -29,8 +33,10 @@ class TestLinkedinAdsBase(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     FULL_TABLE = "FULL_TABLE"
     ADITIONAL_AUTOMATIC = "aditional-automatic-fields"
+    OBEYS_START_DATE = "obey-start-date"
 
     def setUp(self):
+        """Raising the error if required environment variables are missing"""
         missing_envs = [x for x in [
             "TAP_LINKEDIN_ADS_ACCOUNTS"
         ] if os.getenv(x) is None]
@@ -39,10 +45,12 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     @staticmethod
     def get_type():
+        """The expected url route ending"""
         return "platform.linkedin-ads"
 
     @staticmethod
     def tap_name():
+        """The name of the tap"""
         return "tap-linkedin-ads"
 
     def get_properties(self, original: bool = True):
@@ -77,7 +85,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
         """This method generates the Access token for connections where refresh token is not passed in config properties"""
         # When a refresh token is not provided then we are assuming that it is an old connection
         # and client has provided valid access_token already
-        BASE_URL = 'https://api.linkedin.com/v2'
         LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
         headers = {}
 
@@ -99,19 +106,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
         return data['access_token']
 
-    @staticmethod
-    def expected_check_streams():
-        return {
-            'accounts',
-            'video_ads',
-            'account_users',
-            'campaign_groups',
-            'campaigns',
-            'creatives',
-            'ad_analytics_by_campaign',
-            'ad_analytics_by_creative'
-        }
-
     def expected_metadata(self):
         """The expected streams and metadata about the streams"""
 
@@ -119,42 +113,50 @@ class TestLinkedinAdsBase(unittest.TestCase):
             'accounts': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'video_ads': {
                 self.PRIMARY_KEYS: {'content_reference'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaign_groups': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaigns': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'creatives': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'ad_analytics_by_campaign': {
                 self.PRIMARY_KEYS: {'campaign_id', 'start_at'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'end_at'},
                 self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             },
             'ad_analytics_by_creative': {
                 self.PRIMARY_KEYS: {'creative_id', 'start_at'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'end_at'},
                 self.ADITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             }
@@ -162,7 +164,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_automatic_fields(self):
         """
-        return a dictionary with key of table name
+        Return a dictionary with key of table name
         and value as a set of automatic key fields
         """
         auto_fields = {}
@@ -173,7 +175,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return auto_fields
 
     def expected_replication_method(self):
-        """return a dictionary with key of table name and value of replication method"""
+        """Return a dictionary with key of table name and value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, None)
                 for table, properties
                 in self.expected_metadata().items()}
@@ -184,7 +186,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_start_date_keys(self):
         """
-        return a dictionary with the key of the table name
+        Return a dictionary with the key of the table name
         and value as a set of start_date key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -193,7 +195,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_primary_keys(self):
         """
-        return a dictionary with the key of the table name
+        Return a dictionary with the key of the table name
         and value as a set of primary key fields
         """
         return {table: properties.get(self.PRIMARY_KEYS, set())
@@ -202,7 +204,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_replication_keys(self):
         """
-        return a dictionary with the key of the table name
+        Return a dictionary with the key of the table name
         and value as a set of replication key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -308,6 +310,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     @staticmethod
     def get_selected_fields_from_metadata(metadata):
+        """Return set of selected fields from the metadata"""
         selected_fields = set()
         for field in metadata:
             is_field_metadata = len(field['breadcrumb']) > 1
@@ -326,7 +329,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
         for catalog in catalogs:
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
 
-            non_selected_properties = non_selected_properties
             if not select_all_fields:
                 # get a list of all properties so that none are selected
                 non_selected_properties = schema.get('annotated-schema', {}).get(
@@ -337,7 +339,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def calculated_states_by_stream(self, current_state):
         """
-        Returns a state prevised to current state.
+        Returns a state prevised to the current state.
         """
         timedelta_by_stream = {stream: [0,0,1]  # {stream_name: [days, hours, minutes], ...}
                                 for stream in self.expected_streams()}

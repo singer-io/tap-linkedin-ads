@@ -23,7 +23,7 @@ class LinkedinAdsSyncTest(TestLinkedinAdsBase):
                                       if catalog.get('stream_name') in expected_streams]
 
         self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs, non_selected_properties=['reference_organization_id'])
-        
+
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
         # check if all streams have collected records

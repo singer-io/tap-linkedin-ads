@@ -1,17 +1,19 @@
-from tap_tester import runner, connections
-import os
 from math import ceil
+from tap_tester import runner, connections
 
 from base import TestLinkedinAdsBase
 
 class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
+    """
+    Ensure tap can replicate multiple pages of data for streams that use pagination.
+    """
 
     @staticmethod
     def name():
         return "tap_tester_linkedin_ads_pagination_test"
 
     def test_run(self):
-        page_size = 2
+        page_size = 1
         conn_id = connections.ensure_connection(self)
 
         # "ad_analytics_by_creative" and "ad_analytics_by_campaign" does not support pagination
@@ -19,22 +21,22 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
         expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs = [catalog for catalog in found_catalogs
                                       if catalog.get('stream_name') in expected_streams]
 
         self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs)
 
-        record_count_by_stream = self.run_and_verify_sync(conn_id)
+        self.run_and_verify_sync(conn_id)
 
         synced_records = runner.get_records_from_target_output()
 
         for stream in expected_streams:
             with self.subTest(stream=stream):
-                # expected values
+                # Expected values
                 expected_primary_keys = self.expected_primary_keys()
 
-                # collect information for assertions from sync based on expected values
+                # Collect information for assertions from sync based on expected values
                 primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
                                        for message in synced_records.get(stream).get('messages')
                                        if message.get('action') == 'upsert']

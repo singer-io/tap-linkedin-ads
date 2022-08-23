@@ -1,12 +1,10 @@
-import tap_tester.connections as connections
-import tap_tester.runner as runner
-import tap_tester.menagerie as menagerie
+from  tap_tester import connections, runner, menagerie
 
 from base import TestLinkedinAdsBase
 
 class BookmarkTest(TestLinkedinAdsBase):
     """Test tap sets a bookmark and respects it for the next sync of a stream"""
-    
+
     def name(self):
         return "tap_tester_linkedin_ads_bookmark_test"
 
@@ -44,7 +42,7 @@ class BookmarkTest(TestLinkedinAdsBase):
         # Run in check mode
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         catalog_entries = [catalog for catalog in found_catalogs
                            if catalog.get('tap_stream_id') in streams_to_test]
 
@@ -81,10 +79,10 @@ class BookmarkTest(TestLinkedinAdsBase):
         for stream in streams_to_test:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_replication_method = expected_replication_methods[stream]
 
-                # collect information for assertions from syncs 1 & 2 based on expected values
+                # Collect information for assertions from syncs 1 & 2 based on expected values
                 first_sync_count = first_sync_record_count.get(stream, 0)
                 second_sync_count = second_sync_record_count.get(stream, 0)
                 first_sync_messages = [record.get('data') for record in
@@ -101,7 +99,7 @@ class BookmarkTest(TestLinkedinAdsBase):
 
                 if expected_replication_method == self.INCREMENTAL:
 
-                    # collect information specific to incremental streams from syncs 1 & 2
+                    # Collect information specific to incremental streams from syncs 1 & 2
                     replication_key = next(
                         iter(expected_replication_keys[stream]))
 
