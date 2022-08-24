@@ -1,14 +1,12 @@
-import tap_tester.connections as connections
-import tap_tester.runner as runner
-import tap_tester.menagerie as menagerie
+from  tap_tester import connections, runner
 from base import TestLinkedinAdsBase
 
 class AutomaticFieldsTest(TestLinkedinAdsBase):
     """
-    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the 
+    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
     primary keys and replication keys (automatic fields).
     """
-    
+
     def name(self):
         return "tap_tester_linedin_ads_automatic_fields_test"
 
@@ -29,7 +27,7 @@ class AutomaticFieldsTest(TestLinkedinAdsBase):
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_automatic_fields = [catalog for catalog in found_catalogs
                                           if catalog.get('tap_stream_id') in streams_to_test]
 
@@ -43,11 +41,11 @@ class AutomaticFieldsTest(TestLinkedinAdsBase):
         for stream in streams_to_test:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_keys = self.expected_automatic_fields().get(stream)
                 expected_primary_keys = self.expected_primary_keys()[stream]
 
-                # collect actual values
+                # Collect actual values
                 data = synced_records.get(stream, {})
                 record_messages_keys = [set(row['data'].keys())
                                         for row in data.get('messages', [])]

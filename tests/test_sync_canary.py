@@ -2,6 +2,7 @@ from tap_tester import connections
 from base import TestLinkedinAdsBase
 
 class LinkedinAdsSyncTest(TestLinkedinAdsBase):
+    """Test tap sync mode and metadata conforms to standards."""
 
     @staticmethod
     def name():
@@ -16,7 +17,7 @@ class LinkedinAdsSyncTest(TestLinkedinAdsBase):
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # removed "ad_analytics_by_campaign" and "ad_analytics_by_creative" as
+        # Removed "ad_analytics_by_campaign" and "ad_analytics_by_creative" as
         # it makes lots of api calls so sync canary test for these streams is covered in the start date test
         expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
         test_catalogs = [catalog for catalog in found_catalogs
@@ -26,6 +27,6 @@ class LinkedinAdsSyncTest(TestLinkedinAdsBase):
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
-        # check if all streams have collected records
+        # Check if all streams have collected records
         for stream in expected_streams:
             self.assertGreater(record_count_by_stream.get(stream, 0), 0)
