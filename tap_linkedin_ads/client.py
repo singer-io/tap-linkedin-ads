@@ -114,7 +114,7 @@ def raise_for_error(response):
     message = "HTTP-error-code: {}, Error: {}".format(
                 error_code, error_description)
 
-    if error_code not in ERROR_CODE_EXCEPTION_MAPPING and error_code > 500:
+    if error_code not in ERROR_CODE_EXCEPTION_MAPPING and error_code >= 500:
         # Raise `Server5xxError` for all 5xx unknown error
         exc = Server5xxError
     else:
