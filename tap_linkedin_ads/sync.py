@@ -75,7 +75,7 @@ def sync(client, config, catalog, state):
 
     if config.get('date_window_size'):
         LOGGER.info('Using non-standard date window size of %s', config.get('date_window_size'))
-        date_window_size = config.get('date_window_size')
+        date_window_size = int(config.get('date_window_size'))
     else:
         date_window_size = DATE_WINDOW_SIZE
         LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
