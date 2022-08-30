@@ -169,7 +169,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         """
         Function to check if the access token is expired.
         """
-        current_time = time.time()
         headers = {
             "Content-Type": "application/x-www-form-urlencoded"
         }
@@ -180,7 +179,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             raise_for_error(response)
 
         # Subtracting 2 days from the expiration date to avoid the failure of the token in case of a longer sync run.
-        return response.json()['expires_at'] - 172800 < current_time
+        return response.json()['expires_at'] - 172800 < time.time()
 
     @backoff.on_exception(backoff.expo,
                           Server5xxError,
