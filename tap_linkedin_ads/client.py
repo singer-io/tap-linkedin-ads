@@ -113,7 +113,11 @@ def raise_for_error(response):
     message = "HTTP-error-code: {}, Error: {}".format(
                 error_code, error_description)
 
-    exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
+    if error_code not in ERROR_CODE_EXCEPTION_MAPPING and error_code >= 500:
+        # Raise `Server5xxError` for all 5xx unknown error
+        exc = Server5xxError
+    else:
+        exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
     raise exc(message) from None
 
 class LinkedinClient: # pylint: disable=too-many-instance-attributes
