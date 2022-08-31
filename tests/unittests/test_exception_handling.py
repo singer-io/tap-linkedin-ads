@@ -216,6 +216,7 @@ class TestAccessToken(unittest.TestCase):
         (429, get_response(429), client.LinkedInRateLimitExceeededError, "API rate limit exceeded, please retry after some time."),
         (500, get_response(500), client.LinkedInInternalServiceError, "An error has occurred at LinkedIn's end."),
         (504, get_response(504), client.LinkedInGatewayTimeoutError, "A gateway timeout occurred. There is a problem at LinkedIn's end."),
+        (503, get_response(503), client.Server5xxError, "Unknown Error"),   # Test case for unknown 5xx error
     ])
     def test_custom_error_message(self, mock_request, mock_sleep, error_code, mock_response, error, message):
         """
