@@ -21,6 +21,19 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'creativeId'
 }
 
+# Given Map is of fields that currently are not supported by API
+FIELDS_UNACCEPTED_BY_API = {
+    "ad_analytics_by_creative": {
+        "averageDailyReachMetrics",
+        "averagePreviousSevenDayReachMetrics",
+        "averagePreviousThirtyDayReachMetrics",
+        "approximateUniqueImpressions"
+    },
+    "ad_analytics_by_campaign": {
+        "approximateUniqueImpressions"
+    }
+}
+
 def write_bookmark(state, value, stream_name):
     """
     Write the bookmark in the state corresponding to the stream.
@@ -38,7 +51,7 @@ def selected_fields(catalog_for_stream):
     mdata = metadata.to_map(catalog_for_stream.metadata)
     fields = catalog_for_stream.schema.properties.keys()
 
-    selected_fields_list = list()
+    selected_fields_list = []
     # Loop through all fields of the given stream
     for field in fields:
         field_metadata = mdata.get(('properties', field))
@@ -62,7 +75,7 @@ def sync_analytics_endpoint(client, stream_name, path, query_string):
     Call API for analytics endpoint and return all pages of records.
     """
     page = 1
-    next_url = 'https://api.linkedin.com/v2/{}?{}'.format(path, query_string)
+    next_url = 'https://api.linkedin.com/rest/{}?{}'.format(path, query_string)
 
     # Loop until the last page
     while next_url:
@@ -119,7 +132,7 @@ def merge_responses(data):
     The primary key is a combination of pivotValue and start date fields value.
     Update existing records with the same primary key value.
     """
-    full_records = dict()
+    full_records = {}
     # Loop through each page of data
     for page in data:
         # Loop through each record of the page
@@ -304,7 +317,7 @@ class LinkedInAds:
         }
 
         querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
-        next_url = 'https://api.linkedin.com/v2/{}?{}'.format(self.path, querystring)
+        next_url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
 
         while next_url: #pylint: disable=too-many-nested-blocks
             LOGGER.info('URL for %s: %s', self.tap_stream_id, next_url)
@@ -464,7 +477,8 @@ class LinkedInAds:
         # API accepts these fields in the parameter and returns its value in the response.
         valid_selected_fields = [snake_case_to_camel_case(field)
                                  for field in selected_fields(catalog.get_stream(self.tap_stream_id))
-                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS]
+                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
+                                     FIELDS_UNACCEPTED_BY_API.get(self.tap_stream_id, set()))]
 
         # When testing the API, if the fields in `field` all return `0` then
         # the API returns its empty response.
@@ -550,7 +564,7 @@ class Accounts(LinkedInAds):
     replication_keys = ["last_modified_time"]
     key_properties = ["id"]
     account_filter = "search_id_values_param"
-    path = "adAccountsV2"
+    path = "adAccounts"
     data_key = "elements"
     children = ["video_ads"]
     params = {
@@ -584,7 +598,7 @@ class AccountUsers(LinkedInAds):
     replication_method = "INCREMENTAL"
     key_properties = ["account_id", "user_person_id"]
     account_filter = "accounts_param"
-    path = "adAccountUsersV2"
+    path = "adAccountUsers"
     data_key = "elements"
     params = {
         "q": "accounts"
@@ -599,7 +613,7 @@ class CampaignGroups(LinkedInAds):
     replication_keys = ["last_modified_time"]
     key_properties = ["id"]
     account_filter = "search_account_values_param"
-    path = "adCampaignGroupsV2"
+    path = "adCampaignGroups"
     data_key = "elements"
     params = {
         "q": "search",
@@ -616,7 +630,7 @@ class Campaigns(LinkedInAds):
     replication_keys = ["last_modified_time"]
     key_properties = ["id"]
     account_filter = "search_account_values_param"
-    path = "adCampaignsV2"
+    path = "adCampaigns"
     data_key = "elements"
     children = ["ad_analytics_by_campaign", "creatives", "ad_analytics_by_creative"]
     params = {
@@ -633,7 +647,7 @@ class Creatives(LinkedInAds):
     replication_method = "INCREMENTAL"
     replication_keys = ["last_modified_time"]
     key_properties = ["id"]
-    path = "adCreativesV2"
+    path = "adCreatives"
     foreign_key = "id"
     data_key = "elements"
     parent = "campaigns"
@@ -653,7 +667,7 @@ class AdAnalyticsByCampaign(LinkedInAds):
     replication_keys = ["end_at"]
     key_properties = ["campaign_id", "start_at"]
     account_filter = "accounts_param"
-    path = "adAnalyticsV2"
+    path = "adAnalytics"
     foreign_key = "id"
     data_key = "elements"
     parent = "campaigns"
@@ -673,7 +687,7 @@ class AdAnalyticsByCreative(LinkedInAds):
     replication_keys = ["end_at"]
     key_properties = ["creative_id", "start_at"]
     account_filter = "accounts_param"
-    path = "adAnalyticsV2"
+    path = "adAnalytics"
     foreign_key = "id"
     data_key = "elements"
     parent = "campaigns"

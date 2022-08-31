@@ -88,7 +88,8 @@ class TestTimeoutBackoff(unittest.TestCase):
                                    user_agent=config['user_agent'],
                                    request_timeout=config.get('request_timeout'))
 
-    def test_timeout_error__check_access_token(self, mocked_request, mocked_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.is_token_expired")
+    def test_timeout_error__check_access_token(self, mock_token_expired, mocked_request, mocked_sleep):
         """
         Test for `check_access_token` will backoff 5 times on Timeout.
         """
@@ -147,7 +148,8 @@ class TestConnectionErrorBackoff(unittest.TestCase):
         Verify that we backoff for 5 times for the 'ConnectionError'
     """
 
-    def test_connection_error__check_access_token(self, mocked_request, mocked_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.is_token_expired")
+    def test_connection_error__check_access_token(self, mock_token_expired, mocked_request, mocked_sleep):
         """
         Test for `check_access_token` will backoff 5 times on ConnectionError.
         """
