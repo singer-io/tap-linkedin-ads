@@ -21,7 +21,8 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'creativeId'
 }
 
-# Given Map is of fields that currently are not supported by API
+# As mentioned here some fields of ads_analytics are currently in beta:
+# https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?view=li-lms-2022-08&tabs=http#accuracy
 FIELDS_UNACCEPTED_BY_API = {
     "ad_analytics_by_creative": {
         "averageDailyReachMetrics",
@@ -30,6 +31,9 @@ FIELDS_UNACCEPTED_BY_API = {
         "approximateUniqueImpressions"
     },
     "ad_analytics_by_campaign": {
+        "averageDailyReachMetrics",
+        "averagePreviousSevenDayReachMetrics",
+        "averagePreviousThirtyDayReachMetrics",
         "approximateUniqueImpressions"
     }
 }
