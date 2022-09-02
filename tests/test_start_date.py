@@ -1,4 +1,4 @@
-from tap_tester import connections, runner
+from tap_tester import connections, runner, LOGGER
 
 from base import TestLinkedinAdsBase
 
@@ -18,10 +18,10 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
     def test_run(self):
 
-        expected_streams = {"account_users"}
-        self.run_start_date(expected_streams, "2021-08-07T00:00:00Z")
+        streams_to_test = {"account_users"}
+        self.run_start_date(streams_to_test, "2021-08-07T00:00:00Z")
 
-        self.run_start_date(self.expected_streams() - expected_streams, "2019-08-01T00:00:00Z")
+        self.run_start_date(self.expected_streams() - streams_to_test, "2019-08-01T00:00:00Z")
 
     def run_start_date(self, expected_streams, start_date_2):
         """
@@ -67,7 +67,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         ### Update START DATE Between Syncs
         ##########################################################################
 
-        print("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(self.START_DATE, self.start_date_2))
+        LOGGER.info("REPLICATION START DATE CHANGE: {} ===>>> {} ".format(self.START_DATE, self.start_date_2))
         # Set start date 2
         self.START_DATE = self.start_date_2
 
@@ -90,20 +90,12 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
         record_count_by_stream_2 = self.run_and_verify_sync(conn_id_2)
         synced_records_2 = runner.get_records_from_target_output()
 
-        # Verify the total number of records replicated in sync 1 is
-        # greater than the number of records replicated in sync 2
-        self.assertGreater(sum(record_count_by_stream_1.values()), sum(record_count_by_stream_2.values()))
-
         for stream in expected_streams:
 
             # Skipping these fields as there is not enough data available
             if stream in ["accounts"]:
                 continue
 
-            # Checking sync test for "ad_analytics_by_campaign", "ad_analytics_by_creative"
-            if stream in ["ad_analytics_by_campaign", "ad_analytics_by_creative"]:
-                self.assertGreater(record_count_by_stream_1.get(stream, 0), 0)
-                self.assertGreater(record_count_by_stream_2.get(stream, 0), 0)
 
             with self.subTest(stream=stream):
 
@@ -133,6 +125,9 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
                 start_date_key_sync_1 = set(start_date_keys_list_1)
                 start_date_key_sync_2 = set(start_date_keys_list_2)
+
+                # Verify that sync 2 has at least one record synced
+                self.assertGreater(record_count_by_stream_2.get(stream, 0), 0)
 
                 if expected_replication_method == self.INCREMENTAL:
 
