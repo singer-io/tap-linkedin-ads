@@ -17,9 +17,11 @@ class AutomaticFieldsTest(TestLinkedinAdsBase):
         • Verify that all replicated records have unique primary key values.
         """
 
-        # Skipping "ad_analytics_by_creative" and "ad_analytics_by_campaign"
-        # as only automatic fields can not be fetched from API
-        streams_to_test = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
+        streams_to_test = self.expected_streams()
+        # Skip `ad_analytics_by_campaign` and `ad_analytics_by_creative` from the test because we pass only selected fields
+        # in the API param of these streams and that's why in this test we get 0 records.
+        # So, if we select at least one available field then API returns a record otherwise it returns 0 records.
+        streams_to_test = streams_to_test - {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}
 
         conn_id = connections.ensure_connection(self)
 

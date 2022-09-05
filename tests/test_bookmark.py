@@ -1,4 +1,8 @@
-from  tap_tester import connections, runner, menagerie
+import tap_tester.connections as connections
+import tap_tester.runner as runner
+import tap_tester.menagerie as menagerie
+from datetime import timedelta
+from datetime import datetime as dt
 
 from base import TestLinkedinAdsBase
 
@@ -7,6 +11,14 @@ class BookmarkTest(TestLinkedinAdsBase):
 
     def name(self):
         return "tap_tester_linkedin_ads_bookmark_test"
+
+    def timedelta_formatted(self, dtime, days, str_format):
+        """
+        Move ahead dateTime by given days.
+        """
+        date_stripped = dt.strptime(dtime, str_format)
+        return_date = date_stripped + timedelta(days=days)
+        return dt.strftime(return_date, str_format)
 
     def test_run(self):
         """
@@ -27,9 +39,7 @@ class BookmarkTest(TestLinkedinAdsBase):
             different values for the replication key
         """
 
-        # TDL-20158: Skipping "video_ads", "creatives", "ad_analytics_by_campaign", "ad_analytics_by_creative"
-        # as child bookmark is overridden by parent bookmark
-        streams_to_test = self.expected_streams() - {"video_ads", "creatives", "ad_analytics_by_campaign", "ad_analytics_by_creative"}
+        streams_to_test = self.expected_streams()
 
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()
@@ -104,6 +114,10 @@ class BookmarkTest(TestLinkedinAdsBase):
                         iter(expected_replication_keys[stream]))
 
                     simulated_bookmark_value = new_states['bookmarks'][stream]
+                    if stream in ['ad_analytics_by_campaign', 'ad_analytics_by_creative']:
+                        # These 2 streams follow look_back_window of 7 days. So, records of the past 7 days from
+                        # the bookmark would also be available in the next sync.
+                        simulated_bookmark_value = self.timedelta_formatted(simulated_bookmark_value, days=-7, str_format="%Y-%m-%dT%H:%M:%S.%fZ")
 
                     # Verify the first sync sets a bookmark of the expected form
                     self.assertIsNotNone(first_bookmark_value)

@@ -30,10 +30,16 @@ KNOWN_MISSING_FIELDS = {
         "notified_on_new_features_enabled",
     },
     "ad_analytics_by_creative": {
+        "average_previous_seven_day_reach_metrics",
+        "average_previous_thirty_day_reach_metrics",
         "approximate_unique_impressions",
+        "average_daily_reach_metrics"
     },
     "ad_analytics_by_campaign": {
+        "average_previous_seven_day_reach_metrics",
+        "average_previous_thirty_day_reach_metrics",
         "approximate_unique_impressions",
+        "average_daily_reach_metrics"
     },
 }
 

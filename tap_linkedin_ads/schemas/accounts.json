@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "change_audit_stamps": {
@@ -99,6 +102,12 @@
         "boolean"
       ]
     },
+    "notified_on_new_features_enabled": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "reference": {
       "type": [
         "null",
@@ -169,6 +178,12 @@
       "type": [
         "null",
         "string"
+      ]
+    },
+    "test": {
+      "type": [
+        "null",
+        "boolean"
       ]
     },
     "version": {
