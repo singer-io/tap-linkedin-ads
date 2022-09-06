@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import time
 import backoff
 import requests
 
@@ -6,7 +7,7 @@ from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
-BASE_URL = 'https://api.linkedin.com/v2'
+BASE_URL = 'https://api.linkedin.com/rest'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
 
 
@@ -165,18 +166,39 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__session.close()
 
     @backoff.on_exception(backoff.expo,
+                          (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
+                          max_tries=5,
+                          factor=2)
+    def is_token_expired(self):
+        """
+        Function to check if the access token is expired.
+        """
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        payload = 'client_id={}&client_secret={}&token={}'.format(self.__client_id, self.__client_secret, self.__access_token)
+        response = self.__session.post("https://www.linkedin.com/oauth/v2/introspectToken", headers=headers, data=payload)
+
+        if response.status_code != 200:
+            raise_for_error(response)
+
+        # Subtracting 2 days from the expiration date to avoid the failure of the token in case of a longer sync run.
+        return response.json()['expires_at'] - 172800 < time.time()
+
+    @backoff.on_exception(backoff.expo,
                           Server5xxError,
                           max_tries=5,
                           factor=2)
     def fetch_and_set_access_token(self):
         """
-        This method generates new access token if the refresh token is provided.
+        This method generates a new access token if the refresh token is provided.
 
-        Note: Linkedin-ads access token expires in 60 days, where as refresh token expires in 365 days.
+        Note: Linkedin-ads access token expires in 60 days, whereas the refresh token expires in 365 days.
         """
-        # If refresh token is not provided then we are assumeing that it is an old connection
+        # If the refresh token is not provided then we are assuming that it is an old connection
         # and client has provided the valid access_token already
-        if not self.__refresh_token:
+        # Checking if the token is expired, It will be refreshed
+        if not self.__refresh_token or not self.is_token_expired():
             return
 
         headers = {}
@@ -199,8 +221,12 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         data = response.json()
         self.__access_token = data['access_token']
-        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_at'])
         LOGGER.info('Authorized, token expires = %s', format(self.__expires))
+
+        # Waiting 30 seconds after generating a new token
+        # as it works after several seconds.
+        time.sleep(30)
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -214,13 +240,14 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
+        headers['LinkedIn-Version'] = "202207"
 
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
             invalid_account = []
             for account in account_list:
                 response = self.__session.get(
-                    url='https://api.linkedin.com/v2/adAccountUsersV2?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
+                    url='https://api.linkedin.com/rest/adAccountUsers?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
                     headers=headers,
                     timeout=self.request_timeout)
 
@@ -251,9 +278,9 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
-        self.fetch_and_set_access_token()
+
         if not url and self.__base_url is None:
-            self.__base_url = 'https://api.linkedin.com/v2'
+            self.__base_url = 'https://api.linkedin.com/rest'
 
         if not url and path:
             url = '{}/{}'.format(self.__base_url, path)
@@ -268,6 +295,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
+        kwargs['headers']['LinkedIn-Version'] = "202207"
+        kwargs['headers']['Cache-Control'] = "no-cache"
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent

@@ -50,7 +50,8 @@ class TestBackoffHandling(unittest.TestCase):
     ])
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.post")
-    def test_fetch_and_set_token_backoff_2(self, mock_response, error, mock_requests, mock_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.is_token_expired")
+    def test_fetch_and_set_token_backoff_2(self, mock_response, error, mock_token_expired, mock_requests, mock_sleep):
         """
         Test `fetch_and_set_access_token` will backoff 5 times for Timeout and ConnectionError.
         """
@@ -188,6 +189,15 @@ class TestExceptionHandling(unittest.TestCase):
         # Verify that the exception message was expected
         self.assertEquals(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
 
+    def test_json_decoder_error(self, mocked_access_token, mocked_request):
+        response = requests.Response()
+        response.status_code = 400
+        response._content = "abcd"
+        mocked_request.return_value = response
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        with self.assertRaises(client.LinkedInBadRequestError) as e:
+            linkedIn_client.request("POST")
+
 @mock.patch("time.sleep")
 @mock.patch("requests.Session.post")
 class TestAccessToken(unittest.TestCase):
@@ -264,3 +274,29 @@ class TestAccessToken(unittest.TestCase):
 
         # Verify that the exception message was expected
         self.assertEquals(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
+
+@mock.patch("requests.Session.get")
+class TestCheckAccounts(unittest.TestCase):
+    """
+    Test exception handling for `check_accounts` method of client.
+    """
+    _client = client.LinkedinClient("","","", "","", "USR_AGENT")
+
+    @parameterized.expand([
+        (400,),
+        (404,),
+    ])
+    def test_invalid_accouts(self, mock_get, error_code):
+        """
+        Test for 400, 404 errors custom error message is written.
+        """
+        config = {"accounts": "account1,account2"}
+        error_message = "Invalid Linked Ads accounts provided during the configuration:{}".format(["account1","account2"])
+        mock_get.return_value = get_response(error_code)
+
+        with self.assertRaises(Exception) as e:
+            self._client.check_accounts(config)
+
+        # Verify that error message is expected
+        self.assertEqual(str(e.exception), error_message)
+        self.assertEqual(mock_get.call_count, 2)
