@@ -523,7 +523,7 @@
             }
           }
         },
-        "publisherRestrictionFiles": {
+        "publisher_restriction_files": {
           "type": [
             "null",
             "object"
