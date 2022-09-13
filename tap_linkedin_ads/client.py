@@ -8,7 +8,7 @@ import singer
 LOGGER = singer.get_logger()
 BASE_URL = 'https://api.linkedin.com/v2'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
-
+INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -179,6 +179,33 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
 
+
+        # check if we have an access token already, and if so, check its expiration time
+        # https://docs.microsoft.com/en-us/linkedin/shared/authentication/token-introspection
+        if self.__access_token:
+            response = self.__session.post(
+                url=INTROSPECTION_URI,
+                headers=headers,
+                data={
+                    'client_id': self.__client_id,
+                    'client_secret': self.__client_secret,
+                    'token': self.__access_token
+                },
+                timeout=self.request_timeout)
+
+            if response.status_code != 200:
+                raise_for_error(response)
+
+            data = response.json()
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            expires = datetime.fromtimestamp(data['expires_at']).strftime('%Y-%m-%d %H:%M:%S')
+
+            if expires > now:
+                LOGGER.info(f'Authorized, token expires {expires}')
+                return
+            else:
+                pass
+
         response = self.__session.post(
             url=LINKEDIN_TOKEN_URI,
             headers=headers,
@@ -196,7 +223,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         data = response.json()
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
-        LOGGER.info('Authorized, token expires = %s', format(self.__expires))
+        LOGGER.info(f'Authorized, token expires {self.__expires}')
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
