@@ -43,7 +43,7 @@ class TestLinkedInClient(unittest.TestCase):
             "expires_in": 5184000
         }
         mocked_post.return_value = mocked_response
-                
+
         client.set_mock_expires(datetime.fromtimestamp(test_expires))
         client.fetch_and_set_access_token()
         expires = client.get_expires_time()
@@ -75,18 +75,20 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we get an access token if we don't already have one
         '''
-        pass
-        # client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None)
 
-        # test_expires = 1663693121
-        # mocked_response = mock.Mock()
-        # mocked_response.json.return_value = {
-        #     "access_token": "abcdef12345",
-        #     "expires_in": 5184000
-        # }
-        # mocked_response.status_code = 200
-        # mocked_post.return_value = mocked_response
-        
-        # client.fetch_and_set_access_token()
-        # expires = client.get_expires_time()
-        # self.assertGreater(expires, datetime.fromtimestamp(test_expires))
+        expires = client.get_expires_time()
+        assert expires is None
+
+        test_expires = 1663693121
+        mocked_response = mock.Mock()
+        mocked_response.json.return_value = {
+            "access_token": "abcdef12345",
+            "expires_in": 5184000
+        }
+        mocked_response.status_code = 200
+        mocked_post.return_value = mocked_response
+
+        client.fetch_and_set_access_token()
+        expires = client.get_expires_time()
+        self.assertGreater(expires, datetime.fromtimestamp(test_expires))

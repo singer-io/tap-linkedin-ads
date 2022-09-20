@@ -23,7 +23,6 @@ class Server5xxError(LinkedInError):
 class Server429Error(LinkedInError):
     pass
 
-
 class LinkedInBadRequestError(LinkedInError):
     pass
 
@@ -171,7 +170,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
 
     @backoff.on_exception(backoff.expo,
-                          Server5xxError,
+                          (Server5xxError,LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
     def fetch_and_set_access_token(self):
