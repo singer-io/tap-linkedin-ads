@@ -211,11 +211,11 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
                 data = response.json()
                 self.__expires = datetime.fromtimestamp(data['expires_at'])
-                LOGGER.info(f'Existing token still valid; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
+                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
                 return
 
             if self.__expires > datetime.utcnow():
-                LOGGER.info(f'Existing token still valid; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
+                LOGGER.info(f'Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
                 return
 
         response = self.__session.post(
@@ -235,7 +235,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         data = response.json()
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
-        LOGGER.info(f'Retrieved new access token; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
+        LOGGER.info(f'Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
