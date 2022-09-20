@@ -160,17 +160,29 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
+    # The following two functions are used solely by unittests and are not utilized by the tap
+
+    def get_expires_time(self):
+        return self.__expires
+
+    def set_mock_expires(self, mock_expire):
+        self.__expires = mock_expire
+        return self.__expires
+
+
     @backoff.on_exception(backoff.expo,
                           Server5xxError,
                           max_tries=5,
                           factor=2)
     def fetch_and_set_access_token(self):
         """
-        This method generates new access token if the refresh token is provided.
-
+        This method:
+        1) checks if we have an access token
+        2) if not, generates new access token if the refresh token is provided
+        3) if so, checks if the access token has expired and generates a new one if necessary
         Note: Linkedin-ads access token expires in 60 days, where as refresh token expires in 365 days.
         """
-        # If refresh token is not provided then we are assumeing that it is an old connection
+        # If refresh token is not provided then we are assuming that it is an old connection
         # and client has provided the valid access_token already
         if not self.__refresh_token:
             return
@@ -180,31 +192,32 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             headers['User-Agent'] = self.__user_agent
 
 
-        # check if we have an access token already, and if so, check its expiration time
+        # check if we have an access token already, and if so, check its expiration time, else get new access token
         # https://docs.microsoft.com/en-us/linkedin/shared/authentication/token-introspection
         if self.__access_token:
-            response = self.__session.post(
-                url=INTROSPECTION_URI,
-                headers=headers,
-                data={
-                    'client_id': self.__client_id,
-                    'client_secret': self.__client_secret,
-                    'token': self.__access_token
-                },
-                timeout=self.request_timeout)
 
-            if response.status_code != 200:
-                raise_for_error(response)
+            if not self.__expires:
+                response = self.__session.post(
+                    url=INTROSPECTION_URI,
+                    headers=headers,
+                    data={
+                        'client_id': self.__client_id,
+                        'client_secret': self.__client_secret,
+                        'token': self.__access_token
+                    },
+                    timeout=self.request_timeout)
 
-            data = response.json()
-            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            expires = datetime.fromtimestamp(data['expires_at']).strftime('%Y-%m-%d %H:%M:%S')
+                if response.status_code != 200:
+                    raise_for_error(response)
 
-            if expires > now:
-                LOGGER.info(f'Authorized, token expires {expires}')
+                data = response.json()
+                self.__expires = datetime.fromtimestamp(data['expires_at'])
+                LOGGER.info(f'Existing token still valid; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
                 return
-            else:
-                pass
+
+            if self.__expires > datetime.utcnow():
+                LOGGER.info(f'Existing token still valid; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
+                return
 
         response = self.__session.post(
             url=LINKEDIN_TOKEN_URI,
@@ -223,7 +236,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         data = response.json()
         self.__access_token = data['access_token']
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
-        LOGGER.info(f'Authorized, token expires {self.__expires}')
+        LOGGER.info(f'Retrieved new access token; token expires {self.__expires.strftime("%Y-%m-%d %H:%M:%S")}')
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
