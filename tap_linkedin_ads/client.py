@@ -173,7 +173,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
-    def get_token_expires(self):
+    def fetch_and_set_token_expires(self):
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
@@ -194,34 +194,16 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         data = response.json()
         self.__expires = datetime.fromtimestamp(data['expires_at'])
 
+
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
-    def fetch_and_set_access_token(self):
+    def refresh_access_token(self):
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
 
-        # If refresh token is not provided then we are assuming that it is an old connection
-        # and client has provided the valid access_token already
-        if not self.__refresh_token:
-            return
-
-        if self.__access_token:
-
-            # To make sure the token is valid, we need its expiration time.
-            # This gets self.__expires if we do not already have it.
-            if not self.__expires:
-                self.get_token_expires()
-
-            # Check that the token is actually valid.
-            # If it is, return and do not fetch a new access token.
-            if self.__expires > datetime.utcnow():
-                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
-                return
-
-        # If the access token has expired, use the refresh token to get a new access token.
         response = self.__session.post(
             url=LINKEDIN_TOKEN_URI,
             headers=headers,
@@ -243,6 +225,25 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         # Technically this self.__expires is inaccurate because it was true when LinkedIn generated the token, but
         # we receive and process that response some (very) small amount of time after it was true.
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+
+
+    def fetch_and_set_access_token(self):
+
+        # If refresh token is not provided then we are assuming that it is an old connection
+        # and client has provided the valid access_token already
+        if not self.__refresh_token:
+            return
+
+        if self.__access_token:
+
+            if not self.__expires:
+                self.fetch_and_set_token_expires()
+
+            if self.__expires > datetime.utcnow():
+                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+                return
+
+        self.refresh_access_token()
         LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
 
 
