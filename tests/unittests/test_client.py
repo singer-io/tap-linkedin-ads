@@ -23,11 +23,11 @@ class TestLinkedInClient(unittest.TestCase):
         mocked_response.status_code = 200
         mocked_post.return_value = mocked_response
 
-        expires = client.get_expires_time()
+        expires = client.get_expires_time_for_test()
         assert expires is None
 
         client.fetch_and_set_access_token()
-        expires = client.get_expires_time()
+        expires = client.get_expires_time_for_test()
         self.assertEqual(expires, datetime.fromtimestamp(future_time))
 
     def test_access_token_expires_valid(self, mocked_post):
@@ -45,9 +45,9 @@ class TestLinkedInClient(unittest.TestCase):
         }
         mocked_post.return_value = mocked_response
 
-        client.set_mock_expires(datetime.fromtimestamp(future_time))
+        client.set_mock_expires_for_test(datetime.fromtimestamp(future_time))
         client.fetch_and_set_access_token()
-        expires = client.get_expires_time()
+        expires = client.get_expires_time_for_test()
         self.assertEqual(expires, datetime.fromtimestamp(future_time))
 
 
@@ -66,9 +66,9 @@ class TestLinkedInClient(unittest.TestCase):
         }
         mocked_post.return_value = mocked_response
 
-        client.set_mock_expires(datetime.fromtimestamp(old_time))
+        client.set_mock_expires_for_test(datetime.fromtimestamp(old_time))
         client.fetch_and_set_access_token()
-        new_expires = client.get_expires_time()
+        new_expires = client.get_expires_time_for_test()
         self.assertGreater(new_expires, datetime.fromtimestamp(old_time))
 
     def test_no_access_token(self, mocked_post):
@@ -77,7 +77,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None)
 
-        expires = client.get_expires_time()
+        expires = client.get_expires_time_for_test()
         assert expires is None
 
         old_time = int(datetime.utcnow().timestamp()) - 100
@@ -90,5 +90,5 @@ class TestLinkedInClient(unittest.TestCase):
         mocked_post.return_value = mocked_response
 
         client.fetch_and_set_access_token()
-        expires = client.get_expires_time()
+        expires = client.get_expires_time_for_test()
         self.assertGreater(expires, datetime.fromtimestamp(old_time))

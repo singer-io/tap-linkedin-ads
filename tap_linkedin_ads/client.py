@@ -161,10 +161,10 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
     # The following two functions are used solely by unittests and are not utilized by the tap
 
-    def get_expires_time(self):
+    def get_expires_time_for_test(self):
         return self.__expires
 
-    def set_mock_expires(self, mock_expire):
+    def set_mock_expires_for_test(self, mock_expire):
         self.__expires = mock_expire
         return self.__expires
 
@@ -173,26 +173,29 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
-    def fetch_and_set_token_expires(self):
-        headers = {}
-        if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
+    def get_token_expires(self):
+        if not self.__expires:
 
-        response = self.__session.post(
-            url=INTROSPECTION_URI,
-            headers=headers,
-            data={
-                'client_id': self.__client_id,
-                'client_secret': self.__client_secret,
-                'token': self.__access_token
-            },
-            timeout=self.request_timeout)
+            headers = {}
+            if self.__user_agent:
+                headers['User-Agent'] = self.__user_agent
 
-        if response.status_code != 200:
-            raise_for_error(response)
+            response = self.__session.post(
+                url=INTROSPECTION_URI,
+                headers=headers,
+                data={
+                    'client_id': self.__client_id,
+                    'client_secret': self.__client_secret,
+                    'token': self.__access_token
+                },
+                timeout=self.request_timeout)
 
-        data = response.json()
-        self.__expires = datetime.fromtimestamp(data['expires_at'])
+            if response.status_code != 200:
+                raise_for_error(response)
+
+            data = response.json()
+            self.__expires = datetime.fromtimestamp(data['expires_at'])
+        return self.__expires
 
 
     @backoff.on_exception(backoff.expo,
@@ -236,10 +239,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         if self.__access_token:
 
-            if not self.__expires:
-                self.fetch_and_set_token_expires()
-
-            if self.__expires > datetime.utcnow():
+            if self.get_token_expires() > datetime.utcnow():
                 LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
                 return
 
