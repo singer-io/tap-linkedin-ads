@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import time
+import json
 import backoff
 import requests
 
@@ -127,11 +128,13 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                  client_secret,
                  refresh_token,
                  access_token,
+                 config_path,
                  request_timeout=REQUEST_TIMEOUT,
                  user_agent=None):
         self.__client_id = client_id
         self.__client_secret = client_secret
         self.__refresh_token = refresh_token
+        self.__config_path = config_path
         self.__user_agent = user_agent
         self.__access_token = access_token
         self.__expires = None
@@ -174,33 +177,47 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         return self.__expires
 
 
+    def write_access_token_to_config(self):
+        """
+        Write an updated access token in the config to reuse in the next sync.
+        """
+        # Update config at config_path
+        with open(self.__config_path) as file:
+            config = json.load(file)
+        # Set new access_token
+        config['access_token'] = self.__access_token
+
+        with open(self.__config_path, 'w') as file:
+            json.dump(config, file, indent=2)
+
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
     def get_token_expires(self):
-        if not self.__expires:
+        """
+        Function to get expiry time of access token.
+        """
+        headers = {}
+        if self.__user_agent:
+            headers['User-Agent'] = self.__user_agent
 
-            headers = {}
-            if self.__user_agent:
-                headers['User-Agent'] = self.__user_agent
+        response = self.__session.post(
+            url=INTROSPECTION_URI,
+            headers=headers,
+            data={
+                'client_id': self.__client_id,
+                'client_secret': self.__client_secret,
+                'token': self.__access_token
+            },
+            timeout=self.request_timeout)
 
-            response = self.__session.post(
-                url=INTROSPECTION_URI,
-                headers=headers,
-                data={
-                    'client_id': self.__client_id,
-                    'client_secret': self.__client_secret,
-                    'token': self.__access_token
-                },
-                timeout=self.request_timeout)
+        if response.status_code != 200:
+            raise_for_error(response)
 
-            if response.status_code != 200:
-                raise_for_error(response)
-
-            data = response.json()
-            self.__expires = datetime.fromtimestamp(data['expires_at'])
-        return self.__expires
+        data = response.json()
+        self.__expires = datetime.fromtimestamp(data['expires_at'])
+        return data['expires_at']
 
 
     @backoff.on_exception(backoff.expo,
@@ -234,26 +251,31 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         # we receive and process that response some (very) small amount of time after it was true.
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
 
+        self.write_access_token_to_config()
+        # Waiting 30 seconds after generating a new token as it works after several seconds.
+        time.sleep(30)
 
     def fetch_and_set_access_token(self):
+        """
+        This method generates a new access token if the refresh token is provided.
 
-        # If refresh token is not provided then we are assuming that it is an old connection
+        Note: Linkedin-ads access token expires in 60 days, whereas the refresh token expires in 365 days.
+        """
+        # If the refresh token is not provided then we are assuming that it is an old connection
         # and client has provided the valid access_token already
+        # Checking if the token is expired, It will be refreshed
         if not self.__refresh_token:
             return
 
-        if self.__access_token:
-
-            if self.get_token_expires() > datetime.utcnow():
-                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
-                return
+        # Subtracting 1 day from the expiration date to avoid the failure of the token in case of a longer sync run.
+        if self.get_token_expires() - 86400 > time.time():
+            LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+            return
 
         self.refresh_access_token()
         LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
 
-
-        # Waiting 30 seconds after generating a new token
-        # as it works after several seconds.
+        # Waiting 30 seconds after generating a new token as it works after several seconds.
         time.sleep(30)
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
