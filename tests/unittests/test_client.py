@@ -13,7 +13,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we retrieve and set expires for client with no self.__expires
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
 
         future_time = int(datetime.utcnow().timestamp()) + 100
         mocked_response = mock.Mock()
@@ -34,7 +34,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we check and return on valid self.__expires
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
 
         future_time = int(datetime.utcnow().timestamp()) + 100
         mocked_response = mock.MagicMock()
@@ -55,7 +55,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we check self.__expires and retrieve new access token if it has expired
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
 
         old_time = int(datetime.utcnow().timestamp()) - 100
         mocked_response = mock.MagicMock()
@@ -75,7 +75,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we get an access token if we don't already have one
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None)
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'config_path', None)
 
         expires = client.get_expires_time_for_test()
         assert expires is None

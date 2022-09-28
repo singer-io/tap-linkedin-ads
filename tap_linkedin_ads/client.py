@@ -198,26 +198,27 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         """
         Function to get expiry time of access token.
         """
-        headers = {}
-        if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
+        if not self.__expires:
+            headers = {}
+            if self.__user_agent:
+                headers['User-Agent'] = self.__user_agent
 
-        response = self.__session.post(
-            url=INTROSPECTION_URI,
-            headers=headers,
-            data={
-                'client_id': self.__client_id,
-                'client_secret': self.__client_secret,
-                'token': self.__access_token
-            },
-            timeout=self.request_timeout)
+            response = self.__session.post(
+                url=INTROSPECTION_URI,
+                headers=headers,
+                data={
+                    'client_id': self.__client_id,
+                    'client_secret': self.__client_secret,
+                    'token': self.__access_token
+                },
+                timeout=self.request_timeout)
 
-        if response.status_code != 200:
-            raise_for_error(response)
+            if response.status_code != 200:
+                raise_for_error(response)
 
-        data = response.json()
-        self.__expires = datetime.fromtimestamp(data['expires_at'])
-        return data['expires_at']
+            data = response.json()
+            self.__expires = datetime.fromtimestamp(data['expires_at'])
+        return self.__expires
 
 
     @backoff.on_exception(backoff.expo,
@@ -245,15 +246,12 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         data = response.json()
         self.__access_token = data['access_token']
-
         # data['expires_in'] is an integer of seconds until the access_token expires.
         # Technically this self.__expires is inaccurate because it was true when LinkedIn generated the token, but
         # we receive and process that response some (very) small amount of time after it was true.
         self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
 
         self.write_access_token_to_config()
-        # Waiting 30 seconds after generating a new token as it works after several seconds.
-        time.sleep(30)
 
     def fetch_and_set_access_token(self):
         """
@@ -267,15 +265,18 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         if not self.__refresh_token:
             return
 
-        # Subtracting 1 day from the expiration date to avoid the failure of the token in case of a longer sync run.
-        if self.get_token_expires() - 86400 > time.time():
-            LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
-            return
+        if self.__access_token:
+            # Subtracting 1 day from the expiration date to avoid the failure of the token in case of a longer sync run.
+            if self.get_token_expires() - timedelta(seconds=86400) > datetime.utcnow():
+                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+                return
 
         self.refresh_access_token()
         LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
 
-        # Waiting 30 seconds after generating a new token as it works after several seconds.
+
+        # Waiting 30 seconds after generating a new token
+        # as it works after several seconds.
         time.sleep(30)
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
