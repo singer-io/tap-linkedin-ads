@@ -7,10 +7,11 @@ from singer.catalog import Catalog
 class MockArgs:
     """Mock args object class"""
 
-    def __init__(self, config = None, catalog = None, state = {}, discover = False) -> None:
+    def __init__(self, config = None, config_path = None, catalog = None, state = {}, discover = False) -> None:
         self.config = config 
         self.catalog = catalog
         self.state = state
+        self.config_path = None
         self.discover = discover
 
 @mock.patch("singer.utils.parse_args")
