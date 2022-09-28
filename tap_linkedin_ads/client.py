@@ -9,7 +9,7 @@ import singer
 LOGGER = singer.get_logger()
 BASE_URL = 'https://api.linkedin.com/rest'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
-
+INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -23,7 +23,6 @@ class Server5xxError(LinkedInError):
 
 class Server429Error(LinkedInError):
     pass
-
 
 class LinkedInBadRequestError(LinkedInError):
     pass
@@ -165,42 +164,50 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
-    @backoff.on_exception(backoff.expo,
-                          (requests.exceptions.ConnectionError, requests.exceptions.Timeout),
-                          max_tries=5,
-                          factor=2)
-    def is_token_expired(self):
-        """
-        Function to check if the access token is expired.
-        """
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        payload = 'client_id={}&client_secret={}&token={}'.format(self.__client_id, self.__client_secret, self.__access_token)
-        response = self.__session.post("https://www.linkedin.com/oauth/v2/introspectToken", headers=headers, data=payload)
+    # The following two functions are used solely by unittests and are not utilized by the tap
 
-        if response.status_code != 200:
-            raise_for_error(response)
+    def get_expires_time_for_test(self):
+        return self.__expires
 
-        # Subtracting 2 days from the expiration date to avoid the failure of the token in case of a longer sync run.
-        return response.json()['expires_at'] - 172800 < time.time()
+    def set_mock_expires_for_test(self, mock_expire):
+        self.__expires = mock_expire
+        return self.__expires
+
 
     @backoff.on_exception(backoff.expo,
-                          Server5xxError,
+                          (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
-    def fetch_and_set_access_token(self):
-        """
-        This method generates a new access token if the refresh token is provided.
+    def get_token_expires(self):
+        if not self.__expires:
 
-        Note: Linkedin-ads access token expires in 60 days, whereas the refresh token expires in 365 days.
-        """
-        # If the refresh token is not provided then we are assuming that it is an old connection
-        # and client has provided the valid access_token already
-        # Checking if the token is expired, It will be refreshed
-        if not self.__refresh_token or not self.is_token_expired():
-            return
+            headers = {}
+            if self.__user_agent:
+                headers['User-Agent'] = self.__user_agent
 
+            response = self.__session.post(
+                url=INTROSPECTION_URI,
+                headers=headers,
+                data={
+                    'client_id': self.__client_id,
+                    'client_secret': self.__client_secret,
+                    'token': self.__access_token
+                },
+                timeout=self.request_timeout)
+
+            if response.status_code != 200:
+                raise_for_error(response)
+
+            data = response.json()
+            self.__expires = datetime.fromtimestamp(data['expires_at'])
+        return self.__expires
+
+
+    @backoff.on_exception(backoff.expo,
+                          (Server5xxError, LinkedInUnauthorizedError),
+                          max_tries=5,
+                          factor=2)
+    def refresh_access_token(self):
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
@@ -221,8 +228,29 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         data = response.json()
         self.__access_token = data['access_token']
-        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_at'])
-        LOGGER.info('Authorized, token expires = %s', format(self.__expires))
+
+        # data['expires_in'] is an integer of seconds until the access_token expires.
+        # Technically this self.__expires is inaccurate because it was true when LinkedIn generated the token, but
+        # we receive and process that response some (very) small amount of time after it was true.
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+
+
+    def fetch_and_set_access_token(self):
+
+        # If refresh token is not provided then we are assuming that it is an old connection
+        # and client has provided the valid access_token already
+        if not self.__refresh_token:
+            return
+
+        if self.__access_token:
+
+            if self.get_token_expires() > datetime.utcnow():
+                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+                return
+
+        self.refresh_access_token()
+        LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+
 
         # Waiting 30 seconds after generating a new token
         # as it works after several seconds.
