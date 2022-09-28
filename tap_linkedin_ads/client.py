@@ -180,6 +180,10 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def write_access_token_to_config(self):
         """
         Write an updated access token in the config to reuse in the next sync.
+        If we generate access_token today, then it would be valid for 2 months.
+        But after 2 months whenever we do an introspection call, access_token would
+        always be found as expired because the config still contains the same access_token.
+        So, whenever we generate a new access_token, it would be updated in the config.
         """
         # Update config at config_path
         with open(self.__config_path) as file:
