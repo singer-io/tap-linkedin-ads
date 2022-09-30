@@ -26,7 +26,6 @@ KNOWN_MISSING_FIELDS = {
     "accounts": {
         "total_budget_ends_at",
         "total_budget",
-        "reference_person_id",
         "notified_on_new_features_enabled",
     },
     "ad_analytics_by_creative": {
