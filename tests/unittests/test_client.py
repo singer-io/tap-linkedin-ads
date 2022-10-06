@@ -108,7 +108,7 @@ class TestLinkedInClient(unittest.TestCase):
         Ensure that we use the existing access token if we don't have a refresh token
         '''
         expected_access_token = 'test_access_for_test'
-        client = _client.LinkedinClient('client_id', 'client_secret', None, expected_access_token)
+        client = _client.LinkedinClient(None, None, None, 'access_token', 'config_path')
 
         client.fetch_and_set_access_token()
         actual = client.access_token
