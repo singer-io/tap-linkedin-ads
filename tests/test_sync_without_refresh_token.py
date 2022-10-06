@@ -155,14 +155,3 @@ class AllFieldsWithInvalidAccessToken(AllFields):
         except Exception as e:
             self.assertIn("HTTP-error-code: 401, Error: Invalid access token", str(e))
 
-
-class AllFieldsWithValidAccessToken(AllFields):
-    """This test run all fileds test by setting valid access token in the config properties"""
-
-    @staticmethod
-    def name():
-        return "tap_tester_linkedin_without_refresh_token"
-
-    def test_run(self):
-        self.set_access_token(self.fetch_access_token())
-        self.run_all_fields()
