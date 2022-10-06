@@ -102,3 +102,14 @@ class TestLinkedInClient(unittest.TestCase):
         client.fetch_and_set_access_token()
         expires = client.get_expires_time_for_test()
         self.assertGreater(expires, datetime.fromtimestamp(old_time))
+
+    def test_no_refresh_token(self, mocked_post):
+        '''
+        Ensure that we use the existing access token if we don't have a refresh token
+        '''
+        expected_access_token = 'test_access_for_test'
+        client = _client.LinkedinClient('client_id', 'client_secret', None, expected_access_token)
+
+        client.fetch_and_set_access_token()
+        actual = client.access_token
+        self.assertEqual(expected_access_token, actual)
