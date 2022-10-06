@@ -103,7 +103,7 @@ class TestLinkedInClient(unittest.TestCase):
         expires = client.get_expires_time_for_test()
         self.assertGreater(expires, datetime.fromtimestamp(old_time))
 
-    def test_no_refresh_token(self, mocked_post):
+    def test_no_refresh_token(self, mocked_post, mock_write_token):
         '''
         Ensure that we use the existing access token if we don't have a refresh token
         '''
