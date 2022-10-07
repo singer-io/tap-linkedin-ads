@@ -54,7 +54,7 @@ class TestLinkedInClient(unittest.TestCase):
         self.assertEqual(expires, datetime.fromtimestamp(future_time))
 
 
-    def test_access_token_expires_atvalid(self, mocked_post, mock_write_token):
+    def test_access_token_expires_invalid(self, mocked_post, mock_write_token):
         '''
         Ensure that we check self.__expires and retrieve new access token if it has expired
         '''
