@@ -12,7 +12,7 @@ def discover():
         catalog.streams.append(CatalogEntry(
             stream=stream_name,
             tap_stream_id=stream_name,
-            key_properties=STREAMS[stream_name]['key_properties'],
+            key_properties=STREAMS[stream_name].key_properties,
             schema=schema,
             metadata=mdata
         ))

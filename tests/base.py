@@ -1,17 +1,23 @@
 import os
 import unittest
 from datetime import datetime as dt
+from datetime import timedelta
 import time
+import dateutil.parser
 import backoff
 import requests
-import json
 
-import tap_tester.menagerie   as menagerie
-import tap_tester.connections as connections
-import tap_tester.runner      as runner
+from tap_tester import menagerie, connections, runner, LOGGER
 
 
 class TestLinkedinAdsBase(unittest.TestCase):
+    """
+    Setup expectations for test sub-classes.
+    Metadata describing streams.
+    A bunch of shared methods that are used in tap-tester tests.
+    Shared tap-specific methods (as needed).
+    """
+
     PRIMARY_KEYS = "table-key-properties"
     REPLICATION_METHOD = "forced-replication-method"
     REPLICATION_KEYS = "valid-replication-keys"
@@ -20,9 +26,17 @@ class TestLinkedinAdsBase(unittest.TestCase):
         "%Y-%m-%d %H:%M:%S",
         "%Y-%m-%dT%H:%M:%S.%fZ"
     }
+    START_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    RECORD_REPLICATION_KEY_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     START_DATE = ""
+    BOOKMARK_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    INCREMENTAL = "INCREMENTAL"
+    FULL_TABLE = "FULL_TABLE"
+    ADDITIONAL_AUTOMATIC = "additional-automatic-fields"
+    OBEYS_START_DATE = "obey-start-date"
 
     def setUp(self):
+        """Raising the error if required environment variables are missing"""
         missing_envs = [x for x in [
             "TAP_LINKEDIN_ADS_ACCOUNTS"
         ] if os.getenv(x) is None]
@@ -31,10 +45,12 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     @staticmethod
     def get_type():
+        """The expected url route ending"""
         return "platform.linkedin-ads"
 
     @staticmethod
     def tap_name():
+        """The name of the tap"""
         return "tap-linkedin-ads"
 
     def get_properties(self, original: bool = True):
@@ -42,7 +58,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         return_value = {
             "start_date" : "2018-08-21T00:00:00Z",
             "accounts": os.getenv("TAP_LINKEDIN_ADS_ACCOUNTS"),
-            "page_size": 100
+            "page_size": 100,
+            "date_window_size": 1000
         }
         if original:
             return return_value
@@ -60,107 +77,76 @@ class TestLinkedinAdsBase(unittest.TestCase):
             "access_token": os.getenv("TAP_LINKEDIN_ADS_ACCESS_TOKEN")
             }
 
-    @backoff.on_exception(backoff.expo,
-                          Exception,
-                          max_tries=3,
-                          factor=2)
-    def fetch_access_token(self):
-        """This method generates the Access token for connections where refresh token is not passed in config properties"""
-        # When refresh token is not provided then we are assumeing that it is old connection
-        # and client has provided valid access_token already
-        BASE_URL = 'https://api.linkedin.com/v2'
-        LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
-        headers = {}
-
-        response = requests.post(
-            url=LINKEDIN_TOKEN_URI,
-            headers=headers,
-            data={
-                'grant_type': 'refresh_token',
-                "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
-                "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
-                "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN")
-            },
-            timeout=300)
-
-        if response.status_code != 200:
-            raise Exception("Failed to generate access token with HTTP-error-code: " + str(response.status_code))
-
-        data = response.json()
-
-        return data['access_token']
-
-    @staticmethod
-    def expected_check_streams():
-        return {
-            'accounts',
-            'video_ads',
-            'account_users',
-            'campaign_groups',
-            'campaigns',
-            'creatives',
-            'ad_analytics_by_campaign',
-            'ad_analytics_by_creative'
-        }
-
     def expected_metadata(self):
         """The expected streams and metadata about the streams"""
 
         return {
             'accounts': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'video_ads': {
                 self.PRIMARY_KEYS: {'content_reference'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaign_groups': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'campaigns': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'creatives': {
                 self.PRIMARY_KEYS: {'id'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'ad_analytics_by_campaign': {
                 self.PRIMARY_KEYS: {'campaign_id', 'start_at'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
-                self.REPLICATION_KEYS: {'end_at'}
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
+                self.REPLICATION_KEYS: {'end_at'},
+                self.ADDITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             },
             'ad_analytics_by_creative': {
                 self.PRIMARY_KEYS: {'creative_id', 'start_at'},
-                self.REPLICATION_METHOD: 'INCREMENTAL',
-                self.REPLICATION_KEYS: {'end_at'}
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
+                self.REPLICATION_KEYS: {'end_at'},
+                self.ADDITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             }
         }
 
     def expected_automatic_fields(self):
         """
-        return a dictionary with key of table name
+        Return a dictionary with key of table name
         and value as a set of automatic key fields
         """
         auto_fields = {}
         for k, v in self.expected_metadata().items():
-            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(v.get(self.REPLICATION_KEYS, set()))
+            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()).union(
+                v.get(self.REPLICATION_KEYS, set())).union(
+                    v.get(self.ADDITIONAL_AUTOMATIC, set()))
         return auto_fields
 
     def expected_replication_method(self):
-        """return a dictionary with key of table name and value of replication method"""
+        """Return a dictionary with key of table name and value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, None)
                 for table, properties
                 in self.expected_metadata().items()}
@@ -171,7 +157,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_start_date_keys(self):
         """
-        return a dictionary with key of table name
+        Return a dictionary with the key of the table name
         and value as a set of start_date key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -180,7 +166,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_primary_keys(self):
         """
-        return a dictionary with key of table name
+        Return a dictionary with the key of the table name
         and value as a set of primary key fields
         """
         return {table: properties.get(self.PRIMARY_KEYS, set())
@@ -189,7 +175,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_replication_keys(self):
         """
-        return a dictionary with key of table name
+        Return a dictionary with the key of the table name
         and value as a set of replication key fields
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
@@ -203,7 +189,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     def run_and_verify_check_mode(self, conn_id):
         """
         Run the tap in check mode and verify it succeeds.
-        This should be ran prior to field selection and initial sync.
+        This should be run before field selection and initial sync.
         Return the connection id and found catalogs from menagerie.
         """
         # run in check mode
@@ -217,9 +203,9 @@ class TestLinkedinAdsBase(unittest.TestCase):
         self.assertGreater(len(found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
 
         found_catalog_names = set(map(lambda c: c['stream_name'], found_catalogs))
-        print(found_catalog_names)
+        LOGGER.info(found_catalog_names)
         self.assertSetEqual(self.expected_streams(), found_catalog_names, msg="discovered schemas do not match")
-        print("discovered schemas are OK")
+        LOGGER.info("discovered schemas are OK")
 
         return found_catalogs
 
@@ -243,7 +229,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
             sum(sync_record_count.values()), 0,
             msg="failed to replicate any data: {}".format(sync_record_count)
         )
-        print("total replicated row count: {}".format(sum(sync_record_count.values())))
+        LOGGER.info("total replicated row count: {}".format(sum(sync_record_count.values())))
 
         return sync_record_count
 
@@ -253,7 +239,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                                                      select_all_fields=True,
                                                      non_selected_properties=[]):
         """
-        Perform table and field selection based off of the streams to select
+        Perform table and field selection based on the streams to select
         set and field selection parameters.
         Verify this results in the expected streams selected and all or no
         fields selected for those streams.
@@ -273,7 +259,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
             # Verify all testable streams are selected
             selected = catalog_entry.get('annotated-schema').get('selected')
-            print("Validating selection on {}: {}".format(cat['stream_name'], selected))
+            LOGGER.info("Validating selection on {}: {}".format(cat['stream_name'], selected))
             if cat['stream_name'] not in expected_selected:
                 self.assertFalse(selected, msg="Stream selected, but not testable.")
                 continue # Skip remaining assertions if we aren't selecting this stream
@@ -284,17 +270,18 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 for field, field_props in catalog_entry.get('annotated-schema').get('properties').items():
                     if field not in non_selected_properties:
                         field_selected = field_props.get('selected')
-                        print("\tValidating selection on {}.{}: {}".format(
+                        LOGGER.info("\tValidating selection on {}.{}: {}".format(
                             cat['stream_name'], field, field_selected))
                         self.assertTrue(field_selected, msg="Field not selected.")
             else:
                 # Verify only automatic fields are selected
-                expected_automatic_fields = self.expected_primary_keys().get(cat['stream_name'])
+                expected_automatic_fields = self.expected_automatic_fields().get(cat['stream_name'])
                 selected_fields = self.get_selected_fields_from_metadata(catalog_entry['metadata'])
                 self.assertEqual(expected_automatic_fields, selected_fields)
 
     @staticmethod
     def get_selected_fields_from_metadata(metadata):
+        """Return set of selected fields from the metadata"""
         selected_fields = set()
         for field in metadata:
             is_field_metadata = len(field['breadcrumb']) > 1
@@ -313,7 +300,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
         for catalog in catalogs:
             schema = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
 
-            non_selected_properties = non_selected_properties
             if not select_all_fields:
                 # get a list of all properties so that none are selected
                 non_selected_properties = schema.get('annotated-schema', {}).get(
@@ -322,14 +308,26 @@ class TestLinkedinAdsBase(unittest.TestCase):
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, [], non_selected_properties)
 
+    def calculated_states_by_stream(self, current_state):
+        """
+        Returns a state prevised to the current state.
+        """
+        timedelta_by_stream = {stream: [0,0,1]  # {stream_name: [days, hours, minutes], ...}
+                                for stream in self.expected_streams()}
+        stream_to_calculated_state = {stream: "" for stream in current_state['bookmarks'].keys()}
+
+        for stream, state in current_state['bookmarks'].items():
+            state_as_datetime = dateutil.parser.parse(state)
+            days, hours, minutes = timedelta_by_stream[stream]
+            calculated_state_as_datetime = state_as_datetime - timedelta(days=days, hours=hours, minutes=minutes)
+            calculated_state_formatted = dt.strftime(calculated_state_as_datetime, self.BOOKMARK_FORMAT)
+            stream_to_calculated_state[stream] = calculated_state_formatted
+        return stream_to_calculated_state
+
     ##########################################################################
     ### Tap Specific Methods
     ##########################################################################
 
-    def dt_to_ts(self, dtime):
-        for date_format in self.DATETIME_FMT:
-            try:
-                date_stripped = int(time.mktime(dt.strptime(dtime, date_format).timetuple()))
-                return date_stripped
-            except ValueError:
-                continue
+    def dt_to_ts(self, dtime, date_format):
+        """Convert datetime with a format to timestamp"""
+        return int(time.mktime(dt.strptime(dtime, date_format).timetuple()))
