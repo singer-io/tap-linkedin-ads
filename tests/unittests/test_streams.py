@@ -124,7 +124,7 @@ class TestStreamsUtils(unittest.TestCase):
         Test that sync_analytics_endpoint function works properly for single page as well as multiple pages.
         """
         mock_next_url.side_effect = next_url
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')     
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')     
         data = list(sync_analytics_endpoint(client, "stream", "path", "query=query"))
         
         # Verify that get method of client is called expected times.
@@ -335,7 +335,7 @@ class TestLinkedInAds(unittest.TestCase):
         """
         Test sync_endpoint function for parent and child streams.
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         state={}
         start_date='2019-06-01T00:00:00Z'
         page_size = 100
@@ -362,7 +362,7 @@ class TestLinkedInAds(unittest.TestCase):
         """
         Verify that tap skips API call for video_ads stream if owner_id in the parent's record is None.
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         state={'currently_syncing': 'accounts'}
         start_date='2019-06-01T00:00:00Z'
         page_size = 100
@@ -391,7 +391,7 @@ class TestLinkedInAds(unittest.TestCase):
         Test that `sync_ad_analytics` function work properly for zero records as well as multiple records.
         """
 
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         bookmark='2022-08-01T00:00:00Z'
         date_window_size = 7
 
