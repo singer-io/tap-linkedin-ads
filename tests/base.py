@@ -60,36 +60,6 @@ class TestLinkedinAdsBase(unittest.TestCase):
             "access_token": os.getenv("TAP_LINKEDIN_ADS_ACCESS_TOKEN")
             }
 
-    @backoff.on_exception(backoff.expo,
-                          Exception,
-                          max_tries=3,
-                          factor=2)
-    def fetch_access_token(self):
-        """This method generates the Access token for connections where refresh token is not passed in config properties"""
-        # When refresh token is not provided then we are assumeing that it is old connection
-        # and client has provided valid access_token already
-        BASE_URL = 'https://api.linkedin.com/v2'
-        LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
-        headers = {}
-
-        response = requests.post(
-            url=LINKEDIN_TOKEN_URI,
-            headers=headers,
-            data={
-                'grant_type': 'refresh_token',
-                "client_id": os.getenv("TAP_LINKEDIN_ADS_CLIENT_ID"),
-                "client_secret": os.getenv("TAP_LINKEDIN_ADS_CLIENT_SECRET"),
-                "refresh_token": os.getenv("TAP_LINKEDIN_ADS_REFRESH_TOKEN")
-            },
-            timeout=300)
-
-        if response.status_code != 200:
-            raise Exception("Failed to generate access token with HTTP-error-code: " + str(response.status_code))
-
-        data = response.json()
-
-        return data['access_token']
-
     @staticmethod
     def expected_check_streams():
         return {
