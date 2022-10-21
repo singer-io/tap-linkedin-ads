@@ -1,8 +1,5 @@
 {
-  "type": [
-    "null",
-    "object"
-  ],
+  "type": "object",
   "additionalProperties": false,
   "properties": {
     "run_schedule": {
@@ -131,46 +128,6 @@
         "null",
         "string"
       ]
-    },
-    "total_budget": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "currency_code": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "amount": {
-          "type": [
-            "null",
-            "string"
-          ],
-          "format": "singer.decimal"
-        }
-      }
-    },
-    "test": {
-      "type": [
-        "null",
-        "boolean"
-      ]
-    },
-    "allowed_campaign_types": {
-      "type": [
-        "null",
-        "array"
-      ],
-      "items": {
-        "type": [
-          "null",
-          "string"
-        ]
-      }
     }
   }
 }

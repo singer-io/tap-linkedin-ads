@@ -1,8 +1,5 @@
 {
-  "type": [
-    "null",
-    "object"
-  ],
+  "type": "object",
   "additionalProperties": false,
   "properties": {
     "campaign": {
@@ -78,12 +75,6 @@
         "integer"
       ]
     },
-    "processing_state": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "reference": {
       "type": [
         "null",
@@ -108,18 +99,6 @@
             "null",
             "string"
           ]
-        },
-        "rejection_reason": {
-          "type": [
-            "null",
-            "array"
-          ],
-          "items": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
         }
       }
     },
@@ -159,10 +138,7 @@
             {
               "type": "array",
               "items": {
-                "type": [
-                  "null",
-                  "object"
-                ],
+                "type": "object",
                 "additionalProperties": false,
                 "properties": {
                   "key": {
@@ -185,24 +161,6 @@
             }
           ]
         }
-      }
-    },
-    "test": {
-      "type": [
-        "null",
-        "boolean"
-      ]
-    },
-    "serving_statuses": {
-      "type": [
-        "null",
-        "array"
-      ],
-      "items": {
-        "type": [
-          "null",
-          "string"
-        ]
       }
     },
     "version": {

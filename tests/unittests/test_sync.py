@@ -1,165 +1,197 @@
+import datetime
 import unittest
-from unittest import mock
-from parameterized import parameterized
-from singer.schema import Schema
-from singer.catalog import Catalog, CatalogEntry
-from tap_linkedin_ads.sync import get_page_size, get_streams_to_sync, update_currently_syncing, sync
-from tap_linkedin_ads.client import LinkedinClient
+from tap_linkedin_ads.sync import DATE_WINDOW_SIZE
+from tap_linkedin_ads.sync import get_next_url
+from tap_linkedin_ads.sync import merge_responses
+from tap_linkedin_ads.sync import shift_sync_window
+from tap_linkedin_ads.sync import split_into_chunks
 
-DEFAULT_PAGE_SIZE = 100
-CATALOG = Catalog(streams=[
-    CatalogEntry(
-        stream='accounts',
-        tap_stream_id='accounts',
-        key_properties='id',
-        schema=Schema(
-            properties={
-                'id': Schema(type='integer'),
-                'name': Schema(type='string')}),
-        metadata=[
-            {"breadcrumb": [], "metadata": {'selected': True}},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','id']},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','last_modified_time']},
-            {'metadata': {'inclusion': 'available','selected': True},'breadcrumb': ['properties','name']}
-    ]),
-    CatalogEntry(
-        stream='video_ads',
-        tap_stream_id='video_ads',
-        key_properties='id',
-        schema=Schema(
-            properties={
-                'id': Schema(type='integer'),
-                'name': Schema(type='string')}),
-        metadata=[
-            {"breadcrumb": [], "metadata": {'selected': True}},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','id']},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','last_modified_time']},
-            {'metadata': {'inclusion': 'available','selected': True},'breadcrumb': ['properties','name']}
-    ]),
-    CatalogEntry(
-        stream='account_users',
-        tap_stream_id='account_users',
-        key_properties='id',
-        schema=Schema(
-            properties={
-                'id': Schema(type='integer')}),
-        metadata=[
-            {"breadcrumb": [], "metadata": {'selected': True}},
-    ]),
-    CatalogEntry(
-        stream='campaigns',
-        tap_stream_id='campaigns',
-        key_properties='id',
-        schema=Schema(
-            properties={
-                'id': Schema(type='integer'),
-                'name': Schema(type='string')}),
-        metadata=[
-            {"breadcrumb": [], "metadata": {'selected': True}},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','id']},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','last_modified_time']},
-            {'metadata': {'inclusion': 'available','selected': True},'breadcrumb': ['properties','name']}
-    ]),
-    CatalogEntry(
-        stream='ad_analytics_by_campaign',
-        key_properties='id',
-        tap_stream_id='ad_analytics_by_campaign',
-        schema=Schema(
-            properties={
-                'id': Schema(type='integer'),
-                'name': Schema(type='string')}),
-        metadata=[
-            {"breadcrumb": [], "metadata": {'selected': True}},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','id']},
-            {'metadata': {'inclusion': 'automatic'},'breadcrumb': ['properties','end_at']},
-            {'metadata': {'inclusion': 'available','selected': True},'breadcrumb': ['properties','name']}
-    ])])
+
 
 class TestSyncUtils(unittest.TestCase):
-    """
-    Test utility functions of sync module.
-    """
-    @parameterized.expand([
-        ['test_float_value', 100.05],
-        ['test_zero_int_value', 0],
-        ['test_invalid_string', '*&^a'],
-        ['test_zero_float_value', 0.0],
-        ['test_negative_value', -10],
-        ['test_nagative_float_value', -10.04]
-    ])
-    def test_invalid_page_size(self, name, page_size):
-        """
-        Test all invalid page value of config parameter `page_size`.
-        """
-        error_message = 'The entered page size ({}) is invalid'
-        with self.assertRaises(Exception) as err:
-            get_page_size({'page_size': page_size})
+    def test_split_into_chunks(self):
+        MAX_CHUNK_LENGTH = 17
+        fields = list(range(65))
 
-        # Verify that tap raises error with porper message for invalid `page_size` value
-        self.assertEqual(str(err.exception), error_message.format(page_size))
+        actual = split_into_chunks(fields, MAX_CHUNK_LENGTH)
 
-    @parameterized.expand([
-        ['test_valid_integer', 300, 300],
-        ['test_empty_string', "", DEFAULT_PAGE_SIZE],
-        ['test_valid_string', "300", 300],
-    ])
-    def test_valid_page_size(self, name, config_page_size, expected_page_size):
-        """
-        Test all valid page value of config parameter `page_size`.
-        """
-        actual_page_size = get_page_size({'page_size': config_page_size})
-        
-        # Verify page_size value. 
-        # If `page_size` param is not available in the config then `get_page_size` should return default value
-        self.assertEqual(actual_page_size, expected_page_size)
+        expected = [
+            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16],
+            [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
+            [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+            [51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64]
+        ]
 
-    @parameterized.expand([
-        ['test_only_parent_selected', ['campaigns'], ['campaigns']],
-        ['test_only_single_child_selected', ['ad_analytics_by_campaign'], ['campaigns']],
-        ['test_multiple_child_selected', ['accounts', 'ad_analytics_by_campaign', 'ad_analytics_by_creative'], ['accounts', 'campaigns']],
-        ['test_parent_child_both_selected', ['ad_analytics_by_creative', 'campaigns'], ['campaigns']]
-    ])
-    def test_get_streams_to_sync(self, name, selected_streams, expected_parent_streams):
-        """
-        Test that get_streams_to_sync function return valid list of stream names for which 
-        sync_endpoints method require to call.
-        """
-        actual_parent_streams = get_streams_to_sync(selected_streams)
-        
-        self.assertEqual(expected_parent_streams, actual_parent_streams)
-    
-    @parameterized.expand([
-        ['test_reset_existing_currently_syncing', {'currently_syncing': 'a'}, None, 0],
-        ['test_new_set_currently_syncing', {}, 'a', 1]
-    ])
-    @mock.patch('singer.set_currently_syncing')
-    def test_update_currently_syncing(self, name, current_state, stream, expected_call_count, mock_singer_currently_syncing):
-        """
-        Test that update_currently_syncing function reset currently_syncing for complete sync 
-        and set currently_syncing for interrupted sync.
-        """
-        update_currently_syncing(current_state, stream)
-        self.assertEqual(expected_call_count, mock_singer_currently_syncing.call_count)
+        self.assertEqual(expected, list(actual))
 
-class TestSync(unittest.TestCase):
-    
-    @parameterized.expand([
-        ['test_sync_without_datewindow', {'start_date': '2019-06-01T00:00:00Z', 'accounts': '12345'}, 30],
-        ['test_sync_with_datewindow', {'start_date': '2019-06-01T00:00:00Z', 'date_window_size': 7, 'accounts': '1245'}, 7]
-    ])
-    @mock.patch('tap_linkedin_ads.streams.LinkedInAds.sync_endpoint', return_value=(1, '2020-06-01T00:00:00Z'))
-    def test_sync(self, name, config, expected_date_window, mock_sync_endpoint):
-        """
-        Test sync function
-        """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
-        state = {} 
+    def test_split_into_chunks_2(self):
+        MAX_CHUNK_LENGTH = 17
+        fields = list(range(25))
 
-        sync(client, config, CATALOG, state)
-        mock_sync_endpoint.assert_called_with(client=client,
-                                              catalog=CATALOG, 
-                                              state=state, 
-                                              page_size=100, 
-                                              start_date="2019-06-01T00:00:00Z", 
-                                              selected_streams=['accounts', 'video_ads', 'account_users', 'campaigns', 'ad_analytics_by_campaign'], 
-                                              date_window_size=expected_date_window)
+        actual = split_into_chunks(fields, MAX_CHUNK_LENGTH)
+
+        expected = [
+            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16],
+            [17, 18, 19, 20, 21, 22, 23, 24],
+        ]
+
+        self.assertEqual(expected, list(actual))
+
+    def test_get_next_url(self):
+        data = {
+            'paging': {
+                'links': []
+            }
+        }
+
+        links = [{'rel': 'next', 'href': '/foo'},]
+
+        expected_1 = None
+        actual_1 = get_next_url(data)
+
+        self.assertEqual(expected_1, actual_1)
+
+        data['paging']['links'] = links
+        expected_2 = 'https://api.linkedin.com/foo'
+        actual_2 = get_next_url(data)
+
+        self.assertEqual(expected_2, actual_2)
+
+    def test_shift_sync_window_non_boundary(self):
+        expected_start_date = datetime.date(year=2020, month=10, day=1)
+        expected_end_date = datetime.date(year=2020, month=10, day=31)
+        expected_params = {
+            'dateRange.start.year': expected_start_date.year,
+            'dateRange.start.month': expected_start_date.month,
+            'dateRange.start.day': expected_start_date.day,
+            'dateRange.end.year': expected_end_date.year,
+            'dateRange.end.month': expected_end_date.month,
+            'dateRange.end.day': expected_end_date.day,
+        }
+
+        params = {
+            'dateRange.end.year': 2020,
+            'dateRange.end.month': 10,
+            'dateRange.end.day': 1,
+        }
+        today = datetime.date(year=2020, month=11, day=10)
+
+        actual_start_date, actual_end_date, actual_params = shift_sync_window(params, today, 30)
+
+        self.assertEqual(expected_start_date, actual_start_date)
+        self.assertEqual(expected_end_date, actual_end_date)
+        self.assertEqual(expected_params, actual_params)
+
+    def test_shift_sync_window_boundary(self):
+        expected_start_date = datetime.date(year=2020, month=10, day=1)
+        expected_end_date = datetime.date(year=2020, month=10, day=15)
+        expected_params = {
+            'dateRange.start.year': expected_start_date.year,
+            'dateRange.start.month': expected_start_date.month,
+            'dateRange.start.day': expected_start_date.day,
+            'dateRange.end.year': expected_end_date.year,
+            'dateRange.end.month': expected_end_date.month,
+            'dateRange.end.day': expected_end_date.day,
+        }
+
+        params = {
+            'dateRange.end.year': 2020,
+            'dateRange.end.month': 10,
+            'dateRange.end.day': 1,
+        }
+        today = datetime.date(year=2020, month=10, day=15)
+
+        actual_start_date, actual_end_date, actual_params = shift_sync_window(params, today)
+
+        self.assertEqual(expected_start_date, actual_start_date)
+        self.assertEqual(expected_end_date, actual_end_date)
+        self.assertEqual(expected_params, actual_params)
+
+
+    def test_merge_responses_empty(self):
+        # This is the assumed key name that holds the records in the response
+        data_key = 'elements'
+        SUCCESSFUL_EMPTY_API_RESPONSE = {'paging' : None,
+                                         data_key : []}
+
+        # We accumulate responses in this list
+        responses = []
+
+        for page in [SUCCESSFUL_EMPTY_API_RESPONSE]:
+            if page.get(data_key):
+                responses.append(page.get(data_key))
+
+        self.assertEqual(dict(),
+                         merge_responses(responses))
+
+    def test_merge_responses_no_overlap(self):
+        expected_output = {
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+                           'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            }
+
+        data = [
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+        ]
+
+        actual_output = merge_responses(data)
+
+        self.assertEqual(expected_output, actual_output)
+
+    def test_merge_responses_with_overlap(self):
+        data = [
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+              'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+            [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+             {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+        ]
+
+        expected_output = {
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
+                           'a': 1, 'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
+                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
+                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
+                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
+                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
+                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+            }
+
+        actual_output = merge_responses(data)
+
+        self.assertEqual(expected_output, actual_output)
