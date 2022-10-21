@@ -1,12 +1,9 @@
-from math import ceil
 from tap_tester import runner, connections
+import os
 
 from base import TestLinkedinAdsBase
 
 class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
-    """
-    Ensure tap can replicate multiple pages of data for streams that use pagination.
-    """
 
     @staticmethod
     def name():
@@ -21,41 +18,36 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
         expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # Table and field selection
+        # table and field selection
         test_catalogs = [catalog for catalog in found_catalogs
                                       if catalog.get('stream_name') in expected_streams]
 
         self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs)
 
-        self.run_and_verify_sync(conn_id)
+        record_count_by_stream = self.run_and_verify_sync(conn_id)
 
         synced_records = runner.get_records_from_target_output()
 
         for stream in expected_streams:
             with self.subTest(stream=stream):
-                # Expected values
+                # expected values
                 expected_primary_keys = self.expected_primary_keys()
 
-                # Collect information for assertions from sync based on expected values
+                # collect information for assertions from sync based on expected values
+                record_count_sync = record_count_by_stream.get(stream, 0)
                 primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
                                        for message in synced_records.get(stream).get('messages')
                                        if message.get('action') == 'upsert']
 
-                # Chunk the replicated records (just primary keys) into expected pages
-                pages = []
-                page_count = ceil(len(primary_keys_list) / page_size)
-                for page_index in range(page_count):
-                    page_start = page_index * page_size
-                    page_end = (page_index + 1) * page_size
-                    pages.append(set(primary_keys_list[page_start:page_end]))
+                # verify records are more than page size so multiple page is working
+                self.assertGreater(record_count_sync, page_size)
 
-                # Verify by primary keys that data is unique for each page
-                for current_index, current_page in enumerate(pages):
-                    with self.subTest(current_page_primary_keys=current_page):
+                if record_count_sync > page_size:
+                    primary_keys_list_1 = primary_keys_list[:page_size]
+                    primary_keys_list_2 = primary_keys_list[page_size:2*page_size]
 
-                        for other_index, other_page in enumerate(pages):
-                            if current_index == other_index:
-                                continue  # don't compare the page to itself
+                    primary_keys_page_1 = set(primary_keys_list_1)
+                    primary_keys_page_2 = set(primary_keys_list_2)
 
-                            self.assertTrue(current_page.isdisjoint(other_page),
-                                            msg=f'other_page_primary_keys={other_page}')
+                    # Verify by private keys that data is unique for page
+                    self.assertTrue(primary_keys_page_1.isdisjoint(primary_keys_page_2))

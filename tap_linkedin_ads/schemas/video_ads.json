@@ -1,8 +1,5 @@
 {
-  "type": [
-    "null",
-    "object"
-  ],
+  "type": "object",
   "additionalProperties": false,
   "properties": {
     "account": {

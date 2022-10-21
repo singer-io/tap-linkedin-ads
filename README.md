@@ -6,7 +6,7 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 
 This tap:
 
-- Pulls raw data from the [LinkedIn Marketing Ads July 2022](https://docs.microsoft.com/en-us/linkedin/marketing/)
+- Pulls raw data from the [LinkedIn Marketing Ads 2.0 API](https://docs.microsoft.com/en-us/linkedin/marketing/)
 - Extracts the following resources:
   - [Ad Accounts](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
     - [Video Ads](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
@@ -21,7 +21,7 @@ This tap:
 
 ## Streams
 [**accounts**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
-- Endpoint: https://api.linkedin.com/rest/adAccounts
+- Endpoint: https://api.linkedin.com/v2/adAccountsV2
 - Primary key field: id
 - Foreign keys: reference_organization_id (organization), reference_person_id (person)
 - Replication strategy: Incremental (query all, filter results)
@@ -32,7 +32,7 @@ This tap:
 - Children: video_ads
 
 [**video_ads**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
-- Endpoint: https://api.linkedin.com/rest/adDirectSponsoredContents
+- Endpoint: https://api.linkedin.com/v2/adDirectSponsoredContents
 - Primary key field: content_reference
 - Foreign keys: account_id (accounts), owner_organization_id (organizations)
 - Replication strategy: Incremental (query all, filter results)
@@ -44,7 +44,7 @@ This tap:
 - [Campaign Manager User Roles for Video Ads](https://www.linkedin.com/help/lms/answer/90733/campaign-manager-user-roles-for-video-ads?lang=en)
 
 [**account_users**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts)
-- Endpoint: https://api.linkedin.com/rest/adAccountUsers
+- Endpoint: https://api.linkedin.com/v2/adAccountUsersV2
 - Primary key fields: account_id, user_person_id
 - Foreign keys: account_id (accounts), user_person_id (person)
 - Replication strategy: Incremental (query all, filter results)
@@ -53,7 +53,7 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
 
 [**campaign_groups**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaign-groups#search-for-campaign-groups)
-- Endpoint: https://api.linkedin.com/rest/adCampaignGroups
+- Endpoint: https://api.linkedin.com/v2/adCampaignGroupsV2
 - Primary key field: id
 - Foreign keys: account_id (accounts)
 - Replication strategy: Incremental (query all, filter results)
@@ -63,7 +63,7 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
 
 [**campaigns**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
-- Endpoint: https://api.linkedin.com/rest/adCampaigns
+- Endpoint: https://api.linkedin.com/v2/adCampaignsV2
 - Primary key field: id
 - Foreign keys: account_id (accounts)
 - Replication strategy: Incremental (query all, filter results)
@@ -74,7 +74,7 @@ This tap:
 - Children: creatives, ad_analytics_by_campaign, ad_analytics_by_creative
 
 [**creatives**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
-- Endpoint: https://api.linkedin.com/rest/adCreatives
+- Endpoint: https://api.linkedin.com/v2/adCreativesV2
 - Primary key field: id
 - Foreign keys: campaign_id (campaigns)
 - Replication strategy: Incremental (query all, filter results)
@@ -85,7 +85,7 @@ This tap:
 - Parent: campaign
 
 [**ad_analytics_by_campaign**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
-- Endpoint: https://api.linkedin.com/rest/adAnalytics
+- Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
 - Primary key fields: campaign_id, start_at
 - Foreign keys: campaign_id (campaigns)
 - Granulariy: One record per day per campaign_id
@@ -96,7 +96,7 @@ This tap:
 - Parent: campaign
 
 [**ad_analytics_by_creative**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
-- Endpoint: https://api.linkedin.com/rest/adAnalytics
+- Endpoint: https://api.linkedin.com/v2/adAnalyticsV2
 - Primary key fields: creative_id, start_at
 - Foreign keys: creative_id
 - Granulariy: One record per day per creative_id
