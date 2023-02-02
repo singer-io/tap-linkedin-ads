@@ -5,6 +5,18 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "account": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "account_id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "campaign": {
       "type": [
         "null",
@@ -17,99 +29,72 @@
         "integer"
       ]
     },
-    "change_audit_stamps": {
+    "content": {
       "type": [
         "null",
         "object"
       ],
       "additionalProperties": false,
       "properties": {
-        "created": {
-          "type": [
-            "null",
-            "object"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "time": {
-              "type": [
-                "null",
-                "string"
-              ],
-              "format": "date-time"
-            }
-          }
-        },
-        "last_modified": {
-          "type": [
-            "null",
-            "object"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "time": {
-              "type": [
-                "null",
-                "string"
-              ],
-              "format": "date-time"
-            }
-          }
-        }
-      }
-    },
-    "created_time": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
-    },
-    "last_modified_time": {
-      "type": [
-        "null",
-        "string"
-      ],
-      "format": "date-time"
-    },
-    "id": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "processing_state": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "reference": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "reference_share_id": {
-      "type": [
-        "null",
-        "integer"
-      ]
-    },
-    "review": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "review_status": {
+        "reference": {
           "type": [
             "null",
             "string"
           ]
-        },
-        "rejection_reason": {
+        }
+      }
+    },
+    "created_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "last_modified_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "last_modified_by": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "intended_status": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "is_serving":{
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "is_test":{
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "serving_hold_reasons": {
           "type": [
             "null",
             "array"
@@ -121,104 +106,5 @@
             ]
           }
         }
-      }
-    },
-    "status": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "type": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "variables": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "click_uri": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "type": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "values": {
-          "anyOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": [
-                  "null",
-                  "object"
-                ],
-                "additionalProperties": false,
-                "properties": {
-                  "key": {
-                    "type": [
-                      "null",
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": [
-                      "null",
-                      "string"
-                    ]
-                  }
-                }
-              }
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      }
-    },
-    "test": {
-      "type": [
-        "null",
-        "boolean"
-      ]
-    },
-    "serving_statuses": {
-      "type": [
-        "null",
-        "array"
-      ],
-      "items": {
-        "type": [
-          "null",
-          "string"
-        ]
-      }
-    },
-    "version": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "version_tag": {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      }
-    }
   }
 }

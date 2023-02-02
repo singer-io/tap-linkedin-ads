@@ -645,13 +645,13 @@ class Campaigns(LinkedInAds):
 
 class Creatives(LinkedInAds):
     """
-    https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives
+    https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives
     """
     tap_stream_id = "creatives"
     replication_method = "INCREMENTAL"
-    replication_keys = ["last_modified_time"]
+    replication_keys = ["last_modified_at"]
     key_properties = ["id"]
-    path = "adCreatives"
+    path = "creatives"
     foreign_key = "id"
     data_key = "elements"
     parent = "campaigns"
