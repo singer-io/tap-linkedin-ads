@@ -41,6 +41,33 @@
             "null",
             "string"
           ]
+        },
+        "text_ad": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "headline": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "description": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "landing_page": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         }
       }
     },
@@ -82,29 +109,29 @@
         "string"
       ]
     },
-    "is_serving":{
+    "is_serving": {
       "type": [
         "null",
         "boolean"
       ]
     },
-    "is_test":{
+    "is_test": {
       "type": [
         "null",
         "boolean"
       ]
     },
     "serving_hold_reasons": {
-          "type": [
-            "null",
-            "array"
-          ],
-          "items": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    }
   }
 }
