@@ -80,8 +80,8 @@ This tap:
 - Replication strategy: Incremental (query all, filter results)
   - Filter: campaign_id (from parent campaign)
   - Sort by: Creative id ascending
-  - Bookmark: last_modified_time (date-time)
-- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Variables are transformed to a generalized type with list of key/value pairs.
+  - Bookmark: last_modified_at (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times.
 - Parent: campaign
 
 [**ad_analytics_by_campaign**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
