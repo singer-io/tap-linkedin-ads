@@ -104,6 +104,10 @@ def get_next_url(data):
         if rel == 'next':
             href = link.get('href')
             if href:
+                # url must be kept encoded for the creatives endpoint.
+                # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
+                if "rest/creatives" in href:
+                    return 'https://api.linkedin.com{}'.format(href)
                 # Prepare next page URL
                 next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
     return next_url
@@ -186,7 +190,7 @@ class LinkedInAds:
     children = []
     count = None
     params = {}
-
+    headers = {}
     def write_schema(self, catalog):
         """
         Write the schema for the selected stream.
@@ -329,7 +333,8 @@ class LinkedInAds:
             # Get data, API request
             data = client.get(
                 url=next_url,
-                endpoint=self.tap_stream_id)
+                endpoint=self.tap_stream_id,
+                headers=self.headers)
             # time_extracted: datetime when the data was extracted from the API
             time_extracted = utils.now()
 
@@ -385,7 +390,9 @@ class LinkedInAds:
                         elif self.tap_stream_id == 'campaigns':
                             campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                             if child_stream_name == 'creatives':
-                                child_stream_params['search.campaign.values[0]'] = campaign
+                                # The value of the campaigns in the query params should be passed in the encoded format.
+                                # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
+                                child_stream_params['campaigns'] = 'List(urn%3Ali%3AsponsoredCampaign%3A{})'.format(parent_id)
                             elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
                                 child_stream_params['campaigns[0]'] = campaign
 
@@ -645,22 +652,27 @@ class Campaigns(LinkedInAds):
 
 class Creatives(LinkedInAds):
     """
-    https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives
+    https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives
     """
     tap_stream_id = "creatives"
     replication_method = "INCREMENTAL"
-    replication_keys = ["last_modified_time"]
+    replication_keys = ["last_modified_at"]
     key_properties = ["id"]
-    path = "adCreatives"
+    path = "creatives"
     foreign_key = "id"
     data_key = "elements"
     parent = "campaigns"
+    # The value of the campaigns in the query params should be passed in the encoded format.
+    # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
     params = {
-        "q": "search",
-        "search.campaign.values[0]": "urn:li:sponsoredCampaign:{}",
-        "sort.field": "ID",
-        "sort.order": "ASCENDING"
+        "q": "criteria",
+        "campaigns": "List(urn%3Ali%3AsponsoredCampaign%3A{})",
+        "sortOrder": "ASCENDING"
     }
+    # Requires this specific headers for creatives endpoint.
+    # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives
+    headers = {'X-Restli-Protocol-Version': "2.0.0",
+               "X-RestLi-Method": "FINDER"}
 
 class AdAnalyticsByCampaign(LinkedInAds):
     """

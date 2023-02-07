@@ -73,15 +73,15 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for daily_budget and unit_cost amount fields. Targeting and Targeting Criteria are transformed to a generalized type with list array structure.
 - Children: creatives, ad_analytics_by_campaign, ad_analytics_by_creative
 
-[**creatives**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
-- Endpoint: https://api.linkedin.com/rest/adCreatives
+[**creatives**](https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives)
+- Endpoint: https://api.linkedin.com/rest/creatives
 - Primary key field: id
 - Foreign keys: campaign_id (campaigns)
 - Replication strategy: Incremental (query all, filter results)
   - Filter: campaign_id (from parent campaign)
   - Sort by: Creative id ascending
-  - Bookmark: last_modified_time (date-time)
-- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Variables are transformed to a generalized type with list of key/value pairs.
+  - Bookmark: last_modified_at (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times.
 - Parent: campaign
 
 [**ad_analytics_by_campaign**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)

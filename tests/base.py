@@ -128,7 +128,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
-                self.REPLICATION_KEYS: {'last_modified_time'}
+                self.REPLICATION_KEYS: {'last_modified_at'}
             },
             'ad_analytics_by_campaign': {
                 self.PRIMARY_KEYS: {'campaign_id', 'start_at'},
