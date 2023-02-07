@@ -1,7 +1,22 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
+    "account": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "account_id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "campaign": {
       "type": [
         "null",
@@ -14,168 +29,108 @@
         "integer"
       ]
     },
-    "change_audit_stamps": {
+    "content": {
       "type": [
         "null",
         "object"
       ],
       "additionalProperties": false,
       "properties": {
-        "created": {
+        "reference": {
           "type": [
             "null",
-            "object"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "time": {
-              "type": [
-                "null",
-                "string"
-              ],
-              "format": "date-time"
-            }
-          }
+            "string"
+          ]
         },
-        "last_modified": {
+        "text_ad": {
           "type": [
             "null",
             "object"
           ],
           "additionalProperties": false,
           "properties": {
-            "time": {
+            "headline": {
               "type": [
                 "null",
                 "string"
-              ],
-              "format": "date-time"
+              ]
+            },
+            "description": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "landing_page": {
+              "type": [
+                "null",
+                "string"
+              ]
             }
           }
         }
       }
     },
-    "created_time": {
+    "created_at": {
       "type": [
         "null",
         "string"
       ],
       "format": "date-time"
     },
-    "last_modified_time": {
+    "created_by": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "last_modified_at": {
       "type": [
         "null",
         "string"
       ],
       "format": "date-time"
+    },
+    "last_modified_by": {
+      "type": [
+        "null",
+        "string"
+      ]
     },
     "id": {
       "type": [
         "null",
-        "integer"
+        "string"
       ]
     },
-    "reference": {
+    "intended_status": {
       "type": [
         "null",
         "string"
       ]
     },
-    "reference_share_id": {
+    "is_serving": {
       "type": [
         "null",
-        "integer"
+        "boolean"
       ]
     },
-    "review": {
+    "is_test": {
       "type": [
         "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "review_status": {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      }
-    },
-    "status": {
-      "type": [
-        "null",
-        "string"
+        "boolean"
       ]
     },
-    "type": {
+    "serving_hold_reasons": {
       "type": [
         "null",
-        "string"
-      ]
-    },
-    "variables": {
-      "type": [
-        "null",
-        "object"
+        "array"
       ],
-      "additionalProperties": false,
-      "properties": {
-        "click_uri": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "type": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "values": {
-          "anyOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "key": {
-                    "type": [
-                      "null",
-                      "string"
-                    ]
-                  },
-                  "value": {
-                    "type": [
-                      "null",
-                      "string"
-                    ]
-                  }
-                }
-              }
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      }
-    },
-    "version": {
-      "type": [
-        "null",
-        "object"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "version_tag": {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
+      "items": {
+        "type": [
+          "null",
+          "string"
+        ]
       }
     }
   }

@@ -1,11 +1,20 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "account": {
       "type": [
         "null",
         "string"
+      ]
+    },
+    "campaign_contact":{
+      "type": [
+        "null",
+        "boolean"
       ]
     },
     "account_id": {
