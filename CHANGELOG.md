@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0
+  * Added missing fields in the schemas and upgraded API version [#47](https://github.com/singer-io/tap-linkedin-ads/pull/47)
+    * Creative endpoint changed to rest/creatives [57] (https://github.com/singer-io/tap-linkedin-ads/pull/57)
+  * Dictionary based to class based implementation [#48](https://github.com/singer-io/tap-linkedin-ads/pull/48)
+  * Add backoff error handling for 5xx [#45](https://github.com/singer-io/tap-linkedin-ads/pull/45)
+  * Remove version pins for dev requirements [#38](https://github.com/singer-io/tap-linkedin-ads/pull/38)
+  * Rewrite access_token into the config to reuse in the next sync if it is updated [#52](https://github.com/singer-io/tap-linkedin-ads/pull/52)
+  * Add missing tap tester [#46](https://github.com/singer-io/tap-linkedin-ads/pull/46)
+
 ## 1.2.7
   * Checks Access Token expiration before attempting to refresh token.
   * Adds backoff case for token expiration.
