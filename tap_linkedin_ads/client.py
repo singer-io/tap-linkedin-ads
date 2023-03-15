@@ -18,9 +18,11 @@ REQUEST_TIMEOUT = 300
 class LinkedInError(Exception):
     pass
 
-class Server5xxError(LinkedInError):
+class TooManyAccountsError(LinkedInError):
     pass
 
+class Server5xxError(LinkedInError):
+    pass
 
 class Server429Error(LinkedInError):
     pass
@@ -35,7 +37,6 @@ class LinkedInUnauthorizedError(LinkedInError):
 
 class LinkedInMethodNotAllowedError(LinkedInError):
     pass
-
 
 class LinkedInNotFoundError(LinkedInError):
     pass
@@ -84,6 +85,10 @@ ERROR_CODE_EXCEPTION_MAPPING = {
     429: {
         "raise_exception": LinkedInRateLimitExceeededError,
         "message": "API rate limit exceeded, please retry after some time."
+    },
+    431: {
+        "raise_exception": TooManyAccountsError,
+        "message": "The number of accounts exceeds the size limit of the request."
     },
     500: {
         "raise_exception": LinkedInInternalServiceError,
