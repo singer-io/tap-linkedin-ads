@@ -367,8 +367,9 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         # Use query tunneling to allow large URIs
         # https://learn.microsoft.com/en-us/linkedin/shared/api-guide/concepts/query-tunneling?context=linkedin/context
         if method == 'GET':
-            url, query = url.split('?', 1)
-            kwargs['data'] = query
+            if url:
+                url, query = url.split('?', 1)
+                kwargs['data'] = query
             kwargs['headers']['Content-Type'] = 'application/x-www-form-urlencoded'
             kwargs['headers']['X-HTTP-Method-Override'] = 'GET'
 
