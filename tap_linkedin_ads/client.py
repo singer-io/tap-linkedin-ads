@@ -364,8 +364,16 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         if method == 'POST':
             kwargs['headers']['Content-Type'] = 'application/json'
 
+        # Use query tunneling to allow large URIs
+        # https://learn.microsoft.com/en-us/linkedin/shared/api-guide/concepts/query-tunneling?context=linkedin/context
+        if method == 'GET':
+            url, query = url.split('?', 1)
+            kwargs['data'] = query
+            kwargs['headers']['Content-Type'] = 'application/x-www-form-urlencoded'
+            kwargs['headers']['X-HTTP-Method-Override'] = 'GET'
+
         with metrics.http_request_timer(endpoint) as timer:
-            response = self.__session.request(method, url, timeout=self.request_timeout, **kwargs)
+            response = self.__session.request('POST', url, timeout=self.request_timeout, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code != 200:
