@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.1
+  * Adds query tunneling to allow large number of accounts to be synced [#60](https://github.com/singer-io/tap-linkedin-ads/pull/60)
+
 ## 2.0.0
   * Added missing fields in the schemas and upgraded API version [#47](https://github.com/singer-io/tap-linkedin-ads/pull/47)
     * Creative endpoint changed to rest/creatives [57] (https://github.com/singer-io/tap-linkedin-ads/pull/57)
