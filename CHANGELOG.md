@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+  * Bump to API version `202302`
+  * Move and update `FIELDS_UNACCEPTED_BY_API`
+  * Tests updated for version bump
+  * [#61](https://github.com/singer-io/tap-linkedin-ads/pull/61)
+
 ## 2.0.1
   * Adds query tunneling to allow large number of accounts to be synced [#60](https://github.com/singer-io/tap-linkedin-ads/pull/60)
 
