@@ -18,24 +18,7 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'startAt',
     'endAt',
     'creative',
-    'creativeId'
-}
-
-# As mentioned here some fields of ads_analytics are currently in beta:
-# https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?view=li-lms-2022-08&tabs=http#accuracy
-FIELDS_UNACCEPTED_BY_API = {
-    "ad_analytics_by_creative": {
-        "averageDailyReachMetrics",
-        "averagePreviousSevenDayReachMetrics",
-        "averagePreviousThirtyDayReachMetrics",
-        "approximateUniqueImpressions"
-    },
-    "ad_analytics_by_campaign": {
-        "averageDailyReachMetrics",
-        "averagePreviousSevenDayReachMetrics",
-        "averagePreviousThirtyDayReachMetrics",
-        "approximateUniqueImpressions"
-    }
+    'creativeId',
 }
 
 def write_bookmark(state, value, stream_name):
@@ -488,8 +471,7 @@ class LinkedInAds:
         # API accepts these fields in the parameter and returns its value in the response.
         valid_selected_fields = [snake_case_to_camel_case(field)
                                  for field in selected_fields(catalog.get_stream(self.tap_stream_id))
-                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS.union(
-                                     FIELDS_UNACCEPTED_BY_API.get(self.tap_stream_id, set()))]
+                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS]
 
         # When testing the API, if the fields in `field` all return `0` then
         # the API returns its empty response.

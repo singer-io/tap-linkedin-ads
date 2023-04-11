@@ -11,6 +11,7 @@ LOGGER = singer.get_logger()
 BASE_URL = 'https://api.linkedin.com/rest'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
 INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
+LINKEDIN_VERSION = '202302'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -293,7 +294,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
-        headers['LinkedIn-Version'] = "202207"
+        headers['LinkedIn-Version'] = LINKEDIN_VERSION
 
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
@@ -348,7 +349,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
-        kwargs['headers']['LinkedIn-Version'] = "202207"
+        kwargs['headers']['LinkedIn-Version'] = LINKEDIN_VERSION
         kwargs['headers']['Cache-Control'] = "no-cache"
 
         if self.__user_agent:
