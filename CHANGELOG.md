@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.1
+  * Dependabot update [#62](https://github.com/singer-io/tap-linkedin-ads/pull/62)
+
 ## 2.1.0
   * Bump to API version `202302`
   * Move and update `FIELDS_UNACCEPTED_BY_API`
