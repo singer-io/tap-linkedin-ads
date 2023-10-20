@@ -109,9 +109,6 @@ def sync(client, config, catalog, state):
             for idx, account in enumerate(account_list):
                 if account_filter == 'search_id_values_param':
                     params['search.id.values[{}]'.format(idx)] = int(account)
-                elif account_filter == 'search_account_values_param':
-                    params['search.account.values[{}]'.format(idx)] = \
-                        'urn:li:sponsoredAccount:{}'.format(account)
                 elif account_filter == 'accounts_param':
                     params['accounts[{}]'.format(idx)] = \
                         'urn:li:sponsoredAccount:{}'.format(account)
@@ -128,6 +125,7 @@ def sync(client, config, catalog, state):
 
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
             client=client, catalog=catalog,
+            config=config,
             state=state,
             page_size=page_size,
             start_date=start_date,
