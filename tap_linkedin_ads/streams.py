@@ -19,6 +19,8 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'endAt',
     'creative',
     'creativeId',
+    'pivot',
+    'pivotValue'
 }
 NEW_PATH_STREAMS = ["campaign_groups", "campaigns", "creatives"]
 
@@ -495,7 +497,7 @@ class LinkedInAds:
         # (even if this means the values are all `0`) and a day with null
         # values. We found that requesting these fields gives you the days with
         # non-null values
-        first_chunk = [['dateRange', 'pivot', 'pivotValue']]
+        first_chunk = [['dateRange', 'pivotValues']]
 
         chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
 
@@ -503,7 +505,7 @@ class LinkedInAds:
         # so that we can create the composite primary key for the record and
         # to merge the multiple responses based on this primary key
         for chunk in chunks:
-            for field in ['dateRange', 'pivot', 'pivotValue']:
+            for field in ['dateRange', 'pivotValues']:
                 if field not in chunk:
                     chunk.append(field)
 
