@@ -255,19 +255,6 @@ def transform_creatives(data_dict):
     return new_dict
 
 
-# Copy audit fields to root level
-def transform_audit_fields(data_dict):
-    if 'change_audit_stamps' in data_dict:
-        if 'last_modified' in data_dict['change_audit_stamps']:
-            if 'time' in data_dict['change_audit_stamps']['last_modified']:
-                data_dict['last_modified_time'] = data_dict['change_audit_stamps']\
-                    ['last_modified']['time']
-        if 'created' in data_dict['change_audit_stamps']:
-            if 'time' in data_dict['change_audit_stamps']['created']:
-                data_dict['created_time'] = data_dict['change_audit_stamps']['created']['time']
-    return data_dict
-
-
 # Create ID field for each URN
 def transform_urn(data_dict):
     data_dict_copy = data_dict.copy()
@@ -309,7 +296,6 @@ def transform_data(data_dict, stream_name):
         elif stream_name == 'creatives':
             this_dict = transform_creatives(this_dict)
         this_dict = transform_urn(this_dict)
-        this_dict = transform_audit_fields(this_dict)
 
         new_dict['elements'][i] = this_dict
         i = i + 1

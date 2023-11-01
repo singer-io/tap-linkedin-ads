@@ -7,6 +7,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
+from tap_linkedin_ads.client import BASE_URL
 
 LOGGER = singer.get_logger()
 
@@ -312,16 +313,18 @@ class LinkedInAds:
         }
 
         querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
-        # next_url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
         url_list = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
             querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
             account_list = config['accounts'].replace(" ", "").split(",")
             for account in account_list:
-                url = 'https://api.linkedin.com/rest/adAccounts/{}/{}?{}'.format(account, self.path, querystring)
+                url = '{}/adAccounts/{}/{}?{}'.format(BASE_URL, account, self.path, querystring)
                 url_list.append(url)
         else:
-            url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
+            if self.path == 'posts':
+                url = '{}/{}?{}&dscAdAccount=urn%3Ali%3AsponsoredAccount%3A{}'.format(BASE_URL, self.path, querystring, parent_id)
+            else:
+                url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
             url_list.append(url)
 
 
@@ -379,11 +382,7 @@ class LinkedInAds:
                             if self.tap_stream_id == 'accounts':
                                 account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
                                 owner_id = record.get('reference_organization_id', None)
-                                owner = 'urn:li:organization:{}'.format(owner_id)
-                                if child_stream_name == 'video_ads' and owner_id is not None:
-                                    child_stream_params['account'] = account
-                                    child_stream_params['owner'] = owner
-                                else:
+                                if child_stream_name != 'video_ads' or owner_id is None:
                                     LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
                                     continue
                             elif self.tap_stream_id == 'campaigns':
@@ -588,16 +587,18 @@ class VideoAds(LinkedInAds):
     https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders
     """
     tap_stream_id = "video_ads"
-    replication_keys = ["last_modified_time"]
+    replication_keys = ["last_modified_at"]
     replication_method = "INCREMENTAL"
-    key_properties = ["content_reference"]
+    key_properties = ["id"]
     foreign_key = "id"
-    path = "adDirectSponsoredContents"
+    path = "posts"
     data_key = "elements"
     parent = "accounts"
     params = {
-        "q": "account"
+        "q": "dscAdAccount",
+        "dscAdTypes": "List(VIDEO)"
     }
+    headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
 class AccountUsers(LinkedInAds):
     """
