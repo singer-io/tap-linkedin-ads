@@ -254,6 +254,18 @@ def transform_creatives(data_dict):
 
     return new_dict
 
+# Copy ad context fields to root level
+def transform_ad_context_fields(data_dict):
+    if 'ad_context' in data_dict:
+        if 'dsc_status' in data_dict['ad_context']:
+            data_dict['status'] = data_dict['ad_context']['dsc_status']
+        if 'dsc_name' in data_dict['ad_context']:
+            data_dict['name'] = data_dict['ad_context']['dsc_name']
+        if 'dsc_ad_type' in data_dict['ad_context']:
+            data_dict['type'] = data_dict['ad_context']['dsc_ad_type']
+        if 'dsc_ad_account' in data_dict['ad_context']:
+            data_dict['account'] = data_dict['ad_context']['dsc_ad_account']
+    return data_dict
 
 # Create ID field for each URN
 def transform_urn(data_dict):
@@ -295,6 +307,7 @@ def transform_data(data_dict, stream_name):
             this_dict = transform_campaigns(this_dict)
         elif stream_name == 'creatives':
             this_dict = transform_creatives(this_dict)
+        this_dict = transform_ad_context_fields(this_dict)
         this_dict = transform_urn(this_dict)
 
         new_dict['elements'][i] = this_dict

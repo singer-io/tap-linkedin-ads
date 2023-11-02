@@ -11,6 +11,30 @@
         "integer"
       ]
     },
+    "status": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "name": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "account": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "ad_context": {
       "type": [
         "null",
