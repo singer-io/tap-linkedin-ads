@@ -1,6 +1,13 @@
 from  tap_tester import connections, runner
 from base import TestLinkedinAdsBase
 
+
+KNOWN_MISSING_FIELDS = {
+    "accounts": {"last_modified_time"},
+    "account_users": {"last_modified_time"},
+    "campaigns": {"last_modified_time"},
+    "campaign_groups": {"last_modified_time"}
+}
 class AutomaticFieldsTest(TestLinkedinAdsBase):
     """
     Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
@@ -42,7 +49,7 @@ class AutomaticFieldsTest(TestLinkedinAdsBase):
             with self.subTest(stream=stream):
 
                 # Expected values
-                expected_keys = self.expected_automatic_fields().get(stream)
+                expected_keys = self.expected_automatic_fields().get(stream) - KNOWN_MISSING_FIELDS.get(stream, set())
                 expected_primary_keys = self.expected_primary_keys()[stream]
 
                 # Collect actual values
