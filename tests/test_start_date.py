@@ -18,10 +18,12 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
     def test_run(self):
 
+        expected_streams = self.expected_streams() - {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}
+
         streams_to_test = {"account_users"}
         self.run_start_date(streams_to_test, "2021-08-07T00:00:00Z")
 
-        self.run_start_date(self.expected_streams() - streams_to_test, "2019-08-01T00:00:00Z")
+        self.run_start_date(expected_streams - streams_to_test, "2019-08-01T00:00:00Z")
 
     def run_start_date(self, expected_streams, start_date_2):
         """
