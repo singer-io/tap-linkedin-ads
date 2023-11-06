@@ -133,7 +133,7 @@ def merge_responses(data):
         # Loop through each record of the page
         for element in page:
             temp_start = element['dateRange']['start']
-            temp_pivotValue = element['pivotValue']
+            temp_pivotValue = element['pivotValues'][0]
             string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
             primary_key = (temp_pivotValue, string_start)
             if primary_key in full_records:
