@@ -157,7 +157,8 @@ class TestSync(unittest.TestCase):
 
         sync(client, config, CATALOG, state)
         mock_sync_endpoint.assert_called_with(client=client,
-                                              catalog=CATALOG, 
+                                              catalog=CATALOG,
+                                              config=config,
                                               state=state, 
                                               page_size=100, 
                                               start_date="2019-06-01T00:00:00Z", 
