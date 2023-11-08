@@ -328,8 +328,8 @@ class LinkedInAds:
             url_list.append(url)
 
 
-        for next_url in url_list:
-            while next_url: #pylint: disable=too-many-nested-blocks
+        for next_url in url_list: #pylint: disable=too-many-nested-blocks
+            while next_url:
                 LOGGER.info('URL for %s: %s', self.tap_stream_id, next_url)
 
                 # Get data, API request
