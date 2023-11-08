@@ -190,32 +190,32 @@ class TestStreamsUtils(unittest.TestCase):
         """
         expected_output = {
             ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-                           'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             }
 
         data = [
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']}],
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']}],
         ]
 
         actual_output = merge_responses(data)
@@ -228,34 +228,34 @@ class TestStreamsUtils(unittest.TestCase):
         """
         data = [
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 7, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']}],
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']}],
         ]
 
         expected_output = {
             ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-                           'a': 1, 'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'a': 1, 'b': 7, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                           'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
             }
 
         actual_output = merge_responses(data)
@@ -327,11 +327,12 @@ class TestLinkedInAds(unittest.TestCase):
     ])
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.sync_ad_analytics", return_value=(1, "2019-07-31T15:07:00.000000Z"))
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
     @mock.patch("tap_linkedin_ads.client.LinkedinClient.request")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.process_records")
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.write_schema")
     def test_sync_endpoint(self, name, selected_streams, stream_obj, mock_response, expected_write_schema_count, mock_record_count,
-                           mock_write_schema,mock_process_records,mock_client,mock_get_bookmark, mock_sync_ad_analytics):
+                           mock_write_schema,mock_process_records,mock_client,mock_get,mock_get_bookmark, mock_sync_ad_analytics):
         """
         Test sync_endpoint function for parent and child streams.
         """
@@ -341,9 +342,11 @@ class TestLinkedInAds(unittest.TestCase):
         page_size = 100
         date_window_size = 7
 
+        mock_get.side_effect = [{"elements": [{"1": "a"}]}]
         mock_client.side_effect = mock_response
+        config = {"accounts": "123"}
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
+        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, config, state, page_size, start_date, selected_streams, date_window_size)
         
         # Verify total no of records
         self.assertEqual(actual_total_record, mock_record_count)
@@ -368,10 +371,11 @@ class TestLinkedInAds(unittest.TestCase):
         page_size = 100
         date_window_size = 7
         selected_streams = ['accounts', 'video_ads']
+        config = {"accounts": "123"}
 
         mock_client.side_effect = [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}]
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        ACCOUNT_OBJ.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
+        ACCOUNT_OBJ.sync_endpoint(client, CATALOG, config, state, page_size, start_date, selected_streams, date_window_size)
         
         mock_warning.assert_called_with('Skipping video_ads call for %s account as reference_organization_id is not found.', 'urn:li:sponsoredAccount:1')
 
