@@ -6,14 +6,6 @@ from tap_linkedin_ads.streams import STREAMS
 # Reference:
 #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#Metadata
 
-# The following fields of ads_analytics (...by_campaign and ...by_creative) were previously in beta and are not available on
-# API version 202302. Requesting them results in a 403.
-# https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?view=li-lms-2023-02&tabs=http#accuracy
-FIELDS_UNACCEPTED_BY_API = {
-    "average_daily_reach_metrics",
-    "average_previous_seven_day_reach_metrics",
-    "average_previous_thirty_day_reach_metrics",
-}
 
 def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
@@ -26,10 +18,6 @@ def get_schemas():
         schema_path = get_abs_path('schemas/{}.json'.format(stream_name))
         with open(schema_path, encoding='utf-8') as file:
             schema = json.load(file)
-
-            if stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                for field in FIELDS_UNACCEPTED_BY_API:
-                    metadata.delete(schema, 'properties', field)
 
         schemas[stream_name] = schema
         mdata = metadata.new()
