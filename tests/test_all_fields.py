@@ -21,21 +21,7 @@ KNOWN_MISSING_FIELDS = {
         "total_budget_ends_at",
         "total_budget",
         "reference_person_id"
-    },
-    "ad_analytics_by_creative": {
-        "average_daily_reach_metrics",
-        "average_previous_seven_day_reach_metrics",
-        "average_previous_thirty_day_reach_metrics",
-        #BUG: TDL-22692
-        "approximate_unique_impressions",
-    },
-    "ad_analytics_by_campaign": {
-        "average_daily_reach_metrics"
-        "average_previous_seven_day_reach_metrics",
-        "average_previous_thirty_day_reach_metrics",
-        #BUG: TDL-22692
-        "approximate_unique_impressions",
-    },
+    }
 }
 
 class AllFields(TestLinkedinAdsBase):
