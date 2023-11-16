@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0
+  * Bump to API version `202309`
+  * Removed `FIELDS_UNACCEPTED_BY_API` beta fields & updated integration tests.
+  * Updated schema, replication key & primary key for "video_ads" stream
+  * Updated path for streams "campaign_groups", "campaigns", "creatives" & "video_ads"
+  * Unit & integration tests updated for version bump
+  * [#64](https://github.com/singer-io/tap-linkedin-ads/pull/64)
+  * [#65](https://github.com/singer-io/tap-linkedin-ads/pull/65)
+
 ## 2.1.0
   * Bump to API version `202302`
   * Move and update `FIELDS_UNACCEPTED_BY_API`
