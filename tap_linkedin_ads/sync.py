@@ -127,7 +127,6 @@ def sync(client, catalog, state):
         #pylint: disable=duplicate-code
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
             client=client, catalog=catalog,
-            config=config,
             state=state,
             page_size=page_size,
             start_date=start_date,

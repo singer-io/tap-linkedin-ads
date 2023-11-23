@@ -265,7 +265,6 @@ class LinkedInAds:
     def sync_endpoint(self,
                       client,
                       catalog,
-                      config,
                       state,
                       page_size,
                       start_date,
@@ -316,6 +315,7 @@ class LinkedInAds:
         url_list = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
             querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
+            config = client.get_config()
             account_list = config['accounts'].replace(" ", "").split(",")
             for account in account_list:
                 url = '{}/adAccounts/{}/{}?{}'.format(BASE_URL, account, self.path, querystring)
@@ -413,7 +413,6 @@ class LinkedInAds:
                                 child_total_records, child_batch_bookmark_value = child_obj.sync_endpoint(
                                     client=client,
                                     catalog=catalog,
-                                    config=config,
                                     state=state,
                                     page_size=page_size,
                                     start_date=start_date,
