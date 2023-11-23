@@ -66,10 +66,11 @@ def get_page_size(config):
     except Exception:
         raise Exception("The entered page size ({}) is invalid".format(page_size))
 
-def sync(client, config, catalog, state):
+def sync(client, catalog, state):
     """
     sync selected streams.
     """
+    config = client.get_config()
     start_date = config['start_date']
     page_size = get_page_size(config)
 
