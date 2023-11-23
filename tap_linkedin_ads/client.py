@@ -175,6 +175,9 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__expires = mock_expire
         return self.__expires
 
+    def get_config(self):
+        with open(self.__config_path) as file:
+            return json.load(file)
 
     def write_access_token_to_config(self):
         """

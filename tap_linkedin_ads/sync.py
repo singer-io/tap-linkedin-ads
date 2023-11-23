@@ -66,10 +66,11 @@ def get_page_size(config):
     except Exception:
         raise Exception("The entered page size ({}) is invalid".format(page_size))
 
-def sync(client, config, catalog, state):
+def sync(client, catalog, state):
     """
     sync selected streams.
     """
+    config = client.get_config()
     start_date = config['start_date']
     page_size = get_page_size(config)
 
@@ -126,7 +127,6 @@ def sync(client, config, catalog, state):
         #pylint: disable=duplicate-code
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
             client=client, catalog=catalog,
-            config=config,
             state=state,
             page_size=page_size,
             start_date=start_date,

@@ -254,6 +254,7 @@ def transform_creatives(data_dict):
 
     return new_dict
 
+
 # Copy audit fields to root level
 def transform_audit_fields(data_dict):
     if 'change_audit_stamps' in data_dict:
