@@ -315,7 +315,7 @@ class LinkedInAds:
         url_list = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
             querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
-            config = client.get_config()
+            config = client.config
             account_list = config['accounts'].replace(" ", "").split(",")
             for account in account_list:
                 url = '{}/adAccounts/{}/{}?{}'.format(BASE_URL, account, self.path, querystring)

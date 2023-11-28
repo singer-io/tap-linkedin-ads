@@ -21,7 +21,7 @@ REQUIRED_CONFIG_KEYS = [
 
 def do_discover(client):
     LOGGER.info('Starting discover')
-    client.check_accounts(client.get_config())
+    client.check_accounts(client.config)
     catalog = _discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
