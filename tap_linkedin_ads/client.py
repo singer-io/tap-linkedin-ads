@@ -290,7 +290,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           (Server5xxError, requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
                           factor=2)
-    def check_accounts(self, config):
+    def check_accounts(self):
+        config = self.config
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent

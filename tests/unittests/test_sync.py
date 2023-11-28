@@ -152,8 +152,7 @@ class TestSync(unittest.TestCase):
         """
         Test sync function
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
-        client.config = config
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', config)
         state = {} 
 
         sync(client, CATALOG, state)
