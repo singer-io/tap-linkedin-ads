@@ -14,7 +14,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we retrieve and set expires for client with no self.__expires
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
 
         future_time = int(datetime.utcnow().timestamp()) + 88400
         mocked_response = mock.Mock()
@@ -37,7 +37,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we check and return on valid self.__expires
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
 
         future_time = int(datetime.utcnow().timestamp()) + 88400
         mocked_response = mock.MagicMock()
@@ -58,7 +58,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we check self.__expires and retrieve new access token if it has expired
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
 
         old_time = int(datetime.utcnow().timestamp()) - 100
         mocked_response = mock.MagicMock()
@@ -78,7 +78,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we get an access token if we don't already have one
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None, 'config_path')
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None, 'config_path', {})
 
         expires = client.get_expires_time_for_test()
         assert expires is None
@@ -108,7 +108,7 @@ class TestLinkedInClient(unittest.TestCase):
         Ensure that we use the existing access token if we don't have a refresh token
         '''
         expected_access_token = 'access_token'
-        client = _client.LinkedinClient(None, None, None, 'access_token', 'config_path')
+        client = _client.LinkedinClient(None, None, None, 'access_token', 'config_path', {})
 
         client.fetch_and_set_access_token()
         actual = client.access_token

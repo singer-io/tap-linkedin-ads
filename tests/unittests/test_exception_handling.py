@@ -37,7 +37,7 @@ class TestBackoffHandling(unittest.TestCase):
                     "code": ""}
         mock_requests.return_value = get_response(error_code, json_resp)
         with self.assertRaises(error) as e:
-            with client.LinkedinClient("","","refresh_token", "", "") as _client:
+            with client.LinkedinClient("","","refresh_token", "", "", {}) as _client:
                 pass
 
         # Verify that `session.post` was called 5 times
@@ -56,7 +56,7 @@ class TestBackoffHandling(unittest.TestCase):
         """
         mock_requests.side_effect = mock_response
         with self.assertRaises(error) as e:
-            with client.LinkedinClient("","","refresh_token", "", "") as _client:
+            with client.LinkedinClient("","","refresh_token", "", "", {}) as _client:
                 pass
 
         # Verify that `session.post` was called 5 times
@@ -111,7 +111,7 @@ class TestBackoffHandling(unittest.TestCase):
         Test `request` method will backoff 5 times Timeout error.
         """
         mock_requests.side_effect = requests.exceptions.Timeout
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(requests.exceptions.Timeout) as e:
             linkedIn_client.request("GET")
 
@@ -139,7 +139,7 @@ class TestExceptionHandling(unittest.TestCase):
         """
         mocked_request.return_value = mock_response
         expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(error) as e:
             linkedIn_client.request("GET")
 
@@ -162,7 +162,7 @@ class TestExceptionHandling(unittest.TestCase):
                     "status": error_code}
         mock_request.return_value = get_response(error_code, json_resp)
         expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(error) as e:
             linkedIn_client.request("GET")
 
@@ -178,7 +178,7 @@ class TestExceptionHandling(unittest.TestCase):
                         "status": 401,
                         "code": "UNAUTHORIZED"}
         mocked_request.return_value = get_response(401, response_json)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(client.LinkedInUnauthorizedError) as e:
             linkedIn_client.request("POST")
 
@@ -193,7 +193,7 @@ class TestExceptionHandling(unittest.TestCase):
         response.status_code = 400
         response._content = "abcd"
         mocked_request.return_value = response
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(client.LinkedInBadRequestError) as e:
             linkedIn_client.request("POST")
 
@@ -223,7 +223,7 @@ class TestAccessToken(unittest.TestCase):
         """
         mock_request.return_value = mock_response
         expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(error) as e:
             linkedIn_client.fetch_and_set_access_token()
 
@@ -248,7 +248,7 @@ class TestAccessToken(unittest.TestCase):
                      "status": error_code}
         mock_request.return_value = get_response(error_code, json_resp)
         expected_message = "HTTP-error-code: {}, Error: {}".format(error_code, message)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(error) as e:
             linkedIn_client.fetch_and_set_access_token()
 
@@ -264,7 +264,7 @@ class TestAccessToken(unittest.TestCase):
                             "status": 401,
                             "code": "UNAUTHORIZED"}
         mock_request.return_value = get_response(401, response_json)
-        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {})
         with self.assertRaises(client.LinkedInUnauthorizedError) as e:
             linkedIn_client.fetch_and_set_access_token()
 
