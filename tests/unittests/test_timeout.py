@@ -109,6 +109,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                                        refresh_token=self.config['refresh_token'],
                                        access_token=self.config['access_token'],
                                        config_path='config_path',
+                                       config={},
                                        user_agent=self.config['user_agent'],
                                        request_timeout=self.config.get('request_timeout')) as cl:
                 pass
