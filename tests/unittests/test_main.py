@@ -46,7 +46,6 @@ class TestMainWorkflow(unittest.TestCase):
 
         # Verify `_sync` is called with expected arguments
         mock_sync.assert_called_with(client=mock.ANY,
-                                     config=self.mock_config,
                                      catalog=self.mock_catalog,
                                      state={})
 
@@ -74,6 +73,5 @@ class TestMainWorkflow(unittest.TestCase):
 
         # Verify `_sync` is called with expected arguments
         mock_sync.assert_called_with(client=mock.ANY,
-                                     config=self.mock_config,
                                      state=mock_state,
                                      catalog=self.mock_catalog)
