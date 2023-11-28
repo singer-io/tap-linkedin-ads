@@ -70,7 +70,7 @@ def sync(client, catalog, state):
     """
     sync selected streams.
     """
-    config = client.get_config()
+    config = client.config
     start_date = config['start_date']
     page_size = get_page_size(config)
 

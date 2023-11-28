@@ -134,6 +134,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__client_secret = client_secret
         self.__refresh_token = refresh_token
         self.__config_path = config_path
+        self.config = self.get_config()
         self.__user_agent = user_agent
         self.__access_token = access_token
         self.__expires = None
@@ -192,6 +193,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             config = json.load(file)
         # Set new access_token
         config['access_token'] = self.__access_token
+        self.config = config
 
         with open(self.__config_path, 'w') as file:
             json.dump(config, file, indent=2)
