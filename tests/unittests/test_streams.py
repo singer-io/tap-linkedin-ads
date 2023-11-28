@@ -124,7 +124,7 @@ class TestStreamsUtils(unittest.TestCase):
         Test that sync_analytics_endpoint function works properly for single page as well as multiple pages.
         """
         mock_next_url.side_effect = next_url
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')     
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {"accounts": "123"})
         data = list(sync_analytics_endpoint(client, "stream", "path", "query=query"))
         
         # Verify that get method of client is called expected times.
@@ -306,7 +306,7 @@ class TestLinkedInAds(unittest.TestCase):
         self.assertEqual(expected_record_count, actual_record_count)
 
     @parameterized.expand([
-        ['test_only_parent_selcted_stream', ['accounts'], ACCOUNT_OBJ,
+        ['test_only_parent_selected_stream', ['accounts'], ACCOUNT_OBJ,
          [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}],
          0, 1
         ],
@@ -320,10 +320,10 @@ class TestLinkedInAds(unittest.TestCase):
           {'paging': {'start': 0, 'count': 100, 'links': [], 'total': 0},'elements': []}],
          1, 1
         ],
-        ['test_only_parent_selcted_stream', ['campaigns'], CAMPAIGN_OBJ,
+        ['test_only_parent_selected_stream', ['campaigns'], CAMPAIGN_OBJ,
          [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}],
          0, 1
-        ]   
+        ]
     ])
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.sync_ad_analytics", return_value=(1, "2019-07-31T15:07:00.000000Z"))
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
@@ -336,7 +336,7 @@ class TestLinkedInAds(unittest.TestCase):
         """
         Test sync_endpoint function for parent and child streams.
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {"accounts": "123"})
         state={}
         start_date='2019-06-01T00:00:00Z'
         page_size = 100
@@ -344,9 +344,8 @@ class TestLinkedInAds(unittest.TestCase):
 
         mock_get.side_effect = [{"elements": [{"1": "a"}]}]
         mock_client.side_effect = mock_response
-        config = {"accounts": "123"}
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, config, state, page_size, start_date, selected_streams, date_window_size)
+        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
         
         # Verify total no of records
         self.assertEqual(actual_total_record, mock_record_count)
@@ -365,17 +364,16 @@ class TestLinkedInAds(unittest.TestCase):
         """
         Verify that tap skips API call for video_ads stream if owner_id in the parent's record is None.
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {"accounts": "123"})
         state={'currently_syncing': 'accounts'}
         start_date='2019-06-01T00:00:00Z'
         page_size = 100
         date_window_size = 7
         selected_streams = ['accounts', 'video_ads']
-        config = {"accounts": "123"}
 
         mock_client.side_effect = [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}]
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        ACCOUNT_OBJ.sync_endpoint(client, CATALOG, config, state, page_size, start_date, selected_streams, date_window_size)
+        ACCOUNT_OBJ.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
         
         mock_warning.assert_called_with('Skipping video_ads call for %s account as reference_organization_id is not found.', 'urn:li:sponsoredAccount:1')
 
@@ -395,7 +393,7 @@ class TestLinkedInAds(unittest.TestCase):
         Test that `sync_ad_analytics` function work properly for zero records as well as multiple records.
         """
 
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', {"accounts": "123"})
         bookmark='2022-08-01T00:00:00Z'
         date_window_size = 7
 

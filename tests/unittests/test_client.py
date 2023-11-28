@@ -78,7 +78,7 @@ class TestLinkedInClient(unittest.TestCase):
         '''
         Ensure that we get an access token if we don't already have one
         '''
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'config_path', None)
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', None, 'config_path')
 
         expires = client.get_expires_time_for_test()
         assert expires is None
@@ -87,7 +87,7 @@ class TestLinkedInClient(unittest.TestCase):
         mocked_token_check_response = mock.Mock()
         mocked_token_check_response.json.return_value = {
             "access_token": "abcdef12345",
-            "expires_at": old_time
+            "expires_in": old_time
         }
         mocked_token_check_response.status_code = 200
 

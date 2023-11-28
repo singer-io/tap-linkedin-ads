@@ -21,7 +21,7 @@ REQUIRED_CONFIG_KEYS = [
 
 def do_discover(client):
     LOGGER.info('Starting discover')
-    client.check_accounts(client.config)
+    client.check_accounts()
     catalog = _discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
@@ -36,6 +36,7 @@ def main():
                         parsed_args.config.get('refresh_token', None),
                         parsed_args.config.get('access_token'),
                         parsed_args.config_path,
+                        parsed_args.config,
                         REQUEST_TIMEOUT,
                         parsed_args.config['user_agent']
                         ) as client:

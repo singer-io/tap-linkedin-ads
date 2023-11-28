@@ -128,13 +128,14 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                  refresh_token,
                  access_token,
                  config_path,
+                 config={},
                  request_timeout=REQUEST_TIMEOUT,
                  user_agent=None):
         self.__client_id = client_id
         self.__client_secret = client_secret
         self.__refresh_token = refresh_token
         self.__config_path = config_path
-        self.config = self.get_config()
+        self.config = config
         self.__user_agent = user_agent
         self.__access_token = access_token
         self.__expires = None
@@ -175,10 +176,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     def set_mock_expires_for_test(self, mock_expire):
         self.__expires = mock_expire
         return self.__expires
-
-    def get_config(self):
-        with open(self.__config_path) as file:
-            return json.load(file)
 
     def write_access_token_to_config(self):
         """
@@ -293,7 +290,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           (Server5xxError, requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
                           factor=2)
-    def check_accounts(self, config):
+    def check_accounts(self):
+        config = self.config
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent

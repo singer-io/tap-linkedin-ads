@@ -39,6 +39,7 @@ class TestTimeoutValue(unittest.TestCase):
                                    refresh_token=config['refresh_token'],
                                    access_token=config['access_token'],
                                    config_path='config_path',
+                                   config=config,
                                    user_agent=config['user_agent'],
                                    request_timeout=config.get('request_timeout'))
 
@@ -62,6 +63,7 @@ class TestTimeoutValue(unittest.TestCase):
                                    refresh_token=config['refresh_token'],
                                    access_token=config['access_token'],
                                    config_path='config_path',
+                                   config=config,
                                    user_agent=config['user_agent'],
                                    request_timeout=config.get('request_timeout'))
 
@@ -88,6 +90,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                                    refresh_token=config['refresh_token'],
                                    access_token=config['access_token'],
                                    config_path='config_path',
+                                   config=config,
                                    user_agent=config['user_agent'],
                                    request_timeout=config.get('request_timeout'))
 
@@ -123,7 +126,7 @@ class TestTimeoutBackoff(unittest.TestCase):
 
         with self.assertRaises(requests.Timeout):
             # function call
-            self.client.check_accounts(self.config)
+            self.client.check_accounts()
 
         # verify that we backoff for 5 times
         self.assertEquals(mocked_request.call_count, 5)
@@ -172,7 +175,8 @@ class TestConnectionErrorBackoff(unittest.TestCase):
                                        client_secret=config['client_secret'],
                                        refresh_token=config['refresh_token'],
                                        access_token=config['access_token'],
-                                        config_path='config_path',
+                                       config_path='config_path',
+                                       config=config,
                                        user_agent=config['user_agent'],
                                        request_timeout=config.get('request_timeout')) as cl:
                 pass
@@ -201,12 +205,13 @@ class TestConnectionErrorBackoff(unittest.TestCase):
                                    refresh_token=config['refresh_token'],
                                    access_token=config['access_token'],
                                    config_path='config_path',
+                                   config=config,
                                    user_agent=config['user_agent'],
                                    request_timeout=config.get('request_timeout'))
 
         with self.assertRaises(requests.ConnectionError):
             # function call
-            cl.check_accounts(config)
+            cl.check_accounts()
 
         # verify that we backoff for 5 times
         self.assertEquals(mocked_request.call_count, 5)
