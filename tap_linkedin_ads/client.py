@@ -128,9 +128,9 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                  refresh_token,
                  access_token,
                  config_path,
+                 config={},
                  request_timeout=REQUEST_TIMEOUT,
-                 user_agent=None,
-                 config={}):
+                 user_agent=None):
         self.__client_id = client_id
         self.__client_secret = client_secret
         self.__refresh_token = refresh_token
