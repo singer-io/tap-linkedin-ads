@@ -118,11 +118,13 @@ The API user account should be assigned one of the following roles:
 - **VIEWER** (Recommended)
 
 The API user account should be assigned the following **permissions** for the API endpoints:
-- accounts, account_users, video_ads, campaign_groups, campaigns, creatives:
+- accounts, account_users, campaign_groups, campaigns, creatives:
     - r_ads: read ads (Recommended)
     - rw_ads: read-write ads
 - ad_analytics_by_campaign, ad_analytics_by_creative:
     - r_ads_reporting: read ads reporting
+- video_ads:
+    - r_organization_social: read video ads
 
 **NOTE**: Legacy permissions (r_ad_campaigns) have been migrated to the new permissions (r_ads and r_ads_reporting) based on this [permissions mapping](https://docs.microsoft.com/en-us/linkedin/shared/references/migrations/marketing-permissions-migration?context=linkedin/marketing/context). 
 
