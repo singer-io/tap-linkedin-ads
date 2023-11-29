@@ -12,7 +12,8 @@ class LinkedinAdsParentChildIndependentTest(TestLinkedinAdsBase):
         • Verify that if only child streams are selected then only child streams are replicated.
         """
 
-        child_streams = {"video_ads", "creatives", "ad_analytics_by_campaign", "ad_analytics_by_creative"}
+        # Removed Ad Analytics streams from child streams as there is insufficient data in test account
+        child_streams = {"video_ads", "creatives"}
 
         # Instantiate connection
         conn_id = connections.ensure_connection(self)

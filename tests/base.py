@@ -101,10 +101,10 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'video_ads': {
-                self.PRIMARY_KEYS: {'content_reference'},
+                self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
-                self.REPLICATION_KEYS: {'last_modified_time'}
+                self.REPLICATION_KEYS: {'last_modified_at'}
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
