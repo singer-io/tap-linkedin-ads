@@ -39,6 +39,7 @@ class AllFields(TestLinkedinAdsBase):
         - Verify that more than just the automatic fields are replicated for each stream.
         """
 
+        # Removed Ad Analytics streams from expected streams as there is insufficient data in test account
         expected_streams = self.expected_streams() - {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}
 
         # Instantiate connection

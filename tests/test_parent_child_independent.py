@@ -11,6 +11,7 @@ class LinkedinAdsParentChildIndependentTest(TestLinkedinAdsBase):
         Testing that tap is working fine if only child streams are selected
         • Verify that if only child streams are selected then only child streams are replicated.
         """
+        # Removed Ad Analytics streams from child streams as there is insufficient data in test account
         child_streams = {"video_ads", "creatives"}
 
         # Instantiate connection

@@ -18,6 +18,7 @@ class LinkedinAdsStartDateTest(TestLinkedinAdsBase):
 
     def test_run(self):
 
+        # Removed Ad Analytics streams from expected streams as there is insufficient data in test account
         expected_streams = self.expected_streams() - {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}
 
         streams_to_test = {"account_users"}

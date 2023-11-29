@@ -1,7 +1,6 @@
 from  tap_tester import connections, runner
 from base import TestLinkedinAdsBase
 
-
 class AutomaticFieldsTest(TestLinkedinAdsBase):
     """
     Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
