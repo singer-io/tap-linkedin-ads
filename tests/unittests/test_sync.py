@@ -152,12 +152,12 @@ class TestSync(unittest.TestCase):
         """
         Test sync function
         """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
+        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path', config)
         state = {} 
 
-        sync(client, config, CATALOG, state)
+        sync(client, CATALOG, state)
         mock_sync_endpoint.assert_called_with(client=client,
-                                              catalog=CATALOG, 
+                                              catalog=CATALOG,
                                               state=state, 
                                               page_size=100, 
                                               start_date="2019-06-01T00:00:00Z", 

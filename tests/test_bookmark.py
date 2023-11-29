@@ -39,7 +39,8 @@ class BookmarkTest(TestLinkedinAdsBase):
             different values for the replication key
         """
 
-        streams_to_test = self.expected_streams()
+        # Removed Ad Analytics streams from expected streams as there is insufficient data in test account
+        streams_to_test = self.expected_streams() - {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}
 
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()

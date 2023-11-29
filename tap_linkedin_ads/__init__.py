@@ -19,9 +19,9 @@ REQUIRED_CONFIG_KEYS = [
 ]
 
 
-def do_discover(client, config):
+def do_discover(client):
     LOGGER.info('Starting discover')
-    client.check_accounts(config)
+    client.check_accounts()
     catalog = _discover()
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
@@ -30,13 +30,13 @@ def do_discover(client, config):
 @singer.utils.handle_top_exception(LOGGER)
 def main():
     parsed_args = singer.utils.parse_args(REQUIRED_CONFIG_KEYS)
-    config = parsed_args.config
 
     with LinkedinClient(parsed_args.config.get('client_id', None),
                         parsed_args.config.get('client_secret', None),
                         parsed_args.config.get('refresh_token', None),
                         parsed_args.config.get('access_token'),
                         parsed_args.config_path,
+                        parsed_args.config,
                         REQUEST_TIMEOUT,
                         parsed_args.config['user_agent']
                         ) as client:
@@ -45,10 +45,9 @@ def main():
         if parsed_args.state:
             state = parsed_args.state
         if parsed_args.discover:
-            do_discover(client, config)
+            do_discover(client)
         elif parsed_args.catalog:
             _sync(client=client,
-                  config=config,
                   catalog=parsed_args.catalog,
                   state=state)
 

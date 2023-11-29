@@ -4,7 +4,7 @@ from unittest import mock
 from parameterized import parameterized
 from tap_linkedin_ads.transform import (convert, snake_case_to_camel_case, convert_array, convert_json,
                                         transform_accounts, transform_analytics, transform_json,
-                                        transform_campaigns, transform_creatives, transform_audit_fields,
+                                        transform_campaigns, transform_creatives, transform_ad_context_fields,
                                         transform_urn, transform_data, string_to_decimal)
 
 
@@ -337,34 +337,38 @@ class TestTransformCreatives(unittest.TestCase):
         self.assertEqual(transformed_dict, expected_dict)
 
 
-class TestTransformAuditFields(unittest.TestCase):
+class TestTransformAdContextFields(unittest.TestCase):
     """
-    Test `transform_audit_fields` function.
+    Test `transform_ad_context_fields` function.
     """
 
     test_dict_1 = {"reference": "urn:li:organization:20111635"}
 
     test_dict_2 = {
-        "change_audit_stamps": {
-            "created": {"time": 1563562455000},
-            "last_modified": {"time": 1626169039381}
+        "ad_context": {
+            "dsc_status": "ACTIVE",
+            "dsc_name": "Stitch Tableau",
+            "dsc_ad_type": "VIDEO",
+            "dsc_ad_account": "urn:li:sponsoredAccount:503498742"
         }
     }
     added_fields_2 = {
-        "created_time": 1563562455000,
-        "last_modified_time": 1626169039381,
+        "status": "ACTIVE",
+        "name": "Stitch Tableau",
+        "type": "VIDEO",
+        "account": "urn:li:sponsoredAccount:503498742"
     }
 
     @parameterized.expand([
         (test_dict_1, {**test_dict_1}),
         (test_dict_2, {**test_dict_2, **added_fields_2}),
     ])
-    def test_transform_audit_fields(self, test_dict, expected_dict):
+    def test_transform_ad_context_fields(self, test_dict, expected_dict):
         """
         Test that time fields are added to first level.
         """
 
-        transformed_dict = transform_audit_fields(test_dict)
+        transformed_dict = transform_ad_context_fields(test_dict)
 
         # Verify returned dict is expected
         self.assertEqual(transformed_dict, expected_dict)
@@ -398,8 +402,7 @@ class TestTransformUrn(unittest.TestCase):
         self.assertEqual(transformed_dict, expected_dict)
 
 
-@mock.patch("tap_linkedin_ads.transform.transform_urn")
-@mock.patch("tap_linkedin_ads.transform.transform_audit_fields")
+@mock.patch("tap_linkedin_ads.transform.transform_ad_context_fields")
 class TestTransformData(unittest.TestCase):
     """
     Test `transform_data` function that it calls other transform function respective to stream_name
@@ -408,11 +411,11 @@ class TestTransformData(unittest.TestCase):
     test_dict = {"type": "BUSINESS", "id": 503491473}
 
     @mock.patch("tap_linkedin_ads.transform.transform_accounts")
-    def test_accounts_stream(self, mock_transform_accounts, mock_audit_fields, mock_transform_urn):
+    def test_accounts_stream(self, mock_transform_accounts, mock_ad_context_fields):
         """
         Test for `accounts` stream `transform_accounts` is called.
         """
-        mock_audit_fields.return_value = self.test_dict
+        mock_ad_context_fields.return_value = self.test_dict
         transformed_dict = transform_data({"elements": [self.test_dict]*3}, "accounts")
 
         # Verify transform function called for each element
@@ -420,11 +423,11 @@ class TestTransformData(unittest.TestCase):
         self.assertEqual(transformed_dict, {"elements": [self.test_dict]*3})
 
     @mock.patch("tap_linkedin_ads.transform.transform_campaigns")
-    def test_campaigns_stream(self, mock_transform_campaigns, mock_audit_fields, mock_transform_urn):
+    def test_campaigns_stream(self, mock_transform_campaigns, mock_ad_context_fields):
         """
         Test for `campaigns` stream `transform_campaigns` is called.
         """
-        mock_audit_fields.return_value = self.test_dict
+        mock_ad_context_fields.return_value = self.test_dict
         transformed_dict = transform_data({"elements": [self.test_dict]*4}, "campaigns")
 
         # Verify transform function called for each element
@@ -432,11 +435,11 @@ class TestTransformData(unittest.TestCase):
         self.assertEqual(transformed_dict, {"elements": [self.test_dict]*4})
 
     @mock.patch("tap_linkedin_ads.transform.transform_analytics")
-    def test_analytics_stream(self, mock_transform_analytics, mock_audit_fields, mock_transform_urn):
+    def test_analytics_stream(self, mock_transform_analytics, mock_ad_context_fields):
         """
         Test for any analytics stream `transform_analytics` is called.
         """
-        mock_audit_fields.return_value = self.test_dict
+        mock_ad_context_fields.return_value = self.test_dict
         transformed_dict = transform_data({"elements": [self.test_dict]*4}, "ad_analytics_by_creatives")
 
         # Verify transform function called for each element
@@ -444,11 +447,11 @@ class TestTransformData(unittest.TestCase):
         self.assertEqual(transformed_dict, {"elements": [self.test_dict]*4})
 
     @mock.patch("tap_linkedin_ads.transform.transform_creatives")
-    def test_creatives_stream(self, mock_transform_creatives, mock_audit_fields, mock_transform_urn):
+    def test_creatives_stream(self, mock_transform_creatives, mock_ad_context_fields):
         """
         Test for `creatives` stream `transform_creatives` is called.
         """
-        mock_audit_fields.return_value = self.test_dict
+        mock_ad_context_fields.return_value = self.test_dict
         transformed_dict = transform_data({"elements": [self.test_dict]*4}, "creatives")
 
         # Verify transform function called for each element
@@ -459,11 +462,11 @@ class TestTransformData(unittest.TestCase):
     @mock.patch("tap_linkedin_ads.transform.transform_campaigns")
     @mock.patch("tap_linkedin_ads.transform.transform_accounts")
     @mock.patch("tap_linkedin_ads.transform.transform_creatives")
-    def test_other_streams(self, transform_creatives, transform_accounts, transform_campaigns, transform_analytics,  mock_audit_fields, mock_transform_urn):
+    def test_other_streams(self, transform_creatives, transform_accounts, transform_campaigns, transform_analytics,  mock_ad_context_fields):
         """
         Test for any other streams transformed dictionary is returned.
         """
-        mock_audit_fields.return_value = self.test_dict
+        mock_ad_context_fields.return_value = self.test_dict
         transformed_dict = transform_data({"elements": [self.test_dict]*4}, "video_ads")
 
         # Verify any transform function specific to a stream was not called

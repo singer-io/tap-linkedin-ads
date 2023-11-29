@@ -11,7 +11,7 @@ LOGGER = singer.get_logger()
 BASE_URL = 'https://api.linkedin.com/rest'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
 INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
-LINKEDIN_VERSION = '202302'
+LINKEDIN_VERSION = '202309'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -128,12 +128,14 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                  refresh_token,
                  access_token,
                  config_path,
+                 config,
                  request_timeout=REQUEST_TIMEOUT,
                  user_agent=None):
         self.__client_id = client_id
         self.__client_secret = client_secret
         self.__refresh_token = refresh_token
         self.__config_path = config_path
+        self.config = config
         self.__user_agent = user_agent
         self.__access_token = access_token
         self.__expires = None
@@ -175,7 +177,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__expires = mock_expire
         return self.__expires
 
-
     def write_access_token_to_config(self):
         """
         Write an updated access token in the config to reuse in the next sync.
@@ -189,6 +190,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
             config = json.load(file)
         # Set new access_token
         config['access_token'] = self.__access_token
+        self.config = config
 
         with open(self.__config_path, 'w') as file:
             json.dump(config, file, indent=2)
@@ -288,7 +290,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           (Server5xxError, requests.exceptions.ConnectionError, requests.exceptions.Timeout),
                           max_tries=5,
                           factor=2)
-    def check_accounts(self, config):
+    def check_accounts(self):
+        config = self.config
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent

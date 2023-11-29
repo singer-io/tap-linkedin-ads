@@ -6,7 +6,7 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 
 This tap:
 
-- Pulls raw data from the [LinkedIn Marketing Ads July 2022](https://docs.microsoft.com/en-us/linkedin/marketing/)
+- Pulls raw data from the [LinkedIn Marketing Ads October 2023](https://docs.microsoft.com/en-us/linkedin/marketing/)
 - Extracts the following resources:
   - [Ad Accounts](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
     - [Video Ads](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
@@ -31,14 +31,14 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for total_budget field.
 - Children: video_ads
 
-[**video_ads**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
-- Endpoint: https://api.linkedin.com/rest/adDirectSponsoredContents
-- Primary key field: content_reference
+[**video_ads**](https://learn.microsoft.com/en-us/linkedin/marketing/integrations/community-management/shares/posts-api?view=li-lms-2023-10&tabs=http#find-posts-by-account-1)
+- Endpoint: https://api.linkedin.com/rest/posts
+- Primary key field: id
 - Foreign keys: account_id (accounts), owner_organization_id (organizations)
 - Replication strategy: Incremental (query all, filter results)
   - Filter: account (from parent account) and owner (from parent account) (see NOTE below)
-  - Bookmark: last_modified_time (date-time)
-- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
+  - Bookmark: last_modified_at (date-time)
+- Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Ad context fields dsc_status, dsc_name, dsc_ad_type & dsc_ad_account de-nested.
 - Parent: account
 **NOTE**: The parent Account **MUST** reference and **Organization** (not a Person)
 - [Campaign Manager User Roles for Video Ads](https://www.linkedin.com/help/lms/answer/90733/campaign-manager-user-roles-for-video-ads?lang=en)
@@ -53,7 +53,7 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
 
 [**campaign_groups**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaign-groups#search-for-campaign-groups)
-- Endpoint: https://api.linkedin.com/rest/adCampaignGroups
+- Endpoint: https://api.linkedin.com/rest/adAccounts/{account-id}/adCampaignGroups
 - Primary key field: id
 - Foreign keys: account_id (accounts)
 - Replication strategy: Incremental (query all, filter results)
@@ -63,7 +63,7 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested.
 
 [**campaigns**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
-- Endpoint: https://api.linkedin.com/rest/adCampaigns
+- Endpoint: https://api.linkedin.com/rest/adAccounts/{account-id}/adCampaigns
 - Primary key field: id
 - Foreign keys: account_id (accounts)
 - Replication strategy: Incremental (query all, filter results)
@@ -74,7 +74,7 @@ This tap:
 - Children: creatives, ad_analytics_by_campaign, ad_analytics_by_creative
 
 [**creatives**](https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives)
-- Endpoint: https://api.linkedin.com/rest/creatives
+- Endpoint: https://api.linkedin.com/rest/adAccounts/{account-id}/creatives
 - Primary key field: id
 - Foreign keys: campaign_id (campaigns)
 - Replication strategy: Incremental (query all, filter results)
@@ -118,11 +118,13 @@ The API user account should be assigned one of the following roles:
 - **VIEWER** (Recommended)
 
 The API user account should be assigned the following **permissions** for the API endpoints:
-- accounts, account_users, video_ads, campaign_groups, campaigns, creatives:
+- accounts, account_users, campaign_groups, campaigns, creatives:
     - r_ads: read ads (Recommended)
     - rw_ads: read-write ads
 - ad_analytics_by_campaign, ad_analytics_by_creative:
     - r_ads_reporting: read ads reporting
+- video_ads:
+    - r_organization_social: read video ads
 
 **NOTE**: Legacy permissions (r_ad_campaigns) have been migrated to the new permissions (r_ads and r_ads_reporting) based on this [permissions mapping](https://docs.microsoft.com/en-us/linkedin/shared/references/migrations/marketing-permissions-migration?context=linkedin/marketing/context). 
 

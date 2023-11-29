@@ -66,10 +66,11 @@ def get_page_size(config):
     except Exception:
         raise Exception("The entered page size ({}) is invalid".format(page_size))
 
-def sync(client, config, catalog, state):
+def sync(client, catalog, state):
     """
     sync selected streams.
     """
+    config = client.config
     start_date = config['start_date']
     page_size = get_page_size(config)
 
@@ -109,9 +110,6 @@ def sync(client, config, catalog, state):
             for idx, account in enumerate(account_list):
                 if account_filter == 'search_id_values_param':
                     params['search.id.values[{}]'.format(idx)] = int(account)
-                elif account_filter == 'search_account_values_param':
-                    params['search.account.values[{}]'.format(idx)] = \
-                        'urn:li:sponsoredAccount:{}'.format(account)
                 elif account_filter == 'accounts_param':
                     params['accounts[{}]'.format(idx)] = \
                         'urn:li:sponsoredAccount:{}'.format(account)
@@ -126,6 +124,7 @@ def sync(client, config, catalog, state):
         if stream_name in selected_streams:
             stream_obj.write_schema(catalog)
 
+        #pylint: disable=duplicate-code
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
             client=client, catalog=catalog,
             state=state,
