@@ -1,5 +1,8 @@
 {
-  "type": "object",
+  "type": [
+    "null",
+    "object"
+  ],
   "additionalProperties": false,
   "properties": {
     "targeting": {
@@ -14,7 +17,10 @@
             {
               "type": "array",
               "items": {
-                "type": "object",
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "type": {
@@ -49,7 +55,10 @@
             {
               "type": "array",
               "items": {
-                "type": "object",
+                "type": [
+                  "null",
+                  "object"
+                ],
                 "additionalProperties": false,
                 "properties": {
                   "type": {
@@ -100,7 +109,10 @@
                 {
                   "type": "array",
                   "items": {
-                    "type": "object",
+                    "type": [
+                      "null",
+                      "object"
+                    ],
                     "additionalProperties": false,
                     "properties": {
                       "type": {
@@ -212,6 +224,34 @@
       ]
     },
     "type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "total_budget": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "currency_code": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "amount": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "singer.decimal"
+        }
+      }
+    },
+    "version_tag": {
       "type": [
         "null",
         "string"
@@ -429,11 +469,83 @@
         "string"
       ]
     },
+    "objective_type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "offsite_delivery_enabled": {
       "type": [
         "null",
         "boolean"
       ]
+    },
+    "offsite_preferences": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "iab_categories": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "exclude": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "additionalProperties": false,
+              "items": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "include": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "additionalProperties": false,
+              "items": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            }
+          }
+        },
+        "publisher_restriction_files": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "exclude": {
+              "type": [
+                "null",
+                "array"
+              ],
+              "additionalProperties": false,
+              "items": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "id": {
       "type": [
@@ -445,6 +557,24 @@
       "type": [
         "null",
         "boolean"
+      ]
+    },
+    "test": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "format": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "pacing_strategy": {
+      "type": [
+        "null",
+        "string"
       ]
     },
     "account": {

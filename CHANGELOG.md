@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.1.0
+  * Bump to API version `202302`
+  * Move and update `FIELDS_UNACCEPTED_BY_API`
+  * Tests updated for version bump
+  * [#61](https://github.com/singer-io/tap-linkedin-ads/pull/61)
+
+## 2.0.1
+  * Adds query tunneling to allow large number of accounts to be synced [#60](https://github.com/singer-io/tap-linkedin-ads/pull/60)
+
+## 2.0.0
+  * Added missing fields in the schemas and upgraded API version [#47](https://github.com/singer-io/tap-linkedin-ads/pull/47)
+    * Creative endpoint changed to rest/creatives [57] (https://github.com/singer-io/tap-linkedin-ads/pull/57)
+  * Dictionary based to class based implementation [#48](https://github.com/singer-io/tap-linkedin-ads/pull/48)
+  * Add backoff error handling for 5xx [#45](https://github.com/singer-io/tap-linkedin-ads/pull/45)
+  * Remove version pins for dev requirements [#38](https://github.com/singer-io/tap-linkedin-ads/pull/38)
+  * Rewrite access_token into the config to reuse in the next sync if it is updated [#52](https://github.com/singer-io/tap-linkedin-ads/pull/52)
+  * Add missing tap tester [#46](https://github.com/singer-io/tap-linkedin-ads/pull/46)
+
+## 1.2.7
+  * Checks Access Token expiration before attempting to refresh token.
+  * Adds backoff case for token expiration.
+  * Adds unittests and unittest related functions.
+  [#50](https://github.com/singer-io/tap-linkedin-ads/pull/50)
+
+## 1.2.6
+  * Fixed 1.2.5 release issues [#43](https://github.com/singer-io/tap-linkedin-ads/pull/43)
+
+## 1.2.5
+  * Auto access-token refresh [#41](https://github.com/singer-io/tap-linkedin-ads/pull/41)
+  
 ## 1.2.4
   * Add Request Timeout [#36](https://github.com/singer-io/tap-linkedin-ads/pull/36)
   * Handling 4xx responses for adCampaignGroup [#28](https://github.com/singer-io/tap-linkedin-ads/pull/28)

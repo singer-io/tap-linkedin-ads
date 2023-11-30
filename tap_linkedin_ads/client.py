@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+import time
+import json
 import backoff
 import requests
 import time
@@ -6,6 +9,10 @@ from singer import metrics
 import singer
 
 LOGGER = singer.get_logger()
+BASE_URL = 'https://api.linkedin.com/rest'
+LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
+INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
+LINKEDIN_VERSION = '202302'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
@@ -16,10 +23,8 @@ class LinkedInError(Exception):
 class Server5xxError(LinkedInError):
     pass
 
-
 class Server429Error(LinkedInError):
     pass
-
 
 class LinkedInBadRequestError(LinkedInError):
     pass
@@ -31,7 +36,6 @@ class LinkedInUnauthorizedError(LinkedInError):
 
 class LinkedInMethodNotAllowedError(LinkedInError):
     pass
-
 
 class LinkedInNotFoundError(LinkedInError):
     pass
@@ -111,31 +115,58 @@ def raise_for_error(response):
     message = "HTTP-error-code: {}, Error: {}".format(
                 error_code, error_description)
 
-    exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
+    if error_code not in ERROR_CODE_EXCEPTION_MAPPING and error_code >= 500:
+        # Raise `Server5xxError` for all 5xx unknown error
+        exc = Server5xxError
+    else:
+        exc = ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("raise_exception", LinkedInError)
     raise exc(message) from None
 
-class LinkedinClient:
-    def __init__(self,
-                 refresh_token,
+class LinkedinClient: # pylint: disable=too-many-instance-attributes
+    def __init__(self, # pylint: disable=too-many-arguments
                  client_id,
                  client_secret,
-                 user_agent=None,
-                 timeout_from_config=None):
-        self.__refresh_token = refresh_token
+                 refresh_token,
+                 access_token,
+                 config_path,
+                 request_timeout=REQUEST_TIMEOUT,
+                 user_agent=None):
         self.__client_id = client_id
         self.__client_secret = client_secret
+        self.__refresh_token = refresh_token
+        self.__config_path = config_path
         self.__user_agent = user_agent
+        self.__access_token = access_token
+        self.__expires = None
         self.__session = requests.Session()
         self.__base_url = None
-        self.__verified = False
+        # if request_timeout is other than 0,"0" or "" then use request_timeout
+        if request_timeout and float(request_timeout):
+            request_timeout = float(request_timeout)
+        else: # If value is 0,"0" or "" then set default to 300 seconds.
+            request_timeout = REQUEST_TIMEOUT
+        self.request_timeout = request_timeout
 
-        # if the 'timeout_from_config' value is 0, "0", "" or not passed then set default value of 300 seconds.
-        if timeout_from_config and float(timeout_from_config):
-            # update the request timeout for the requests
-            self.request_timeout = float(timeout_from_config)
-        else:
-            # set the default timeout of 300 seconds
-            self.request_timeout = REQUEST_TIMEOUT
+    # def get_access_token(self, refresh_token, client_id, client_secret):
+    #     params = {
+    #         "grant_type": "refresh_token",
+    #         "refresh_token": refresh_token,
+    #         "client_id": client_id,
+    #         "client_secret": client_secret,
+    #     }
+    #     response = self.__session.post(
+    #         url='https://www.linkedin.com/oauth/v2/accessToken',
+    #         headers={"Content-Type": "application/x-www-form-urlencoded"},
+    #         params=params)
+
+    #     if response.status_code != 200:
+    #         LOGGER.error('Error status_code = %s, cannot get access token', response.status_code)
+    #     else:
+    #         self.__access_token = response.json()['access_token']
+
+    @property
+    def access_token(self):
+        return self.__access_token
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -146,63 +177,127 @@ class LinkedinClient:
                           max_tries=5,
                           factor=2)
     def __enter__(self):
-        self.__verified = self.check_access_token()
+        self.fetch_and_set_access_token()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
-    def get_access_token(self, refresh_token, client_id, client_secret):
-        params = {
-            "grant_type": "refresh_token",
-            "refresh_token": refresh_token,
-            "client_id": client_id,
-            "client_secret": client_secret,
-        }
-        response = self.__session.post(
-            url='https://www.linkedin.com/oauth/v2/accessToken',
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            params=params)
-        
-        if response.status_code != 200:
-            LOGGER.error('Error status_code = %s, cannot get access token', response.status_code)
-        else:
-            self.__access_token = response.json()['access_token']
+    # The following two functions are used solely by unittests and are not utilized by the tap
+
+    def get_expires_time_for_test(self):
+        return self.__expires
+
+    def set_mock_expires_for_test(self, mock_expire):
+        self.__expires = mock_expire
+        return self.__expires
+
+
+    def write_access_token_to_config(self):
+        """
+        Write an updated access token in the config to reuse in the next sync.
+        If we generate access_token today, then it would be valid for 2 months.
+        But after 2 months whenever we do an introspection call, access_token would
+        always be found as expired because the config still contains the same access_token.
+        So, whenever we generate a new access_token, it would be updated in the config.
+        """
+        # Update config at config_path
+        with open(self.__config_path) as file:
+            config = json.load(file)
+        # Set new access_token
+        config['access_token'] = self.__access_token
+
+        with open(self.__config_path, 'w') as file:
+            json.dump(config, file, indent=2)
 
     @backoff.on_exception(backoff.expo,
-                          Server5xxError,
+                          (Server5xxError, LinkedInUnauthorizedError),
                           max_tries=5,
                           factor=2)
-    def check_access_token(self): #pylint: disable=inconsistent-return-statements
-        if self.__refresh_token is None:
-            raise Exception('Error: Missing refresh_token.')
-        if self.__client_id is None:
-            raise Exception('Error: Missing client_id.')
-        if self.__client_secret is None:
-            raise Exception('Error: Missing client_secret.')
-        
-        self.get_access_token(self.__refresh_token, self.__client_id, self.__client_secret)
-        LOGGER.info("access_token generated, sleep for 60 seconds.")
-        time.sleep(60)
+    def get_token_expires(self):
+        """
+        Function to get expiry time of access token.
+        """
+        if not self.__expires:
+            headers = {}
+            if self.__user_agent:
+                headers['User-Agent'] = self.__user_agent
+
+            response = self.__session.post(
+                url=INTROSPECTION_URI,
+                headers=headers,
+                data={
+                    'client_id': self.__client_id,
+                    'client_secret': self.__client_secret,
+                    'token': self.__access_token
+                },
+                timeout=self.request_timeout)
+
+            if response.status_code != 200:
+                raise_for_error(response)
+
+            data = response.json()
+            self.__expires = datetime.fromtimestamp(data['expires_at'])
+        return self.__expires
+
+
+    @backoff.on_exception(backoff.expo,
+                          (Server5xxError, LinkedInUnauthorizedError),
+                          max_tries=5,
+                          factor=2)
+    def refresh_access_token(self):
         headers = {}
         if self.__user_agent:
             headers['User-Agent'] = self.__user_agent
-        headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Accept'] = 'application/json'
-        response = self.__session.get(
-            # Simple endpoint that returns 1 Account record (to check API/token access):
-            url='https://api.linkedin.com/v2/adAccountsV2?q=search&start=0&count=1',
+
+        response = self.__session.post(
+            url=LINKEDIN_TOKEN_URI,
             headers=headers,
+            data={
+                'grant_type': 'refresh_token',
+                'client_id': self.__client_id,
+                'client_secret': self.__client_secret,
+                'refresh_token': self.__refresh_token,
+            },
             timeout=self.request_timeout)
+
         if response.status_code != 200:
-            LOGGER.error('Error status_code = %s', response.status_code)
             raise_for_error(response)
-        else:
-            resp = response.json()
-            if 'elements' in resp: #pylint: disable=simplifiable-if-statement
-                return True
-            else:
-                return False
+
+        data = response.json()
+        self.__access_token = data['access_token']
+        # data['expires_in'] is an integer of seconds until the access_token expires.
+        # Technically this self.__expires is inaccurate because it was true when LinkedIn generated the token, but
+        # we receive and process that response some (very) small amount of time after it was true.
+        self.__expires = datetime.utcnow() + timedelta(seconds=data['expires_in'])
+
+        self.write_access_token_to_config()
+
+    def fetch_and_set_access_token(self):
+        """
+        This method generates a new access token if the refresh token is provided.
+
+        Note: Linkedin-ads access token expires in 60 days, whereas the refresh token expires in 365 days.
+        """
+        # If the refresh token is not provided then we are assuming that it is an old connection
+        # and client has provided the valid access_token already
+        # Checking if the token is expired, It will be refreshed
+        if not self.__refresh_token:
+            return
+
+        if self.__access_token:
+            # Subtracting 1 day from the expiration date to avoid the failure of the token in case of a longer sync run.
+            if self.get_token_expires() - timedelta(seconds=86400) > datetime.utcnow():
+                LOGGER.info('Existing token still valid; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+                return
+
+        self.refresh_access_token()
+        LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+
+
+        # Waiting 30 seconds after generating a new token
+        # as it works after several seconds.
+        time.sleep(30)
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -216,13 +311,14 @@ class LinkedinClient:
             headers['User-Agent'] = self.__user_agent
         headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
         headers['Accept'] = 'application/json'
+        headers['LinkedIn-Version'] = LINKEDIN_VERSION
 
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
             invalid_account = []
             for account in account_list:
                 response = self.__session.get(
-                    url='https://api.linkedin.com/v2/adAccountUsersV2?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
+                    url='https://api.linkedin.com/rest/adAccountUsers?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
                     headers=headers,
                     timeout=self.request_timeout)
 
@@ -253,11 +349,9 @@ class LinkedinClient:
         factor=2
     )
     def request(self, method, url=None, path=None, **kwargs):
-        if not self.__verified:
-            self.__verified = self.check_access_token()
 
         if not url and self.__base_url is None:
-            self.__base_url = 'https://api.linkedin.com/v2'
+            self.__base_url = 'https://api.linkedin.com/rest'
 
         if not url and path:
             url = '{}/{}'.format(self.__base_url, path)
@@ -272,6 +366,8 @@ class LinkedinClient:
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
+        kwargs['headers']['LinkedIn-Version'] = LINKEDIN_VERSION
+        kwargs['headers']['Cache-Control'] = "no-cache"
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent
@@ -279,13 +375,21 @@ class LinkedinClient:
         if method == 'POST':
             kwargs['headers']['Content-Type'] = 'application/json'
 
+        # Use query tunneling to allow large URIs
+        # https://learn.microsoft.com/en-us/linkedin/shared/api-guide/concepts/query-tunneling?context=linkedin/context
+        if method == 'GET':
+            if url:
+                url, query = url.split('?', 1)
+                kwargs['data'] = query
+            kwargs['headers']['Content-Type'] = 'application/x-www-form-urlencoded'
+            kwargs['headers']['X-HTTP-Method-Override'] = 'GET'
+
         with metrics.http_request_timer(endpoint) as timer:
-            response = self.__session.request(method, url, timeout=self.request_timeout, **kwargs)
+            response = self.__session.request('POST', url, timeout=self.request_timeout, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code != 200:
             raise_for_error(response)
-
         return response.json()
 
     def get(self, url=None, path=None, **kwargs):

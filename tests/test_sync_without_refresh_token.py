@@ -1,5 +1,6 @@
-from tap_tester import runner, connections, menagerie
+import os
 
+from tap_tester import runner, connections, menagerie
 from base import TestLinkedinAdsBase
 
 # As we can't find the below fields in the docs and also
@@ -27,54 +28,61 @@ KNOWN_MISSING_FIELDS = {
         "total_budget_ends_at",
         "total_budget",
         "reference_person_id",
+        "notified_on_new_features_enabled",
     },
     "ad_analytics_by_creative": {
-        "average_daily_reach_metrics",
         "average_previous_seven_day_reach_metrics",
         "average_previous_thirty_day_reach_metrics",
-        #BUG: TDL-22692
         "approximate_unique_impressions",
+        "average_daily_reach_metrics"
     },
     "ad_analytics_by_campaign": {
-        "average_daily_reach_metrics"
         "average_previous_seven_day_reach_metrics",
         "average_previous_thirty_day_reach_metrics",
-        #BUG: TDL-22692
         "approximate_unique_impressions",
+        "average_daily_reach_metrics"
     },
 }
 
 class AllFields(TestLinkedinAdsBase):
     """Test that with all fields selected for a stream automatic and available fields are  replicated"""
 
-    @staticmethod
-    def name():
-        return "tap_tester_linkedin_ads_all_fields"
+    access_token = None
 
-    def test_run(self):
+    @staticmethod
+    def set_access_token(access_token):
+        AllFields.access_token = access_token
+
+    def get_credentials(self):
+
+        return {
+            "access_token": AllFields.access_token
+            }
+
+    def run_all_fields(self):
         """
         Ensure running the tap with all streams and fields selected results in the
-        Replication of all fields.
+        replication of all fields.
         - Verify no unexpected streams were replicated
         - Verify that more than just the automatic fields are replicated for each stream.
         """
 
         expected_streams = self.expected_streams()
 
-        # Instantiate connection
+        # instantiate connection
         conn_id = connections.ensure_connection(self)
 
-        # Run check mode
+        # check mode
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # Table and field selection
+        # table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
                                     if catalog.get('stream_name') in expected_streams]
         self.perform_and_verify_table_and_field_selection(
             conn_id, test_catalogs_all_fields, select_all_fields=True,
         )
 
-        # Grab metadata after performing table-and-field selection to set expectations
+        # grab metadata after performing table-and-field selection to set expectations
         stream_to_all_catalog_fields = dict() # used for asserting all fields are replicated
         for catalog in test_catalogs_all_fields:
             stream_id, stream_name = catalog['stream_id'], catalog['stream_name']
@@ -84,7 +92,7 @@ class AllFields(TestLinkedinAdsBase):
                                           if md_entry['breadcrumb'] != []]
             stream_to_all_catalog_fields[stream_name] = set(fields_from_field_level_md)
 
-        # Run initial sync
+        # run initial sync
         record_count_by_stream = self.run_and_verify_sync(conn_id)
         synced_records = runner.get_records_from_target_output()
 
@@ -95,13 +103,13 @@ class AllFields(TestLinkedinAdsBase):
         for stream in expected_streams:
             with self.subTest(stream=stream):
 
-                # Expected values
+                # expected values
                 expected_automatic_keys = self.expected_automatic_fields().get(stream)
 
-                # Get all expected keys
+                # get all expected keys
                 expected_all_keys = stream_to_all_catalog_fields[stream]
 
-                # Collect actual values
+                # collect actual values
                 messages = synced_records.get(stream)
 
                 actual_all_keys = set()
@@ -112,8 +120,37 @@ class AllFields(TestLinkedinAdsBase):
                 # Verify that you get some records for each stream
                 self.assertGreater(record_count_by_stream.get(stream, -1), 0)
 
-                # Verify all fields for a stream were replicated
+                # verify all fields for a stream were replicated
                 self.assertGreater(len(expected_all_keys), len(expected_automatic_keys))
                 self.assertTrue(expected_automatic_keys.issubset(expected_all_keys), msg=f'{expected_automatic_keys-expected_all_keys} is not in "expected_all_keys"')
-
                 self.assertSetEqual(expected_all_keys.difference(KNOWN_MISSING_FIELDS.get(stream, set())), actual_all_keys)
+
+
+class AllFieldsWithExpiredAccessToken(AllFields):
+    """This method run all fileds test by setting expired access token in the config properties"""
+
+    @staticmethod
+    def name():
+        return "tap_tester_linkedin_expired_access_token"
+
+    def test_run(self):
+        try:
+            self.set_access_token(os.getenv("TAP_LINKEDIN_ADS_EXPIRED_ACCESS_TOKEN", None))
+            self.run_all_fields()
+        except Exception as e:
+            self.assertIn("HTTP-error-code: 401, Error: The token used in the request has expired", str(e))
+
+
+class AllFieldsWithInvalidAccessToken(AllFields):
+    """This method run all fileds test by setting invalid access token in the config properties"""
+
+    @staticmethod
+    def name():
+        return "tap_tester_linkedin_invalid_access_token"
+
+    def test_run(self):
+        try:
+            self.set_access_token("INVALID_ACCESS_TOKEN")
+            self.run_all_fields()
+        except Exception as e:
+            self.assertIn("HTTP-error-code: 401, Error: Invalid access token", str(e))
