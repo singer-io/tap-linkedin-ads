@@ -9,6 +9,8 @@ LOGGER = singer.get_logger()
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
+LINKEDIN_VERSION = '202302'
+
 
 class LinkedInError(Exception):
     pass
@@ -163,7 +165,7 @@ class LinkedinClient:
             url='https://www.linkedin.com/oauth/v2/accessToken',
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             params=params)
-        
+
         if response.status_code != 200:
             LOGGER.error('Error status_code = %s, cannot get access token', response.status_code)
         else:
@@ -180,7 +182,7 @@ class LinkedinClient:
             raise Exception('Error: Missing client_id.')
         if self.__client_secret is None:
             raise Exception('Error: Missing client_secret.')
-        
+
         self.get_access_token(self.__refresh_token, self.__client_id, self.__client_secret)
         LOGGER.info("access_token generated, sleep for 60 seconds.")
         time.sleep(60)
@@ -272,6 +274,7 @@ class LinkedinClient:
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
+        kwargs['headers']['LinkedIn-Version']= LINKEDIN_VERSION
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent
