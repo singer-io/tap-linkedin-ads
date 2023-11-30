@@ -361,7 +361,7 @@ def sync_endpoint(client,
             if rel == 'next':
                 href = link.get('href')
                 if href:
-                    next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+                    next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href)).replace('/rest/', '/v2/')
 
         LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
                     stream_name,
@@ -822,5 +822,5 @@ def get_next_url(data):
         if rel == 'next':
             href = link.get('href')
             if href:
-                next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+                next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href)).replace('/rest/', '/v2/')
     return next_url

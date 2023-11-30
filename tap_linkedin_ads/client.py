@@ -274,7 +274,7 @@ class LinkedinClient:
             kwargs['headers'] = {}
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
-        kwargs['headers']['LinkedIn-Version']= LINKEDIN_VERSION
+        # kwargs['headers']['LinkedIn-Version']= LINKEDIN_VERSION
 
         if self.__user_agent:
             kwargs['headers']['User-Agent'] = self.__user_agent
