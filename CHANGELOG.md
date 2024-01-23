@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.2.0
+  * Updates to run on python 3.11 [#67](https://github.com/singer-io/tap-linkedin-ads/pull/67)
+
 ## 2.1.0
   * Bump to API version `202302`
   * Move and update `FIELDS_UNACCEPTED_BY_API`
