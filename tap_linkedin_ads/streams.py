@@ -23,6 +23,8 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
 }
 
 CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
+NEW_PATH_STREAMS = ["campaign_groups", "campaigns", "creatives"]
+BASE_URL = 'https://api.linkedin.com/rest'
 
 def write_bookmark(state, value, stream_name):
     """
@@ -274,6 +276,7 @@ class LinkedInAds:
     # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
     def sync_endpoint(self,
                       client,
+                      account_list,
                       catalog,
                       state,
                       page_size,
@@ -328,126 +331,135 @@ class LinkedInAds:
             }
 
         querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
-        next_url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
 
-        while next_url: #pylint: disable=too-many-nested-blocks
-            LOGGER.info('URL for %s: %s', self.tap_stream_id, next_url)
+        urllist = []
+        if self.tap_stream_id in NEW_PATH_STREAMS:
+            for account in account_list:
+                url = f"{BASE_URL}/adAccounts/{account}/{self.path}?{querystring}"
+                urllist.append(url)
+        else:
+            url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
+            urllist.append(url)
 
-            # Get data, API request
-            data = client.get(
-                url=next_url,
-                endpoint=self.tap_stream_id,
-                headers=self.headers)
-            # time_extracted: datetime when the data was extracted from the API
-            time_extracted = utils.now()
+        for next_url in urllist:
+            while next_url: #pylint: disable=too-many-nested-blocks
+                LOGGER.info('URL for %s: %s', self.tap_stream_id, next_url)
 
-            # Transform data with transform_json from transform.py
-            #  This function converts unix datetimes, de-nests audit fields,
-            #  tranforms URNs to IDs, tranforms/abstracts variably named fields,
-            #  converts camelCase to snake_case for fieldname keys.
-            # For the Linkedin Ads API, 'elements' is always the root data_key for records.
-            # The data_key identifies the collection of records below the <root> element
-            transformed_data = [] # initialize the record list
-            if self.data_key in data:
-                transformed_data = transform_json(data, self.tap_stream_id)[self.data_key]
-            if not transformed_data or transformed_data is None:
-                LOGGER.info('No transformed_data')
-                break # No data results
+                # Get data, API request
+                data = client.get(
+                    url=next_url,
+                    endpoint=self.tap_stream_id,
+                    headers=self.headers)
+                # time_extracted: datetime when the data was extracted from the API
+                time_extracted = utils.now()
 
-            pre_singer_transformed_data = copy.deepcopy(transformed_data)
-            if self.tap_stream_id in selected_streams:
-                # Process records and gets the max_bookmark_value and record_count for the set of records
-                max_bookmark_value, record_count = self.process_records(
-                    catalog=catalog,
-                    records=transformed_data,
-                    time_extracted=time_extracted,
-                    bookmark_field=bookmark_field,
-                    max_bookmark_value=max_bookmark_value,
-                    last_datetime=last_datetime,
-                    parent_id=parent_id)
-                LOGGER.info('%s, records processed: %s', self.tap_stream_id, record_count)
-                total_records = total_records + record_count
+                # Transform data with transform_json from transform.py
+                #  This function converts unix datetimes, de-nests audit fields,
+                #  tranforms URNs to IDs, tranforms/abstracts variably named fields,
+                #  converts camelCase to snake_case for fieldname keys.
+                # For the Linkedin Ads API, 'elements' is always the root data_key for records.
+                # The data_key identifies the collection of records below the <root> element
+                transformed_data = [] # initialize the record list
+                if self.data_key in data:
+                    transformed_data = transform_json(data, self.tap_stream_id)[self.data_key]
+                if not transformed_data or transformed_data is None:
+                    LOGGER.info('No transformed_data')
+                    break # No data results
 
-            # Loop thru parent batch records for each children objects
-            for child_stream_name in children:
-                if child_stream_name in selected_streams:
-                    # For each parent record
-                    child_obj = STREAMS[child_stream_name]()
+                pre_singer_transformed_data = copy.deepcopy(transformed_data)
+                if self.tap_stream_id in selected_streams:
+                    # Process records and gets the max_bookmark_value and record_count for the set of records
+                    max_bookmark_value, record_count = self.process_records(
+                        catalog=catalog,
+                        records=transformed_data,
+                        time_extracted=time_extracted,
+                        bookmark_field=bookmark_field,
+                        max_bookmark_value=max_bookmark_value,
+                        last_datetime=last_datetime,
+                        parent_id=parent_id)
+                    LOGGER.info('%s, records processed: %s', self.tap_stream_id, record_count)
+                    total_records = total_records + record_count
 
-                    for record in pre_singer_transformed_data:
+                # Loop thru parent batch records for each children objects
+                for child_stream_name in children:
+                    if child_stream_name in selected_streams:
+                        # For each parent record
+                        child_obj = STREAMS[child_stream_name]()
 
-                        parent_id = record.get(child_obj.foreign_key)
+                        for record in pre_singer_transformed_data:
 
-                        child_stream_params = child_obj.params
-                        # Add children filter params based on parent IDs
-                        if self.tap_stream_id == 'accounts':
-                            account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
-                            owner_id = record.get('reference_organization_id', None)
-                            owner = 'urn:li:organization:{}'.format(owner_id)
-                            if child_stream_name == 'video_ads' and owner_id is not None:
-                                child_stream_params['account'] = account
-                                child_stream_params['owner'] = owner
+                            parent_id = record.get(child_obj.foreign_key)
+
+                            child_stream_params = child_obj.params
+                            # Add children filter params based on parent IDs
+                            if self.tap_stream_id == 'accounts':
+                                account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
+                                owner_id = record.get('reference_organization_id', None)
+                                owner = 'urn:li:organization:{}'.format(owner_id)
+                                if child_stream_name == 'video_ads' and owner_id is not None:
+                                    child_stream_params['account'] = account
+                                    child_stream_params['owner'] = owner
+                                else:
+                                    LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
+                                    continue
+                            elif self.tap_stream_id == 'campaigns':
+                                campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
+                                if child_stream_name == 'creatives':
+                                    # The value of the campaigns in the query params should be passed in the encoded format.
+                                    # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
+                                    child_stream_params['campaigns'] = 'List(urn%3Ali%3AsponsoredCampaign%3A{})'.format(parent_id)
+                                elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
+                                    child_stream_params['campaigns[0]'] = campaign
+
+                            # Update params for the child stream
+                            child_obj.params = child_stream_params
+                            LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
+                                        child_stream_name,
+                                        self.tap_stream_id,
+                                        parent_id)
+
+                            # Call sync method for the child stream
+                            if child_stream_name in {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}:
+                                child_total_records, child_batch_bookmark_value = child_obj.sync_ad_analytics(
+                                    client=client,
+                                    catalog=catalog,
+                                    last_datetime=child_obj.get_bookmark(state, start_date),
+                                    date_window_size=date_window_size,
+                                    parent_id=parent_id)
                             else:
-                                LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
-                                continue
-                        elif self.tap_stream_id == 'campaigns':
-                            campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
-                            if child_stream_name == 'creatives':
-                                # The value of the campaigns in the query params should be passed in the encoded format.
-                                # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
-                                child_stream_params['campaigns'] = 'List(urn%3Ali%3AsponsoredCampaign%3A{})'.format(parent_id)
-                            elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                                child_stream_params['campaigns[0]'] = campaign
+                                child_total_records, child_batch_bookmark_value = child_obj.sync_endpoint(
+                                    client=client,
+                                    catalog=catalog,
+                                    state=state,
+                                    page_size=page_size,
+                                    start_date=start_date,
+                                    selected_streams=selected_streams,
+                                    date_window_size=date_window_size,
+                                    parent_id=parent_id)
 
-                        # Update params for the child stream
-                        child_obj.params = child_stream_params
-                        LOGGER.info('Syncing: %s, parent_stream: %s, parent_id: %s',
-                                    child_stream_name,
-                                    self.tap_stream_id,
-                                    parent_id)
+                            child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
+                            child_max_bookmark = child_max_bookmarks.get(child_stream_name)
+                            child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
+                            if child_batch_bookmark_dttm > child_max_bookmark_dttm:
+                                # Update bookmark for child stream.
+                                child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
 
-                        # Call sync method for the child stream
-                        if child_stream_name in {'ad_analytics_by_campaign', 'ad_analytics_by_creative'}:
-                            child_total_records, child_batch_bookmark_value = child_obj.sync_ad_analytics(
-                                client=client,
-                                catalog=catalog,
-                                last_datetime=child_obj.get_bookmark(state, start_date),
-                                date_window_size=date_window_size,
-                                parent_id=parent_id)
-                        else:
-                            child_total_records, child_batch_bookmark_value = child_obj.sync_endpoint(
-                                client=client,
-                                catalog=catalog,
-                                state=state,
-                                page_size=page_size,
-                                start_date=start_date,
-                                selected_streams=selected_streams,
-                                date_window_size=date_window_size,
-                                parent_id=parent_id)
+                            LOGGER.info('Synced: %s, parent_id: %s, total_records: %s',
+                                        child_stream_name,
+                                        parent_id,
+                                        child_total_records)
+                            LOGGER.info('FINISHED Syncing: %s', child_stream_name)
 
-                        child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
-                        child_max_bookmark = child_max_bookmarks.get(child_stream_name)
-                        child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
-                        if child_batch_bookmark_dttm > child_max_bookmark_dttm:
-                            # Update bookmark for child stream.
-                            child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
+                # Pagination: Get next_url
+                next_url = get_next_url(self.tap_stream_id, next_url, data)
 
-                        LOGGER.info('Synced: %s, parent_id: %s, total_records: %s',
-                                    child_stream_name,
-                                    parent_id,
-                                    child_total_records)
-                        LOGGER.info('FINISHED Syncing: %s', child_stream_name)
-
-            # Pagination: Get next_url
-            next_url = get_next_url(self.tap_stream_id, next_url, data)
-
-            if self.tap_stream_id in selected_streams:
-                LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
-                            self.tap_stream_id,
-                            page,
-                            record_count,
-                            total_records)
-            page = page + 1
+                if self.tap_stream_id in selected_streams:
+                    LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
+                                self.tap_stream_id,
+                                page,
+                                record_count,
+                                total_records)
+                page = page + 1
 
         # Write child stream's bookmarks
         for key, val in list(child_max_bookmarks.items()):
