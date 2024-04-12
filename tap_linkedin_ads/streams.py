@@ -1,4 +1,5 @@
 import urllib.parse
+import re
 import copy
 import datetime
 from datetime import timedelta
@@ -20,6 +21,8 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'creative',
     'creativeId',
 }
+
+CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
 
 def write_bookmark(state, value, stream_name):
     """
@@ -71,29 +74,40 @@ def sync_analytics_endpoint(client, stream_name, path, query_string):
         data = client.get(url=next_url, endpoint=stream_name)
         yield data
         # Fetch next page
-        next_url = get_next_url(data)
+        next_url = get_next_url(stream_name, next_url, data)
 
         LOGGER.info('%s: Synced page %s', stream_name, page)
         page = page + 1
 
-def get_next_url(data):
+def get_next_url(stream_name, next_url, data):
     """
     Prepare and return the URL to fetch the next page of records.
     """
-    next_url = None
-    links = data.get('paging', {}).get('links', [])
-    for link in links:
-        rel = link.get('rel')
-        if rel == 'next':
-            href = link.get('href')
-            if href:
-                # url must be kept encoded for the creatives endpoint.
-                # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
-                if "rest/creatives" in href:
-                    return 'https://api.linkedin.com{}'.format(href)
-                # Prepare next page URL
-                next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
-    return next_url
+    if stream_name in CURSOR_BASED_PAGINATION_STREAMS:
+        next_page_token = data.get('metadata', {}).get('nextPageToken', None)
+        if next_page_token:
+            if 'pageToken=' in next_url:
+                next_url = re.sub(r'pageToken=[^&]+', f'pageToken={next_page_token}', next_url)
+            else:
+                next_url = f"{next_url}&pageToken={next_page_token}"
+        else:
+            next_url = None
+        return next_url
+    else:
+        next_url = None
+        links = data.get('paging', {}).get('links', [])
+        for link in links:
+            rel = link.get('rel')
+            if rel == 'next':
+                href = link.get('href')
+                if href:
+                    # url must be kept encoded for the creatives endpoint.
+                    # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
+                    if "rest/creatives" in href:
+                        return 'https://api.linkedin.com{}'.format(href)
+                    # Prepare next page URL
+                    next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
+        return next_url
 
 def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     """
@@ -301,11 +315,17 @@ class LinkedInAds:
         total_records = 0
         page = 1
 
-        endpoint_params = {
-            'start': start,
-            'count': page_size,
-            **self.params # adds in endpoint specific, sort, filter params
-        }
+        if self.tap_stream_id in CURSOR_BASED_PAGINATION_STREAMS:
+            endpoint_params = {
+                'pageSize': page_size,
+                **self.params
+            }
+        else:
+            endpoint_params = {
+                'start': start,
+                'count': page_size,
+                **self.params # adds in endpoint specific, sort, filter params
+            }
 
         querystring = '&'.join(['%s=%s' % (key, value) for (key, value) in endpoint_params.items()])
         next_url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
@@ -419,7 +439,7 @@ class LinkedInAds:
                         LOGGER.info('FINISHED Syncing: %s', child_stream_name)
 
             # Pagination: Get next_url
-            next_url = get_next_url(data)
+            next_url = get_next_url(self.tap_stream_id, next_url, data)
 
             if self.tap_stream_id in selected_streams:
                 LOGGER.info('%s: Synced page %s, this page: %s. Total records processed: %s',
