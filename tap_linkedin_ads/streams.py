@@ -20,6 +20,9 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'endAt',
     'creative',
     'creativeId',
+    # `pivot` and `pivotValue` is not supported anymore, adding values within the code
+    'pivot',
+    'pivotValue'
 }
 
 CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
@@ -133,7 +136,7 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
                   'dateRange.end.year': new_end.year,}
     return current_end, new_end, new_params
 
-def merge_responses(data):
+def merge_responses(pivot, data):
     """
     Prepare map with key as primary key and value as the record itself for analytics streams.
     The primary key is a combination of pivotValue and start date fields value.
@@ -145,7 +148,10 @@ def merge_responses(data):
         # Loop through each record of the page
         for element in page:
             temp_start = element['dateRange']['start']
-            temp_pivotValue = element['pivotValue']
+            temp_pivotValue = element['pivotValues'][0]
+            # adding pivot and pivot_value to make it compatible with the previous tap version 2.2.0
+            element['pivot'] = pivot
+            element["pivot_value"] = temp_pivotValue
             string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
             primary_key = (temp_pivotValue, string_start)
             if primary_key in full_records:
@@ -476,9 +482,8 @@ class LinkedInAds:
         """
         Sync method for ad_analytics_by_campaign, ad_analytics_by_creative
         """
-        # LinkedIn has a max of 20 fields per request. We cap the chunks at 17
-        # to make sure there's always room for us to append `dateRange`,
-        # `pivot`, and `pivotValue`
+        # LinkedIn has a max of 20 fields per request. We cap the chunks at 18
+        # to make sure there's always room for us to append `dateRange`, and `pivotValues`
         MAX_CHUNK_LENGTH = 17
 
         bookmark_field = next(iter(self.replication_keys))
@@ -516,7 +521,7 @@ class LinkedInAds:
         # (even if this means the values are all `0`) and a day with null
         # values. We found that requesting these fields gives you the days with
         # non-null values
-        first_chunk = [['dateRange', 'pivot', 'pivotValue']]
+        first_chunk = [['dateRange', 'pivotValues']]
 
         chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
 
@@ -524,7 +529,7 @@ class LinkedInAds:
         # so that we can create the composite primary key for the record and
         # to merge the multiple responses based on this primary key
         for chunk in chunks:
-            for field in ['dateRange', 'pivot', 'pivotValue']:
+            for field in ['dateRange', 'pivotValues']:
                 if field not in chunk:
                     chunk.append(field)
 
@@ -549,7 +554,8 @@ class LinkedInAds:
                 for page in sync_analytics_endpoint(client, self.tap_stream_id, self.path, query_string):
                     if page.get(self.data_key):
                         responses.append(page.get(self.data_key))
-            raw_records = merge_responses(responses)
+            pivot = params["pivot"] if "pivot" in params.keys() else None
+            raw_records = merge_responses(pivot, responses)
             time_extracted = utils.now()
 
             # While we broke the ad_analytics streams out from
