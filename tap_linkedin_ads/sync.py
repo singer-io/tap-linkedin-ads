@@ -105,16 +105,21 @@ def sync(client, config, catalog, state):
         account_filter = stream_obj.account_filter
         if config.get("accounts") and account_filter is not None:
             account_list = config['accounts'].replace(" ", "").split(",")
-            params = stream_obj.params
-            for idx, account in enumerate(account_list):
+            if len(account_list) > 0:
+                params = stream_obj.params
                 if account_filter == 'search_id_values_param':
-                    params['search.id.values[{}]'.format(idx)] = int(account)
+                    # Convert account IDs to URN format
+                    urn_list = [f"urn%3Ali%3AsponsoredAccount%3A{account_id}" for account_id in account_list]
+                    # Create the query parameter string
+                    param_value = f"(id:(values:List({','.join(urn_list)})))"
+                    params['search'] = param_value
                 elif account_filter == 'accounts_param':
-                    params['accounts[{}]'.format(idx)] = \
-                        'urn:li:sponsoredAccount:{}'.format(account)
+                    for idx, account in enumerate(account_list):
+                        params['accounts[{}]'.format(idx)] = \
+                            'urn:li:sponsoredAccount:{}'.format(account)
 
-            # Update params of specific stream
-            stream_obj.params = params
+                # Update params of specific stream
+                stream_obj.params = params
 
         LOGGER.info('START Syncing: %s', stream_name)
         update_currently_syncing(state, stream_name)

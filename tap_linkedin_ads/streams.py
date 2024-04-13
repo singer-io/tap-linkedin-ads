@@ -319,6 +319,9 @@ class LinkedInAds:
         page = 1
 
         if self.tap_stream_id in CURSOR_BASED_PAGINATION_STREAMS:
+            # hardcoding the pagesize to 1000 for stream - accounts, as search and pageToken param can't be present at the same time.
+            if self.tap_stream_id == "accounts":
+                page_size = 1000
             endpoint_params = {
                 'pageSize': page_size,
                 **self.params
@@ -596,6 +599,7 @@ class Accounts(LinkedInAds):
     params = {
         "q": "search"
     }
+    headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
 class VideoAds(LinkedInAds):
     """
