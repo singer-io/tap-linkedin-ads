@@ -594,9 +594,7 @@ class Accounts(LinkedInAds):
     data_key = "elements"
     children = ["video_ads"]
     params = {
-        "q": "search",
-        "sort.field": "ID",
-        "sort.order": "ASCENDING"
+        "q": "search"
     }
 
 class VideoAds(LinkedInAds):
