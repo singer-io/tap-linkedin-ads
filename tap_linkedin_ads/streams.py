@@ -276,14 +276,14 @@ class LinkedInAds:
     # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
     def sync_endpoint(self,
                       client,
-                      account_list,
                       catalog,
                       state,
                       page_size,
                       start_date,
                       selected_streams,
                       date_window_size,
-                      parent_id=None):
+                      parent_id=None,
+                      account_list=None):
         """
         Sync a specific parent or child endpoint.
         """
@@ -336,12 +336,12 @@ class LinkedInAds:
         if self.tap_stream_id in NEW_PATH_STREAMS:
             for account in account_list:
                 url = f"{BASE_URL}/adAccounts/{account}/{self.path}?{querystring}"
-                urllist.append(url)
+                urllist.append((account, url))
         else:
             url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
-            urllist.append(url)
+            urllist.append((None, url))
 
-        for next_url in urllist:
+        for acct_id, next_url in urllist:
             while next_url: #pylint: disable=too-many-nested-blocks
                 LOGGER.info('URL for %s: %s', self.tap_stream_id, next_url)
 
@@ -435,7 +435,8 @@ class LinkedInAds:
                                     start_date=start_date,
                                     selected_streams=selected_streams,
                                     date_window_size=date_window_size,
-                                    parent_id=parent_id)
+                                    parent_id=parent_id,
+                                    account_list=[acct_id])
 
                             child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
                             child_max_bookmark = child_max_bookmarks.get(child_stream_name)
@@ -641,9 +642,7 @@ class CampaignGroups(LinkedInAds):
     path = "adCampaignGroups"
     data_key = "elements"
     params = {
-        "q": "search",
-        "sort.field": "ID",
-        "sort.order": "ASCENDING"
+        "q": "search"
     }
 
 class Campaigns(LinkedInAds):
@@ -659,9 +658,7 @@ class Campaigns(LinkedInAds):
     data_key = "elements"
     children = ["ad_analytics_by_campaign", "creatives", "ad_analytics_by_creative"]
     params = {
-        "q": "search",
-        "sort.field": "ID",
-        "sort.order": "ASCENDING"
+        "q": "search"
     }
 
 class Creatives(LinkedInAds):

@@ -124,12 +124,12 @@ def sync(client, config, catalog, state):
             stream_obj.write_schema(catalog)
 
         total_records, max_bookmark_value = stream_obj.sync_endpoint(
-            client=client, account_list=account_list
-            catalog=catalog, state=state,
-            page_size=page_size,
+            client=client, catalog=catalog, 
+            state=state, page_size=page_size,
             start_date=start_date,
             selected_streams=selected_streams,
-            date_window_size=date_window_size)
+            date_window_size=date_window_size,
+            account_list=account_list)
 
         # Write parent stream's bookmarks
         if stream_obj.replication_keys and stream_name in selected_streams:
