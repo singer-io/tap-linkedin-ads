@@ -736,7 +736,7 @@ class AdAnalyticsByCreative(LinkedInAds):
 # Dictionary of the stream classes
 STREAMS = {
     "accounts": Accounts,
-    "video_ads": VideoAds,
+    # "video_ads": VideoAds,
     "account_users": AccountUsers,
     "campaign_groups": CampaignGroups,
     "campaigns": Campaigns,

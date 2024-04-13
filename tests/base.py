@@ -81,7 +81,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     def expected_check_streams():
         return {
             'accounts',
-            'video_ads',
+            # 'video_ads',
             'account_users',
             'campaign_groups',
             'campaigns',
@@ -100,12 +100,12 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'last_modified_time'}
             },
-            'video_ads': {
-                self.PRIMARY_KEYS: {'content_reference'},
-                self.REPLICATION_METHOD: self.INCREMENTAL,
-                self.OBEYS_START_DATE: True,
-                self.REPLICATION_KEYS: {'last_modified_time'}
-            },
+            # 'video_ads': {
+            #     self.PRIMARY_KEYS: {'content_reference'},
+            #     self.REPLICATION_METHOD: self.INCREMENTAL,
+            #     self.OBEYS_START_DATE: True,
+            #     self.REPLICATION_KEYS: {'last_modified_time'}
+            # },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
