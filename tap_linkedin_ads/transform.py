@@ -295,7 +295,7 @@ def transform_urn(data_dict):
 
 
 def transform_video_ads(data_dict):
-     # TODO: To be removed in next major version release
+    # TODO: To be removed in next major version release
     if 'author' in data_dict:
         data_dict['owner'] = data_dict["author"]
     if 'id' in data_dict:
