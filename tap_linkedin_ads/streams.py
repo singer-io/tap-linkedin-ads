@@ -623,8 +623,9 @@ class VideoAds(LinkedInAds):
             return super().sync_endpoint(*args, **kwargs)
         except Exception as error:
             if "Not enough permissions to access: partnerApiPostsExternal" in str(error):
-                LOGGER.warning("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
-                LOGGER.error("Error: %s", error)
+                LOGGER.info("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
+                LOGGER.error(error)
+                # total record count (zero), initial bookmark returned to supress this failure
                 return 0, self.get_bookmark(kwargs.get("state"), kwargs.get("start_date"))
             else:
                 raise error
