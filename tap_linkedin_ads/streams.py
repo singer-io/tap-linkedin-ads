@@ -347,7 +347,10 @@ class LinkedInAds:
                 url = f"{BASE_URL}/adAccounts/{account}/{self.path}?{querystring}"
                 urllist.append((account, url))
         else:
-            url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
+            if self.path == 'posts':
+                url = '{}/{}?{}&dscAdAccount=urn%3Ali%3AsponsoredAccount%3A{}'.format(BASE_URL, self.path, querystring, parent_id)
+            else:
+                url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
             urllist.append((None, url))
 
         for acct_id, next_url in urllist:
@@ -405,12 +408,6 @@ class LinkedInAds:
                                 account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
                                 owner_id = record.get('reference_organization_id', None)
                                 owner = 'urn:li:organization:{}'.format(owner_id)
-                                if child_stream_name == 'video_ads' and owner_id is not None:
-                                    child_stream_params['account'] = account
-                                    child_stream_params['owner'] = owner
-                                else:
-                                    LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
-                                    continue
                             elif self.tap_stream_id == 'campaigns':
                                 campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                                 if child_stream_name == 'creatives':
@@ -616,12 +613,14 @@ class VideoAds(LinkedInAds):
     replication_method = "INCREMENTAL"
     key_properties = ["content_reference"]
     foreign_key = "id"
-    path = "adDirectSponsoredContents"
+    path = "posts"
     data_key = "elements"
     parent = "accounts"
     params = {
-        "q": "account"
+        "q": "dscAdAccount",
+        "dscAdTypes": "List(VIDEO)"
     }
+    headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
 class AccountUsers(LinkedInAds):
     """
@@ -736,7 +735,7 @@ class AdAnalyticsByCreative(LinkedInAds):
 # Dictionary of the stream classes
 STREAMS = {
     "accounts": Accounts,
-    # "video_ads": VideoAds,
+    "video_ads": VideoAds,
     "account_users": AccountUsers,
     "campaign_groups": CampaignGroups,
     "campaigns": Campaigns,

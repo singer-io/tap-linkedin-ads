@@ -11,6 +11,186 @@
         "string"
       ]
     },
+    "lifecycle_state": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "visibility": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "published_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "author": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "content_call_to_action_label": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "distribution": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "feed_distribution": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "third_party_distribution_channels": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      }
+    },
+    "content": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "media": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "title": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "id": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "content_landing_page": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "lifecycle_state_info": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "is_edited_by_author": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      }
+    },
+    "is_reshare_disabled_by_author": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "last_modified_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "commentary": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "ad_context": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dsc_status": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "dsc_name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "dsc_ad_type": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "is_dsc": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "dsc_ad_account": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
     "account_id": {
       "type": [
         "null",
