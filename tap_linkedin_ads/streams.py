@@ -92,12 +92,11 @@ def get_next_url(stream_name, next_url, data):
         next_page_token = data.get('metadata', {}).get('nextPageToken', None)
         if next_page_token:
             if 'pageToken=' in next_url:
-                next_url = re.sub(r'pageToken=[^&]+', f'pageToken={next_page_token}', next_url)
+                next_url = re.sub(r'pageToken=[^&]+', 'pageToken={}'.format(next_page_token), next_url)
             else:
-                next_url = f"{next_url}&pageToken={next_page_token}"
+                next_url = next_url + "&pageToken={}".format(next_page_token)
         else:
             next_url = None
-        return next_url
     else:
         next_url = None
         links = data.get('paging', {}).get('links', [])
@@ -112,7 +111,7 @@ def get_next_url(stream_name, next_url, data):
                         return 'https://api.linkedin.com{}'.format(href)
                     # Prepare next page URL
                     next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
-        return next_url
+    return next_url
 
 def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     """
@@ -130,7 +129,6 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
                   'dateRange.start.day': current_end.day,
                   'dateRange.start.month': current_end.month,
                   'dateRange.start.year': current_end.year,
-
                   'dateRange.end.day': new_end.day,
                   'dateRange.end.month': new_end.month,
                   'dateRange.end.year': new_end.year,}
@@ -279,7 +277,7 @@ class LinkedInAds:
 
             return max_bookmark_value, counter.value
 
-    # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
+    # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals,too-many-nested-blocks
     def sync_endpoint(self,
                       client,
                       catalog,
@@ -344,10 +342,13 @@ class LinkedInAds:
         urllist = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
             for account in account_list:
-                url = f"{BASE_URL}/adAccounts/{account}/{self.path}?{querystring}"
+                url = "{}/adAccounts/{}/{}?{}".format(BASE_URL, account, self.path, querystring)
                 urllist.append((account, url))
         else:
-            url = 'https://api.linkedin.com/rest/{}?{}'.format(self.path, querystring)
+            if self.path == 'posts':
+                url = '{}/{}?{}&dscAdAccount=urn%3Ali%3AsponsoredAccount%3A{}'.format(BASE_URL, self.path, querystring, parent_id)
+            else:
+                url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
             urllist.append((None, url))
 
         for acct_id, next_url in urllist:
@@ -403,14 +404,6 @@ class LinkedInAds:
                             # Add children filter params based on parent IDs
                             if self.tap_stream_id == 'accounts':
                                 account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
-                                owner_id = record.get('reference_organization_id', None)
-                                owner = 'urn:li:organization:{}'.format(owner_id)
-                                if child_stream_name == 'video_ads' and owner_id is not None:
-                                    child_stream_params['account'] = account
-                                    child_stream_params['owner'] = owner
-                                else:
-                                    LOGGER.warning("Skipping video_ads call for %s account as reference_organization_id is not found.", account)
-                                    continue
                             elif self.tap_stream_id == 'campaigns':
                                 campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                                 if child_stream_name == 'creatives':
@@ -616,12 +609,25 @@ class VideoAds(LinkedInAds):
     replication_method = "INCREMENTAL"
     key_properties = ["content_reference"]
     foreign_key = "id"
-    path = "adDirectSponsoredContents"
+    path = "posts"
     data_key = "elements"
     parent = "accounts"
     params = {
-        "q": "account"
+        "q": "dscAdAccount",
+        "dscAdTypes": "List(VIDEO)"
     }
+    headers = {'X-Restli-Protocol-Version': "2.0.0"}
+
+    def sync_endpoint(self, *args, **kwargs):
+        try:
+            return super().sync_endpoint(*args, **kwargs)
+        except Exception as error:
+            if "Not enough permissions to access: partnerApiPostsExternal" in str(error):
+                LOGGER.info("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
+                LOGGER.error(error)
+                # total record count (zero), initial bookmark returned to supress this failure
+                return 0, self.get_bookmark(kwargs.get("state"), kwargs.get("start_date"))
+            raise error
 
 class AccountUsers(LinkedInAds):
     """
@@ -736,7 +742,7 @@ class AdAnalyticsByCreative(LinkedInAds):
 # Dictionary of the stream classes
 STREAMS = {
     "accounts": Accounts,
-    # "video_ads": VideoAds,
+    "video_ads": VideoAds,
     "account_users": AccountUsers,
     "campaign_groups": CampaignGroups,
     "campaigns": Campaigns,
