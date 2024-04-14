@@ -124,7 +124,7 @@ class TestStreamsUtils(unittest.TestCase):
         Test that sync_analytics_endpoint function works properly for single page as well as multiple pages.
         """
         mock_next_url.side_effect = next_url
-        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')     
+        client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         data = list(sync_analytics_endpoint(client, "stream", "path", "query=query"))
 
         # Verify that get method of client is called expected times.
@@ -135,17 +135,18 @@ class TestStreamsUtils(unittest.TestCase):
         ["test_single_page", [], None],
         ["test_multiple_page", [{'rel': 'next', 'href': '/foo'}], 'https://api.linkedin.com/foo']
     ])
-    def test_get_next_url(self, name, links, expected_url):
+    def test_get_next_url_index_pagination(self, name, links, expected_url):
         """
-        Test that get_next_url return link of next page in case of 'href' 
+        Test that get_next_url return link of next page in case of 'href'
         """
         data = {
             'paging': {
                 'links': links
             }
         }
-
-        actual_url = get_next_url(data)
+        mock_next_url = "initial_url"
+        mock_stream_name = "account_users"
+        actual_url = get_next_url(mock_stream_name, mock_next_url, data)
 
         # Verify the next page url
         self.assertEqual(expected_url, actual_url)
@@ -189,36 +190,32 @@ class TestStreamsUtils(unittest.TestCase):
         Test merge_response function with records of unique date range value.
         """
         expected_output = {
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-                           'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-1'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}}, 'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-2'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}}, 'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-3'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}}, 'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-4'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}}, 'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-5'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}}, 'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'},
+                ('urn:li:sponsoredCampaign:123456789', '2020-10-6'): {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}}, 'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789'}
             }
 
         data = [
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},],
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},],
         ]
 
-        actual_output = merge_responses(data)
+        mock_pivot = "CAMPAIGNS"
+        actual_output = merge_responses(mock_pivot, data)
+        print(actual_output)
 
         self.assertEqual(expected_output, actual_output)
 
@@ -228,38 +225,24 @@ class TestStreamsUtils(unittest.TestCase):
         """
         data = [
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'a': 1, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'a': 1, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-              'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 7, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-              'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'b': 2, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-              'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},],
             [{'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-              'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'd': 4, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-              'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
+              'e': 5, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},
              {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-              'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},],
+              'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789']},],
         ]
 
-        expected_output = {
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-1') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 1}},
-                           'a': 1, 'b': 7, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-2') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 2}},
-                           'b': 2, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-3') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 3}},
-                           'c': 3, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-4') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 4}},
-                           'd': 4, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-5') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 5}},
-                           'e': 5, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            ('urn:li:sponsoredCampaign:123456789', '2020-10-6') : {'dateRange': {'start': {'year': 2020, 'month': 10, 'day': 6}},
-                           'f': 6, 'pivotValue': 'urn:li:sponsoredCampaign:123456789'},
-            }
-
-        actual_output = merge_responses(data)
-
+        expected_output = {('urn:li:sponsoredCampaign:123456789', '2020-10-4'): {'pivot': 'CAMPAIGNS', 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'dateRange': {'start': {'month': 10, 'day': 4, 'year': 2020}}, 'pivot_value': 'urn:li:sponsoredCampaign:123456789', 'd': 4}, ('urn:li:sponsoredCampaign:123456789', '2020-10-3'): {'pivot': 'CAMPAIGNS', 'c': 3, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'dateRange': {'start': {'month': 10, 'day': 3, 'year': 2020}}, 'pivot_value': 'urn:li:sponsoredCampaign:123456789'}, ('urn:li:sponsoredCampaign:123456789', '2020-10-1'): {'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'pivot': 'CAMPAIGNS', 'pivot_value': 'urn:li:sponsoredCampaign:123456789', 'dateRange': {'start': {'month': 10, 'day': 1, 'year': 2020}}, 'a': 1, 'b': 7}, ('urn:li:sponsoredCampaign:123456789', '2020-10-6'): {'pivot': 'CAMPAIGNS', 'f': 6, 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'dateRange': {'start': {'month': 10, 'day': 6, 'year': 2020}}, 'pivot_value': 'urn:li:sponsoredCampaign:123456789'}, ('urn:li:sponsoredCampaign:123456789', '2020-10-5'): {'pivot': 'CAMPAIGNS', 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'dateRange': {'start': {'month': 10, 'day': 5, 'year': 2020}}, 'pivot_value': 'urn:li:sponsoredCampaign:123456789', 'e': 5}, ('urn:li:sponsoredCampaign:123456789', '2020-10-2'): {'pivot': 'CAMPAIGNS', 'pivotValues': ['urn:li:sponsoredCampaign:123456789'], 'dateRange': {'start': {'month': 10, 'day': 2, 'year': 2020}}, 'pivot_value': 'urn:li:sponsoredCampaign:123456789', 'b': 2}}
+        mock_pivot = "CAMPAIGNS"
+        actual_output = merge_responses(mock_pivot, data)
         # Verify that merge_responses function merge records by primary with same date range value.
         self.assertEqual(expected_output, actual_output)
 
@@ -340,10 +323,11 @@ class TestLinkedInAds(unittest.TestCase):
         start_date='2019-06-01T00:00:00Z'
         page_size = 100
         date_window_size = 7
+        account_list = ["12345"]
 
         mock_client.side_effect = mock_response
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
+        actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size, account_list=account_list)
 
         # Verify total no of records
         self.assertEqual(actual_total_record, mock_record_count)
@@ -363,7 +347,7 @@ class TestLinkedInAds(unittest.TestCase):
     @mock.patch("tap_linkedin_ads.streams.transform_json")
     @mock.patch("tap_linkedin_ads.streams.sync_analytics_endpoint")
     @mock.patch("tap_linkedin_ads.streams.merge_responses")
-    def test_sync_ad_analytics(self, name, expected_record_count, expected_max_bookmark, mock_tranform_data, 
+    def test_sync_ad_analytics(self, name, expected_record_count, expected_max_bookmark, mock_tranform_data,
                                mock_merge_response, mock_endpoint, mock_transform, mock_shift_windows, mock_process_record):
         """
         Test that `sync_ad_analytics` function work properly for zero records as well as multiple records.

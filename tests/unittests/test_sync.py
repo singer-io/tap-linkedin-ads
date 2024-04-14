@@ -162,4 +162,4 @@ class TestSync(unittest.TestCase):
                                               page_size=100, 
                                               start_date="2019-06-01T00:00:00Z", 
                                               selected_streams=['accounts', 'video_ads', 'account_users', 'campaigns', 'ad_analytics_by_campaign'], 
-                                              date_window_size=expected_date_window)
+                                              date_window_size=expected_date_window, account_list=[config['accounts']])
