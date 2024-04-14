@@ -295,6 +295,7 @@ def transform_urn(data_dict):
 
 
 def transform_video_ads(data_dict):
+    # TODO: To be removed in next major version release
     if 'author' in data_dict:
         data_dict['owner'] = data_dict["author"]
     if 'id' in data_dict:
@@ -306,7 +307,6 @@ def transform_video_ads(data_dict):
             data_dict['type'] = data_dict["ad_context"]['dsc_ad_type']
         if 'dsc_ad_account' in data_dict['ad_context']:
             data_dict['account'] = data_dict["ad_context"]['dsc_ad_account']
-        data_dict['ad_context']
     if 'last_modified_at' in data_dict:
         data_dict['last_modified_time'] = data_dict["last_modified_at"]
     if 'created_at' in data_dict:
