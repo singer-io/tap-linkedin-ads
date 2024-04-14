@@ -97,7 +97,6 @@ def get_next_url(stream_name, next_url, data):
                 next_url = f"{next_url}&pageToken={next_page_token}"
         else:
             next_url = None
-        return next_url
     else:
         next_url = None
         links = data.get('paging', {}).get('links', [])
@@ -112,7 +111,7 @@ def get_next_url(stream_name, next_url, data):
                         return 'https://api.linkedin.com{}'.format(href)
                     # Prepare next page URL
                     next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
-        return next_url
+    return next_url
 
 def shift_sync_window(params, today, date_window_size, forced_window_size=None):
     """
@@ -130,7 +129,6 @@ def shift_sync_window(params, today, date_window_size, forced_window_size=None):
                   'dateRange.start.day': current_end.day,
                   'dateRange.start.month': current_end.month,
                   'dateRange.start.year': current_end.year,
-
                   'dateRange.end.day': new_end.day,
                   'dateRange.end.month': new_end.month,
                   'dateRange.end.year': new_end.year,}
@@ -279,7 +277,7 @@ class LinkedInAds:
 
             return max_bookmark_value, counter.value
 
-    # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
+    # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals,too-many-nested-blocks
     def sync_endpoint(self,
                       client,
                       catalog,
@@ -406,8 +404,6 @@ class LinkedInAds:
                             # Add children filter params based on parent IDs
                             if self.tap_stream_id == 'accounts':
                                 account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
-                                owner_id = record.get('reference_organization_id', None)
-                                owner = 'urn:li:organization:{}'.format(owner_id)
                             elif self.tap_stream_id == 'campaigns':
                                 campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                                 if child_stream_name == 'creatives':

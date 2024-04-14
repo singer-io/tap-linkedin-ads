@@ -22,6 +22,7 @@ KNOWN_MISSING_FIELDS = {
     "video_ads": {
         "content_reference_share_id",
         "content_reference_ucg_post_id",
+        "change_audit_stamps"
     },
     "accounts": {
         "total_budget_ends_at",
