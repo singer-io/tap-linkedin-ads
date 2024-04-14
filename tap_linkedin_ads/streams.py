@@ -618,6 +618,17 @@ class VideoAds(LinkedInAds):
     }
     headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
+    def sync_endpoint(self, *args, **kwargs):
+        try:
+            return super().sync_endpoint(*args, **kwargs)
+        except Exception as error:
+            if "Not enough permissions to access: partnerApiPostsExternal" in str(error):
+                LOGGER.warning("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
+                LOGGER.error("Error: %s", error)
+                return 0, self.get_bookmark(kwargs.get("state"), kwargs.get("start_date"))
+            else:
+                raise error
+
 class AccountUsers(LinkedInAds):
     """
     https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts

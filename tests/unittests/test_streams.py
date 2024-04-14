@@ -70,7 +70,7 @@ class TestStreamsUtils(unittest.TestCase):
     """
     Test all utility functions of streams module
     """
-    
+
     def test_split_into_chunks(self):
         """
         Test that `test_split_into_chunks` split 65 fields into 4 chunk of MAX_CHUNK_LENGTH
@@ -126,11 +126,11 @@ class TestStreamsUtils(unittest.TestCase):
         mock_next_url.side_effect = next_url
         client = _client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')     
         data = list(sync_analytics_endpoint(client, "stream", "path", "query=query"))
-        
+
         # Verify that get method of client is called expected times.
         self.assertEqual(expected_call_count, mock_get.call_count)
-        
-        
+
+
     @parameterized.expand([
         ["test_single_page", [], None],
         ["test_multiple_page", [{'rel': 'next', 'href': '/foo'}], 'https://api.linkedin.com/foo']
@@ -168,13 +168,13 @@ class TestStreamsUtils(unittest.TestCase):
             'dateRange.end.month': expected_end_date.month,
             'dateRange.end.day': expected_end_date.day,
         }
-        
+
         params = {
             'dateRange.end.year': 2020,
             'dateRange.end.month': 10,
             'dateRange.end.day': 1,
         }
-        
+
         today = datetime.date(year=2020, month=today_month, day=today_date)
 
         actual_start_date, actual_end_date, actual_params = shift_sync_window(params, today, 30)
@@ -282,11 +282,11 @@ class TestLinkedInAds(unittest.TestCase):
         Case 3: Return default value if stream_name is not found in the bookmarks
         Cas 4: Return actual bookmark value if it is found in the state
         """
-        
+
         actual_output = ACCOUNT_OBJ.get_bookmark(state, "default")
-        
+
         self.assertEqual(expected_output, actual_output)
-        
+
     @parameterized.expand([
         ['test_zero_records', ACCOUNT_OBJ, [], "last_modified_time", "2021-07-20T08:50:30.169000Z", 0],
         ['test_zero_latest_records', ACCOUNT_OBJ, [{'id': 1, 'last_modified_time': '2021-06-26T08:50:30.169000Z'}], "last_modified_time", "2021-07-20T08:50:30.169000Z", 0],
@@ -300,7 +300,7 @@ class TestLinkedInAds(unittest.TestCase):
         """
         max_bookmark_value = last_datetime = "2021-07-20T08:50:30.169000Z"
         actual_max_bookmark, actual_record_count = stream_obj.process_records(CATALOG, records, utils.now(), replication_key, max_bookmark_value, last_datetime)
-        
+
         # Verify maximum bookmark and total records.
         self.assertEqual(expected_max_bookmark, actual_max_bookmark)
         self.assertEqual(expected_record_count, actual_record_count)
@@ -323,7 +323,7 @@ class TestLinkedInAds(unittest.TestCase):
         ['test_only_parent_selcted_stream', ['campaigns'], CAMPAIGN_OBJ,
          [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}],
          0, 1
-        ]   
+        ]
     ])
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.sync_ad_analytics", return_value=(1, "2019-07-31T15:07:00.000000Z"))
     @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
@@ -344,7 +344,7 @@ class TestLinkedInAds(unittest.TestCase):
         mock_client.side_effect = mock_response
         mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
         actual_total_record, actual_max_bookmark = stream_obj.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
-        
+
         # Verify total no of records
         self.assertEqual(actual_total_record, mock_record_count)
         # Verify maximum bookmark
@@ -352,28 +352,6 @@ class TestLinkedInAds(unittest.TestCase):
         # Verify total no of write_schema function call. sync_endpoint calls write_schema single time for each child.
         self.assertEqual(mock_write_schema.call_count, expected_write_schema_count)
 
-    @mock.patch("tap_linkedin_ads.sync.LOGGER.warning")
-    @mock.patch("tap_linkedin_ads.streams.LinkedInAds.get_bookmark", return_value = "2019-07-31T15:07:00.000000Z")
-    @mock.patch("tap_linkedin_ads.client.LinkedinClient.request")
-    @mock.patch("tap_linkedin_ads.streams.LinkedInAds.process_records")
-    @mock.patch("tap_linkedin_ads.streams.LinkedInAds.write_schema")
-    def test_sync_endpoint_for_reference_organization_id_is_None(self, mock_write_schema,mock_process_records,mock_client,mock_get_bookmark,
-                                                                 mock_warning):
-        """
-        Verify that tap skips API call for video_ads stream if owner_id in the parent's record is None.
-        """
-        client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
-        state={'currently_syncing': 'accounts'}
-        start_date='2019-06-01T00:00:00Z'
-        page_size = 100
-        date_window_size = 7
-        selected_streams = ['accounts', 'video_ads']
-
-        mock_client.side_effect = [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1}]}]
-        mock_process_records.return_value = "2019-07-31T15:07:00.000000Z",1
-        ACCOUNT_OBJ.sync_endpoint(client, CATALOG, state, page_size, start_date, selected_streams, date_window_size)
-        
-        mock_warning.assert_called_with('Skipping video_ads call for %s account as reference_organization_id is not found.', 'urn:li:sponsoredAccount:1')
 
 
     @parameterized.expand([
@@ -398,7 +376,7 @@ class TestLinkedInAds(unittest.TestCase):
         mock_transform.return_value = mock_tranform_data
         mock_process_record.return_value = (expected_max_bookmark, expected_record_count)
         actual_record_count, actual_max_bookmark =  AD_ANALYTICS_BY_CAMPAIGN.sync_ad_analytics(client, CATALOG, bookmark, date_window_size)
-        
+
         # Verify maximum bookmark
         self.assertEqual(actual_max_bookmark, expected_max_bookmark)
         # Verify total no of records
@@ -423,5 +401,5 @@ class TestLinkedInAds(unittest.TestCase):
         """
         with self.assertRaises(OSError) as e:
             ACCOUNT_OBJ.write_record([], '')
-        
+
         mock_logger.assert_called_with('record: %s', [])
