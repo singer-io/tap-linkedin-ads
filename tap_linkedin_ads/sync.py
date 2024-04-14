@@ -109,15 +109,14 @@ def sync(client, config, catalog, state):
                 params = stream_obj.params
                 if account_filter == 'search_id_values_param':
                     # Convert account IDs to URN format
-                    urn_list = [f"urn%3Ali%3AsponsoredAccount%3A{account_id}" for account_id in account_list]
+                    urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(account_id) for account_id in account_list]
                     # Create the query parameter string
-                    param_value = f"(id:(values:List({','.join(urn_list)})))"
+                    param_value = "(id:(values:List({})))".format(','.join(urn_list))
                     params['search'] = param_value
                 elif account_filter == 'accounts_param':
                     for idx, account in enumerate(account_list):
                         params['accounts[{}]'.format(idx)] = \
                             'urn:li:sponsoredAccount:{}'.format(account)
-
                 # Update params of specific stream
                 stream_obj.params = params
 

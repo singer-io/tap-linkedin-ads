@@ -92,9 +92,9 @@ def get_next_url(stream_name, next_url, data):
         next_page_token = data.get('metadata', {}).get('nextPageToken', None)
         if next_page_token:
             if 'pageToken=' in next_url:
-                next_url = re.sub(r'pageToken=[^&]+', f'pageToken={next_page_token}', next_url)
+                next_url = re.sub(r'pageToken=[^&]+', 'pageToken={}'.format(next_page_token), next_url)
             else:
-                next_url = f"{next_url}&pageToken={next_page_token}"
+                next_url = next_url + "&pageToken={}".format(next_page_token)
         else:
             next_url = None
     else:
@@ -342,7 +342,7 @@ class LinkedInAds:
         urllist = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
             for account in account_list:
-                url = f"{BASE_URL}/adAccounts/{account}/{self.path}?{querystring}"
+                url = "{}/adAccounts/{}/{}?{}".format(BASE_URL, account, self.path, querystring)
                 urllist.append((account, url))
         else:
             if self.path == 'posts':
@@ -627,8 +627,7 @@ class VideoAds(LinkedInAds):
                 LOGGER.error(error)
                 # total record count (zero), initial bookmark returned to supress this failure
                 return 0, self.get_bookmark(kwargs.get("state"), kwargs.get("start_date"))
-            else:
-                raise error
+            raise error
 
 class AccountUsers(LinkedInAds):
     """
