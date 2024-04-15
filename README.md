@@ -31,10 +31,11 @@ This tap:
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for total_budget field.
 - Children: video_ads
 
-[**video_ads**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
-- Endpoint: https://api.linkedin.com/rest/adDirectSponsoredContents
+[**video_ads**](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api?view=li-lms-2024-03&tabs=curl#find-posts-by-account)
+- Endpoint: https://api.linkedin.com/rest/posts
 - Primary key field: content_reference
 - Foreign keys: account_id (accounts), owner_organization_id (organizations)
+- Required scope - `r_organization_social`
 - Replication strategy: Incremental (query all, filter results)
   - Filter: account (from parent account) and owner (from parent account) (see NOTE below)
   - Bookmark: last_modified_time (date-time)
