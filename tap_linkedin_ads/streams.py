@@ -98,6 +98,7 @@ def get_next_url(stream_name, next_url, data):
         else:
             next_url = None
     else:
+        # handles index based paination
         next_url = None
         links = data.get('paging', {}).get('links', [])
         for link in links:
@@ -341,6 +342,8 @@ class LinkedInAds:
 
         urllist = []
         if self.tap_stream_id in NEW_PATH_STREAMS:
+            # As per the latest linkedin version, few url formats are modified, it expects advertiser
+            # account_id in each url path
             for account in account_list:
                 url = "{}/adAccounts/{}/{}?{}".format(BASE_URL, account, self.path, querystring)
                 urllist.append((account, url))
@@ -477,7 +480,7 @@ class LinkedInAds:
         """
         # LinkedIn has a max of 20 fields per request. We cap the chunks at 18
         # to make sure there's always room for us to append `dateRange`, and `pivotValues`
-        MAX_CHUNK_LENGTH = 17
+        MAX_CHUNK_LENGTH = 18
 
         bookmark_field = next(iter(self.replication_keys))
 
