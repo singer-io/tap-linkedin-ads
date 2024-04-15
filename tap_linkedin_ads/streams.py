@@ -148,7 +148,7 @@ def merge_responses(pivot, data):
         for element in page:
             temp_start = element['dateRange']['start']
             temp_pivotValue = element['pivotValues'][0]
-            # adding pivot and pivot_value to make it compatible with the previous tap version 2.2.0
+            # adding pivot and pivot_value to make it compatible with the previous tap version
             element['pivot'] = pivot
             element["pivot_value"] = temp_pivotValue
             string_start = '{}-{}-{}'.format(temp_start['year'], temp_start['month'], temp_start['day'])
@@ -626,7 +626,7 @@ class VideoAds(LinkedInAds):
             return super().sync_endpoint(*args, **kwargs)
         except Exception as error:
             if "Not enough permissions to access: partnerApiPostsExternal" in str(error):
-                LOGGER.info("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
+                LOGGER.warning("Access to the video-ads API is denied due to insufficient permissions. Please reauthenticate or verify the required permissions.")
                 LOGGER.error(error)
                 # total record count (zero), initial bookmark returned to supress this failure
                 return 0, self.get_bookmark(kwargs.get("state"), kwargs.get("start_date"))

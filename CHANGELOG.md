@@ -16,7 +16,6 @@
 
 - **Video Ads Stream**
   - Added new fields ([#71](https://github.com/singer-io/tap-linkedin-ads/pull/71))
-  - Requires scope - `r_organization_social` to sync the records.
 
 ## 2.2.0
   * Bump to API version `202304`
