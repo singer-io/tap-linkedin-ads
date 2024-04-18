@@ -108,7 +108,7 @@ def get_next_url(stream_name, next_url, data):
                 if href:
                     # url must be kept encoded for the creatives endpoint.
                     # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
-                    if "rest/creatives" in href:
+                    if "rest/creatives" in href or "rest/posts" in href:
                         return 'https://api.linkedin.com{}'.format(href)
                     # Prepare next page URL
                     next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
@@ -617,7 +617,8 @@ class VideoAds(LinkedInAds):
     parent = "accounts"
     params = {
         "q": "dscAdAccount",
-        "dscAdTypes": "List(VIDEO)"
+        "dscAdTypes": "List(VIDEO)",
+        "count":100
     }
     headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
