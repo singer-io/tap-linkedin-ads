@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.3.1
+  * Fixes url encoding issue with `video_ads` stream pagination
+
 ## 2.3.0
 
 ### Features
@@ -49,7 +52,7 @@
 
 ## 1.2.5
   * Auto access-token refresh [#41](https://github.com/singer-io/tap-linkedin-ads/pull/41)
-  
+
 ## 1.2.4
   * Add Request Timeout [#36](https://github.com/singer-io/tap-linkedin-ads/pull/36)
   * Handling 4xx responses for adCampaignGroup [#28](https://github.com/singer-io/tap-linkedin-ads/pull/28)
