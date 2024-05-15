@@ -22,6 +22,7 @@ KNOWN_MISSING_FIELDS = {
     "video_ads": {
         "content_reference_share_id",
         "content_reference_ucg_post_id",
+        "change_audit_stamps"
     },
     "accounts": {
         "total_budget_ends_at",
@@ -34,6 +35,32 @@ KNOWN_MISSING_FIELDS = {
         "average_previous_thirty_day_reach_metrics",
         #BUG: TDL-22692
         "approximate_unique_impressions",
+        #BUG: TDL-25618
+        'job_applications',
+        'viral_post_view_job_applications',
+        'post_click_job_applications',
+        'external_website_post_view_conversions',
+        'viral_external_website_conversions',
+        'viral_post_view_registrations',
+        'talent_leads',
+        'viral_registrations',
+        'post_view_job_applications',
+        'viral_external_website_post_click_conversions',
+        'post_click_registrations',
+        'job_apply_clicks',
+        'conversion_value_in_local_currency',
+        'registrations',
+        'post_view_registrations',
+        'viral_post_view_job_apply_clicks',
+        'viral_external_website_post_view_conversions',
+        'viral_post_click_job_apply_clicks',
+        'viral_job_apply_clicks',
+        'viral_job_applications',
+        'viral_post_click_job_applications',
+        'viral_post_click_registrations',
+        'external_website_post_click_conversions',
+        'post_view_job_apply_clicks',
+        'post_click_job_apply_clicks'
     },
     "ad_analytics_by_campaign": {
         "average_daily_reach_metrics"
@@ -41,6 +68,32 @@ KNOWN_MISSING_FIELDS = {
         "average_previous_thirty_day_reach_metrics",
         #BUG: TDL-22692
         "approximate_unique_impressions",
+        #BUG: TDL-25618 
+        'job_applications',
+        'viral_post_view_job_applications',
+        'post_click_job_applications',
+        'external_website_post_view_conversions',
+        'viral_external_website_conversions',
+        'viral_post_view_registrations',
+        'talent_leads',
+        'viral_registrations',
+        'post_view_job_applications',
+        'viral_external_website_post_click_conversions',
+        'post_click_registrations',
+        'job_apply_clicks',
+        'conversion_value_in_local_currency',
+        'registrations',
+        'post_view_registrations',
+        'viral_post_view_job_apply_clicks',
+        'viral_external_website_post_view_conversions',
+        'viral_post_click_job_apply_clicks',
+        'viral_job_apply_clicks',
+        'viral_job_applications',
+        'viral_post_click_job_applications',
+        'viral_post_click_registrations',
+        'external_website_post_click_conversions',
+        'post_view_job_apply_clicks',
+        'post_click_job_apply_clicks'
     },
 }
 

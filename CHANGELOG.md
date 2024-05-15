@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.3.1
+  * Fixes url encoding issue with `video_ads` stream pagination
+
+## 2.3.0
+
+### Features
+- **API Updates**
+  - Bumped to API version `202304` ([#64](https://github.com/singer-io/tap-linkedin-ads/pull/69))
+  - Updated API endpoints for the following streams: `campaign_groups`, `campaigns`, `creatives`
+
+- **Pagination Enhancements**
+  - Implemented cursor-based pagination for the following streams: `accounts`, `campaign_groups`, `campaigns`, `creatives`
+
+- **API Query Param Adjustments**
+  - Removed unsupported `pivot` and `pivotValue` from `fields` query parameters in Analytics API requests
+  - Incorporated these values within the tap to ensure consistency with the previous tap version
+
+- **Video Ads Stream**
+  - Added new fields ([#71](https://github.com/singer-io/tap-linkedin-ads/pull/71))
+
+## 2.2.0
+  * Bump to API version `202304`
+
 ## 2.1.0
   * Bump to API version `202302`
   * Move and update `FIELDS_UNACCEPTED_BY_API`
@@ -29,7 +52,7 @@
 
 ## 1.2.5
   * Auto access-token refresh [#41](https://github.com/singer-io/tap-linkedin-ads/pull/41)
-  
+
 ## 1.2.4
   * Add Request Timeout [#36](https://github.com/singer-io/tap-linkedin-ads/pull/36)
   * Handling 4xx responses for adCampaignGroup [#28](https://github.com/singer-io/tap-linkedin-ads/pull/28)
