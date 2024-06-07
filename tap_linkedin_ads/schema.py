@@ -27,9 +27,9 @@ def get_schemas():
         with open(schema_path, encoding='utf-8') as file:
             schema = json.load(file)
 
-            if stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                for field in FIELDS_UNACCEPTED_BY_API:
-                    metadata.delete(schema, 'properties', field)
+            # if stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
+            #     for field in FIELDS_UNACCEPTED_BY_API:
+            #         metadata.delete(schema, 'properties', field)
 
         schemas[stream_name] = schema
         mdata = metadata.new()
