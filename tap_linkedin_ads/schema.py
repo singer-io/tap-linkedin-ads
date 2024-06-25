@@ -51,6 +51,7 @@ def get_schemas():
             mdata_map[('properties', 'date_range')]['inclusion'] = 'automatic'
             mdata_map[('properties', 'pivot')]['inclusion'] = 'automatic'
             mdata_map[('properties', 'pivot_value')]['inclusion'] = 'automatic'
+            mdata_map[('properties', 'pivot_values')]['inclusion'] = 'automatic'
 
         for replication_key in stream_metadata.replication_keys:
             mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'

@@ -1,0 +1,129 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "date_range": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "day": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "month": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "year": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            }
+          }
+        },
+        "start": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "day": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "month": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "year": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "start_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "end_at": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "external_website_conversions": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "external_website_post_click_conversions": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "external_website_post_view_conversions": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
+    "pivot": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "pivot_value": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "pivot_values": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

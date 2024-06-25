@@ -743,6 +743,27 @@ class AdAnalyticsByCreative(LinkedInAds):
         "count": 10000
     }
 
+class AdStatisticsByCreativeAndConversion(LinkedInAds):
+    """
+    https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder
+    """
+    tap_stream_id = "ad_statistics_by_creative_and_conversion"
+    replication_method = "INCREMENTAL"
+    replication_keys = ["end_at"]
+    key_properties = ["creative_id", "start_at"]
+    account_filter = "accounts_param"
+    path = "adAnalytics"
+    foreign_key = "id"
+    data_key = "elements"
+    parent = "campaigns"
+    params = {
+        "q": "statistics",
+        "pivot": 'List(CONVERSION,CREATIVE)',
+        "timeGranularity": "DAILY",
+        "fields":"externalWebsiteConversions,externalWebsitePostClickConversions,externalWebsitePostViewConversions,costInLocalCurrency,externalWebsiteConversions,costInLocalCurrency,dateRange,pivotValues",
+        "count": 10000
+    }
+
 # Dictionary of the stream classes
 STREAMS = {
     "accounts": Accounts,
@@ -752,5 +773,6 @@ STREAMS = {
     "campaigns": Campaigns,
     "creatives": Creatives,
     "ad_analytics_by_campaign": AdAnalyticsByCampaign,
-    "ad_analytics_by_creative": AdAnalyticsByCreative
+    "ad_analytics_by_creative": AdAnalyticsByCreative,
+    "ad_statistics_by_creative_and_conversion": AdStatisticsByCreativeAndConversion
 }
