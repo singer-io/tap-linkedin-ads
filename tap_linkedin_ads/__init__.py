@@ -36,6 +36,7 @@ def main():
                         parsed_args.config.get('client_secret', None),
                         parsed_args.config.get('refresh_token', None),
                         parsed_args.config.get('access_token'),
+                        parsed_args.config.get('accounts', None),
                         parsed_args.config_path,
                         REQUEST_TIMEOUT,
                         parsed_args.config['user_agent']

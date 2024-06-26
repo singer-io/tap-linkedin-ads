@@ -145,7 +145,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.ADDITIONAL_AUTOMATIC: {'date_range', 'pivot', 'pivot_value'}
             },
             'ad_statistics_by_creative_and_conversion': {
-                self.PRIMARY_KEYS: {'creative_id', 'start_at'},
+                self.PRIMARY_KEYS: {'creative_id', 'conversion_id', 'start_at'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {'end_at'},

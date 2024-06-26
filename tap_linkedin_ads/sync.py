@@ -100,7 +100,6 @@ def sync(client, config, catalog, state):
     # Loop through all `stream_to_sync` streams
     for stream_name in stream_to_sync:
         stream_obj = STREAMS[stream_name]()
-
         # Add appropriate account_filter query parameters based on account_filter type
         account_filter = stream_obj.account_filter
         if config.get("accounts") and account_filter is not None:
@@ -127,13 +126,19 @@ def sync(client, config, catalog, state):
         if stream_name in selected_streams:
             stream_obj.write_schema(catalog)
 
-        total_records, max_bookmark_value = stream_obj.sync_endpoint(
-            client=client, catalog=catalog,
-            state=state, page_size=page_size,
-            start_date=start_date,
-            selected_streams=selected_streams,
-            date_window_size=date_window_size,
-            account_list=account_list)
+        if stream_name == 'ad_statistics_by_creative_and_conversion':
+            total_records, max_bookmark_value = stream_obj.sync_ad_statistics(
+                client=client, catalog=catalog,
+                state=state, start_date=start_date,
+                date_window_size=date_window_size)
+        else:
+            total_records, max_bookmark_value = stream_obj.sync_endpoint(
+                client=client, catalog=catalog,
+                state=state, page_size=page_size,
+                start_date=start_date,
+                selected_streams=selected_streams,
+                date_window_size=date_window_size,
+                account_list=account_list)
 
         # Write parent stream's bookmarks
         if stream_obj.replication_keys and stream_name in selected_streams:

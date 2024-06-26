@@ -22,7 +22,8 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
     'creativeId',
     # `pivot` and `pivotValue` is not supported anymore, adding values within the code
     'pivot',
-    'pivotValue'
+    'pivotValue',
+    'conversionId',
 }
 
 CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
@@ -65,7 +66,7 @@ def split_into_chunks(fields, chunk_length):
     """
     return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
 
-def sync_analytics_endpoint(client, stream_name, path, query_string):
+def sync_analytics_endpoint(client, stream_name, path, query_string, headers={}):
     """
     Call API for analytics endpoint and return all pages of records.
     """
@@ -75,8 +76,7 @@ def sync_analytics_endpoint(client, stream_name, path, query_string):
     # Loop until the last page
     while next_url:
         LOGGER.info('URL for %s: %s', stream_name, next_url)
-
-        data = client.get(url=next_url, endpoint=stream_name)
+        data = client.get(url=next_url, endpoint=stream_name, headers=headers)
         yield data
         # Fetch next page
         next_url = get_next_url(stream_name, next_url, data)
@@ -114,25 +114,24 @@ def get_next_url(stream_name, next_url, data):
                     next_url = 'https://api.linkedin.com{}'.format(urllib.parse.unquote(href))
     return next_url
 
-def shift_sync_window(params, today, date_window_size, forced_window_size=None):
+def shift_sync_window(params, current_end, today, date_window_size, forced_window_size=None):
     """
     Move ahead date window by date_window_size and update params with the new date window.
     """
-    current_end = datetime.date(
-        year=params['dateRange.end.year'],
-        month=params['dateRange.end.month'],
-        day=params['dateRange.end.day'],
-    )
-
     new_end = min(today, current_end + timedelta(days=(forced_window_size if forced_window_size else date_window_size)))
-
-    new_params = {**params,
-                  'dateRange.start.day': current_end.day,
-                  'dateRange.start.month': current_end.month,
-                  'dateRange.start.year': current_end.year,
-                  'dateRange.end.day': new_end.day,
-                  'dateRange.end.month': new_end.month,
-                  'dateRange.end.year': new_end.year,}
+    if 'dateRange' in params:
+        new_params = {
+            **params,
+            'dateRange': f'(start:(day:{current_end.day},month:{current_end.month},year:{current_end.year}),end:(day:{new_end.day},month:{new_end.month},year:{new_end.year}))',
+       }
+    else:
+        new_params = {**params,
+                    'dateRange.start.day': current_end.day,
+                    'dateRange.start.month': current_end.month,
+                    'dateRange.start.year': current_end.year,
+                    'dateRange.end.day': new_end.day,
+                    'dateRange.end.month': new_end.month,
+                    'dateRange.end.year': new_end.year,}
     return current_end, new_end, new_params
 
 def merge_responses(pivot, data):
@@ -413,7 +412,7 @@ class LinkedInAds:
                                     # The value of the campaigns in the query params should be passed in the encoded format.
                                     # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
                                     child_stream_params['campaigns'] = 'List(urn%3Ali%3AsponsoredCampaign%3A{})'.format(parent_id)
-                                elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
+                                elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative', 'ad_statistics_by_creative_and_conversion'):
                                     child_stream_params['campaigns[0]'] = campaign
 
                             # Update params for the child stream
@@ -579,12 +578,129 @@ class LinkedInAds:
                 LOGGER.info('%s: max_bookmark: %s', self.tap_stream_id, max_bookmark_value)
                 total_records += record_count
 
-            window_start_date, window_end_date, static_params = shift_sync_window(static_params, today, date_window_size)
+            window_start_date, window_end_date, static_params = shift_sync_window(static_params, window_end_date, today, date_window_size)
 
             if window_start_date == window_end_date:
                 break
 
         return total_records, max_bookmark_value
+
+    def sync_ad_statistics(self, client, catalog, state, start_date, date_window_size):
+        """
+        Sync method for ad_statistics_by_creative_and_conversion
+        """
+        # LinkedIn has a max of 20 fields per request. We cap the chunks at 18
+        # to make sure there's always room for us to append `dateRange`, and `pivotValues`
+        MAX_CHUNK_LENGTH = 18
+
+        bookmark_field = next(iter(self.replication_keys))
+        last_datetime = self.get_bookmark(state, start_date)
+        max_bookmark_value = last_datetime
+        last_datetime_dt = strptime_to_utc(last_datetime) - timedelta(days=7)
+
+        # Prepare date window for API call
+        window_start_date = last_datetime_dt.date()
+        window_end_date = window_start_date + timedelta(days=date_window_size)
+        today = datetime.date.today()
+
+        # Reset end_date of date window if it is greater than today
+        window_end_date = min(window_end_date, today)
+
+        # Override the default start and end dates
+        static_params = {
+            **self.params,
+            'accounts': f'List({",".join([f"urn%3Ali%3AsponsoredAccount%3A{account}" for account in client.account_list])})',
+            'dateRange': f'(start:(day:{window_start_date.day},month:{window_start_date.month},year:{window_start_date.year}),end:(day:{window_end_date.day},month:{window_end_date.month},year:{window_end_date.year}))'
+        }
+                        #  'dateRange.start.day': window_start_date.day,
+                        #  'dateRange.start.month': window_start_date.month,
+                        #  'dateRange.start.year': window_start_date.year,
+                        #  'dateRange.end.day': window_end_date.day,
+                        #  'dateRange.end.month': window_end_date.month,
+                        #  'dateRange.end.year': window_end_date.year,}
+        if 'accounts[0]' in static_params:
+            static_params.pop('accounts[0]')
+
+        # Here, valid_selected_fields is a list of fields that the user has selected.
+        # API accepts these fields in the parameter and returns its value in the response.
+        valid_selected_fields = [snake_case_to_camel_case(field)
+                                 for field in selected_fields(catalog.get_stream(self.tap_stream_id))
+                                 if snake_case_to_camel_case(field) not in FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS]
+        # When testing the API, if the fields in `field` all return `0` then
+        # the API returns its empty response.
+
+        # However, the API distinguishes between a day with non-null values
+        # (even if this means the values are all `0`) and a day with null
+        # values. We found that requesting these fields gives you the days with
+        # non-null values
+        first_chunk = [['dateRange', 'pivotValues']]
+
+        chunks = first_chunk + list(split_into_chunks(valid_selected_fields, MAX_CHUNK_LENGTH))
+
+
+        # We have to append these fields in order to ensure we get them back
+        # so that we can create the composite primary key for the record and
+        # to merge the multiple responses based on this primary key
+        for chunk in chunks:
+            for field in ['dateRange', 'pivotValues']:
+                if field not in chunk:
+                    chunk.append(field)
+        ############### PAGINATION (for these 2 streams) ###############
+        # The Tap requests LinkedIn with one Campaign ID at one time.
+        # 1 Campaign permits 100 Ads
+        # Considering, 1 Ad is active and the existing behavior of the tap uses 30 Day window size
+        #       and timeGranularity = DAILY(Results grouped by day) we get 30 records in one API response
+        # Considering the maximum permitted size of Ads are created, "3000" records will be returned in an API response.
+        # If “count=100” and records=100 in the API are the same then the next URL will be returned and if we hit that URL, 400 error code will be returned.
+        # This case is unreachable because here “count” is 10000 and at maximum, only 3000 records will be returned in an API response.
+
+        total_records = 0
+        while window_end_date <= today:
+            responses = []
+            for chunk in chunks:
+                static_params['fields'] = ','.join(chunk)
+                params = {"start": 0,
+                          **static_params}
+                query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
+                LOGGER.info('Syncing %s from %s to %s', self.tap_stream_id, window_start_date, window_end_date)
+                for page in sync_analytics_endpoint(client, self.tap_stream_id, self.path, query_string, self.headers):
+                    if page.get(self.data_key):
+                        responses.append(page.get(self.data_key))
+            pivot = params["pivot"] if "pivot" in params.keys() else None
+            raw_records = merge_responses(pivot, responses)
+            time_extracted = utils.now()
+
+            # While we broke the ad_analytics streams out from
+            # `sync_endpoint()`, we want to process them the same. And
+            # transform_json() expects a dictionary with a key equal to
+            # `data_key` and its value is the response from the API
+
+            # Note that `transform_json()` returns the same structure we pass
+            # in. `sync_endpoint()` grabs `data_key` from the return value, so
+            # we mirror that here
+            transformed_data = transform_json({self.data_key: list(raw_records.values())},
+                                              self.tap_stream_id)[self.data_key]
+            if not transformed_data:
+                LOGGER.info('No transformed_data')
+            else:
+                max_bookmark_value, record_count = self.process_records(
+                    catalog=catalog,
+                    records=transformed_data,
+                    time_extracted=time_extracted,
+                    bookmark_field=bookmark_field,
+                    max_bookmark_value=last_datetime,
+                    last_datetime=strftime(last_datetime_dt))
+                LOGGER.info('%s, records processed: %s', self.tap_stream_id, record_count)
+                LOGGER.info('%s: max_bookmark: %s', self.tap_stream_id, max_bookmark_value)
+                total_records += record_count
+
+            window_start_date, window_end_date, static_params = shift_sync_window(static_params, window_end_date, today, date_window_size)
+
+            if window_start_date == window_end_date:
+                break
+
+        return total_records, max_bookmark_value
+
 
 class Accounts(LinkedInAds):
     """
@@ -755,14 +871,15 @@ class AdStatisticsByCreativeAndConversion(LinkedInAds):
     path = "adAnalytics"
     foreign_key = "id"
     data_key = "elements"
-    parent = "campaigns"
     params = {
         "q": "statistics",
-        "pivot": 'List(CONVERSION,CREATIVE)',
+        "pivots": 'List(CONVERSION,CREATIVE,CAMPAIGN)',
         "timeGranularity": "DAILY",
         "fields":"externalWebsiteConversions,externalWebsitePostClickConversions,externalWebsitePostViewConversions,costInLocalCurrency,externalWebsiteConversions,costInLocalCurrency,dateRange,pivotValues",
         "count": 10000
     }
+    headers = {'X-Restli-Protocol-Version': "2.0.0"}
+
 
 # Dictionary of the stream classes
 STREAMS = {

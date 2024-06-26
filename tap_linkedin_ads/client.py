@@ -128,6 +128,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                  client_secret,
                  refresh_token,
                  access_token,
+                 account_ids_str,
                  config_path,
                  request_timeout=REQUEST_TIMEOUT,
                  user_agent=None):
@@ -137,6 +138,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         self.__config_path = config_path
         self.__user_agent = user_agent
         self.__access_token = access_token
+        self.__account_ids = account_ids_str.replace(" ", "").split(",")
         self.__expires = None
         self.__session = requests.Session()
         self.__base_url = None
@@ -167,6 +169,10 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
     @property
     def access_token(self):
         return self.__access_token
+
+    @property
+    def account_list(self):
+        return self.__account_ids
 
     # during 'Timeout' error there is also possibility of 'ConnectionError',
     # hence added backoff for 'ConnectionError' too.
@@ -292,7 +298,8 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                 return
 
         self.refresh_access_token()
-        LOGGER.info('Retrieved new access token; token expires %s', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+        LOGGER.info('Retrieved new access token; token expires %s, sleep for 60 seconds.', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
+        time.sleep(60)
 
 
         # Waiting 30 seconds after generating a new token
@@ -367,7 +374,6 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
         kwargs['headers']['Authorization'] = 'Bearer {}'.format(self.__access_token)
         kwargs['headers']['Accept'] = 'application/json'
         kwargs['headers']['LinkedIn-Version'] = LINKEDIN_VERSION
-        kwargs['headers']['X-Restli-Protocol-Version'] = '2.0.0'
         kwargs['headers']['Cache-Control'] = "no-cache"
 
         if self.__user_agent:
