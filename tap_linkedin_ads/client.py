@@ -16,6 +16,8 @@ LINKEDIN_VERSION = '202403'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300
+LINKEDIN_VERSION = '202302'
+
 
 class LinkedInError(Exception):
     pass
@@ -298,9 +300,7 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                 return
 
         self.refresh_access_token()
-        LOGGER.info('Retrieved new access token; token expires %s, sleep for 60 seconds.', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
-        time.sleep(60)
-
+        LOGGER.info('Retrieved new access token; token expires %s, sleep for 30 seconds.', self.__expires.strftime("%Y-%m-%d %H:%M:%S"))
 
         # Waiting 30 seconds after generating a new token
         # as it works after several seconds.
