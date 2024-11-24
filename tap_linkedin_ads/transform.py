@@ -7,6 +7,8 @@ import singer
 
 LOGGER = singer.get_logger()
 
+VALID_TIME_GRANULARITIES = ['DAILY', 'MONTHLY', 'YEARLY']
+DEFAULT_TIME_GRANULARITY = 'MONTHLY'
 
 # Convert camelCase to snake_case
 def convert(name):
@@ -82,6 +84,7 @@ def transform_analytics(data_dict):
         if currency_field in data_dict:
             val = data_dict[currency_field]
             data_dict[currency_field] = string_to_decimal(val)
+            
     # create pivot id and urn fields from pivot and pivot_value
     if 'pivot' in data_dict and 'pivot_value' in data_dict:
         key = data_dict['pivot'].lower()
@@ -89,26 +92,46 @@ def transform_analytics(data_dict):
         search = re.search('^urn:li:(.*):(.*)$', val)
         if search:
             data_dict[key] = val
+            
     # Create start_at and end_at fields from nested date_range
     if 'date_range' in data_dict:
         if 'start' in data_dict['date_range']:
-            if 'day' in data_dict['date_range']['start'] \
-            and 'month' in data_dict['date_range']['start'] \
-            and 'year' in data_dict['date_range']['start']:
+            if all(key in data_dict['date_range']['start'] for key in ['day', 'month', 'year']):
                 year = data_dict['date_range']['start']['year']
                 month = data_dict['date_range']['start']['month']
                 day = data_dict['date_range']['start']['day']
                 start_at = datetime(year=year, month=month, day=day)
                 data_dict['start_at'] = start_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+                
         if 'end' in data_dict['date_range']:
-            if 'day' in data_dict['date_range']['end'] \
-            and 'month' in data_dict['date_range']['end'] \
-            and 'year' in data_dict['date_range']['end']:
+            if all(key in data_dict['date_range']['end'] for key in ['day', 'month', 'year']):
                 year = data_dict['date_range']['end']['year']
                 month = data_dict['date_range']['end']['month']
                 day = data_dict['date_range']['end']['day']
                 end_at = datetime(year=year, month=month, day=day) + timedelta(days=1)
                 data_dict['end_at'] = end_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+                
+    # Validate and process time granularity
+    if 'time_granularity' in data_dict:
+        if data_dict['time_granularity'] not in VALID_TIME_GRANULARITIES:
+            LOGGER.warning("Unexpected time_granularity value: %s. Using default: %s", 
+                         data_dict['time_granularity'], DEFAULT_TIME_GRANULARITY)
+            data_dict['time_granularity'] = DEFAULT_TIME_GRANULARITY
+            
+        # Add period_start and period_end based on granularity
+        if 'start_at' in data_dict:
+            start_date = datetime.strptime(data_dict['start_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            if data_dict['time_granularity'] == 'DAILY':
+                data_dict['period_start'] = start_date.strftime('%Y-%m-%d')
+                data_dict['period_end'] = start_date.strftime('%Y-%m-%d')
+            elif data_dict['time_granularity'] == 'MONTHLY':
+                data_dict['period_start'] = start_date.strftime('%Y-%m-01')
+                period_end = (start_date.replace(day=1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+                data_dict['period_end'] = period_end.strftime('%Y-%m-%d')
+            elif data_dict['time_granularity'] == 'YEARLY':
+                data_dict['period_start'] = f"{start_date.year}-01-01"
+                data_dict['period_end'] = f"{start_date.year}-12-31"
+                
     return data_dict
 
 

@@ -371,6 +371,32 @@
       ],
       "format": "date-time"
     },
+    "period_start": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date"
+    },
+    "period_end": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date"
+    },
+    "time_granularity": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "inferred_granularity": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "end_at": {
       "type": [
         "null",
