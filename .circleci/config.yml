@@ -17,7 +17,7 @@ jobs:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-linkedin-ads/bin/activate
-            make lint
+            pylint tap_linkedin_ads -d C,R,W
       - run:
           name: 'JSON Validator'
           command: |

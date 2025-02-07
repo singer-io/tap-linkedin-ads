@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.4.0
+  * Bump to API version `202501` ([#76](https://github.com/singer-io/tap-linkedin-ads/pull/76))
+
 ## 2.3.1
   * Fixes url encoding issue with `video_ads` stream pagination
 
@@ -7,7 +10,7 @@
 
 ### Features
 - **API Updates**
-  - Bumped to API version `202304` ([#64](https://github.com/singer-io/tap-linkedin-ads/pull/69))
+  - Bumped to API version `202304` ([#69](https://github.com/singer-io/tap-linkedin-ads/pull/69))
   - Updated API endpoints for the following streams: `campaign_groups`, `campaigns`, `creatives`
 
 - **Pagination Enhancements**
