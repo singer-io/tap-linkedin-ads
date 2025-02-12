@@ -11,7 +11,7 @@ setup(name='tap-linkedin-ads',
       install_requires=[
           'backoff==2.2.1',
           'requests==2.32.3',
-          'singer-python==6.0.0'
+          'singer-python==6.1.0'
       ],
       extras_require={
         'dev': [

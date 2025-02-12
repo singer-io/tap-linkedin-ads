@@ -2,6 +2,8 @@
 
 ## 2.4.0
   * Bump to API version `202501` ([#76](https://github.com/singer-io/tap-linkedin-ads/pull/76))
+  * Fixes Dependabot issue
+  * singer-python upgrade to 6.1.0
 
 ## 2.3.1
   * Fixes url encoding issue with `video_ads` stream pagination
