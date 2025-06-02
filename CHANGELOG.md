@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.5.0
+  * Display warning message to reauthorize the connection if the refresh token is going to expire within the next month. ([#77](https://github.com/singer-io/tap-linkedin-ads/pull/77))
+
 ## 2.4.0
   * Bump to API version `202501` ([#76](https://github.com/singer-io/tap-linkedin-ads/pull/76))
   * Fixes Dependabot issue
