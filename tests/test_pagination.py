@@ -38,8 +38,8 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
 
                 # Collect information for assertions from sync based on expected values
                 primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
-                                       for message in synced_records.get(stream).get('messages')
-                                       if message.get('action') == 'upsert']
+                                     for message in synced_records.get(stream, {}).get('messages', [])
+                                     if message.get('action') == 'upsert']
 
                 # Chunk the replicated records (just primary keys) into expected pages
                 pages = []
