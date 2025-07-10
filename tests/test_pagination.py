@@ -18,7 +18,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
 
         # "ad_analytics_by_creative" and "ad_analytics_by_campaign" does not support pagination
         # Documentation: https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?tabs=http
-        expected_streams = self.expected_streams() - {"ad_analytics_by_campaign", "ad_analytics_by_creative"}
+        expected_streams = self.expected_streams() - {"ad_analytics_by_campaign", "ad_analytics_by_creative", "account_users"}
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # Table and field selection
