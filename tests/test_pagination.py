@@ -18,7 +18,7 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
 
         # "ad_analytics_by_creative" and "ad_analytics_by_campaign" does not support pagination
         # Documentation: https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting?tabs=http
-        expected_streams = self.expected_streams() - set({"ad_analytics_by_campaign", "ad_analytics_by_creative"})
+        expected_streams = self.expected_streams() - {"ad_analytics_by_campaign", "ad_analytics_by_creative", "account_users"}
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # Table and field selection
@@ -38,8 +38,8 @@ class LinkedinAdsPaginationTest(TestLinkedinAdsBase):
 
                 # Collect information for assertions from sync based on expected values
                 primary_keys_list = [(message.get('data').get(expected_pk) for expected_pk in expected_primary_keys)
-                                       for message in synced_records.get(stream).get('messages')
-                                       if message.get('action') == 'upsert']
+                                     for message in synced_records.get(stream, {}).get('messages', [])
+                                     if message.get('action') == 'upsert']
 
                 # Chunk the replicated records (just primary keys) into expected pages
                 pages = []

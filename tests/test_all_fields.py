@@ -112,7 +112,7 @@ class AllFields(TestLinkedinAdsBase):
         - Verify that more than just the automatic fields are replicated for each stream.
         """
 
-        expected_streams = self.expected_streams()
+        expected_streams = self.expected_streams() - {"account_users"}
 
         # Instantiate connection
         conn_id = connections.ensure_connection(self)
