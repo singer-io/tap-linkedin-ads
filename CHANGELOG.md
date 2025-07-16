@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.1
+  * Bump dependency versions for twistlock compliance
+  * Update tests to fix failing circle build
+  * [#78](https://github.com/singer-io/tap-linkedin-ads/pull/78)
+
 ## 2.4.0
   * Bump to API version `202501` ([#76](https://github.com/singer-io/tap-linkedin-ads/pull/76))
   * Fixes Dependabot issue
