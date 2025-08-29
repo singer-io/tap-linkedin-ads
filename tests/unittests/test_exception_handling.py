@@ -144,7 +144,7 @@ class TestExceptionHandling(unittest.TestCase):
             linkedIn_client.request("GET")
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), expected_message)
+        self.assertEqual(str(e.exception), expected_message)
 
     @parameterized.expand([
         (400, client.LinkedInBadRequestError,  "Invalid params for account."),
@@ -167,7 +167,7 @@ class TestExceptionHandling(unittest.TestCase):
             linkedIn_client.request("GET")
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), expected_message)
+        self.assertEqual(str(e.exception), expected_message)
 
     @mock.patch("tap_linkedin_ads.client.LOGGER.error")
     def test_401_error_expired_access_token(self, mocked_logger, mocked_access_token, mocked_request):
@@ -186,7 +186,7 @@ class TestExceptionHandling(unittest.TestCase):
         mocked_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
+        self.assertEqual(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
 
     def test_json_decoder_error(self, mocked_access_token, mocked_request):
         response = requests.Response()
@@ -228,7 +228,7 @@ class TestAccessToken(unittest.TestCase):
             linkedIn_client.fetch_and_set_access_token()
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), expected_message)
+        self.assertEqual(str(e.exception), expected_message)
 
     @parameterized.expand([
         (400, client.LinkedInBadRequestError,  "Invalid params for account."),
@@ -253,7 +253,7 @@ class TestAccessToken(unittest.TestCase):
             linkedIn_client.fetch_and_set_access_token()
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), expected_message)
+        self.assertEqual(str(e.exception), expected_message)
 
     @mock.patch("tap_linkedin_ads.client.LOGGER.error")
     def test_401_error_expired_access_token(self, mock_logger, mock_request, mock_sleep):
@@ -272,7 +272,7 @@ class TestAccessToken(unittest.TestCase):
         mock_logger.assert_called_with("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
 
         # Verify that the exception message was expected
-        self.assertEquals(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
+        self.assertEqual(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
 
 @mock.patch("requests.Session.get")
 class TestCheckAccounts(unittest.TestCase):
