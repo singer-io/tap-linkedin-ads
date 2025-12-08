@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.0
+  * Bumpe to API version `202511`
+  * Add missing fields into schemas
+
 ## 2.4.1
   * Bump dependency versions for twistlock compliance
   * Update tests to fix failing circle build
