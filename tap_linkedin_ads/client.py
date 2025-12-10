@@ -11,7 +11,7 @@ LOGGER = singer.get_logger()
 BASE_URL = 'https://api.linkedin.com/rest'
 LINKEDIN_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken'
 INTROSPECTION_URI = 'https://www.linkedin.com/oauth/v2/introspectToken'
-LINKEDIN_VERSION = '202501'
+LINKEDIN_VERSION = '202511'
 
 # set default timeout of 300 seconds
 REQUEST_TIMEOUT = 300

@@ -43,7 +43,7 @@ class TestTimeoutValue(unittest.TestCase):
                                    request_timeout=config.get('request_timeout'))
 
         # verify that the timeout value is the same as the expected value
-        self.assertEquals(expected_value, cl.request_timeout)
+        self.assertEqual(expected_value, cl.request_timeout)
 
     def test_timeout_value_not_passed_in_config(self):
         """
@@ -66,7 +66,7 @@ class TestTimeoutValue(unittest.TestCase):
                                    request_timeout=config.get('request_timeout'))
 
         # verify that timeout value is default as request timeout is not passed in config
-        self.assertEquals(300, cl.request_timeout)
+        self.assertEqual(300, cl.request_timeout)
 
 
 @mock.patch("time.sleep")
@@ -111,7 +111,7 @@ class TestTimeoutBackoff(unittest.TestCase):
                 pass
 
         # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
+        self.assertEqual(mocked_request.call_count, 5)
 
     def test_timeout_error__check_accounts(self, mocked_request, mocked_sleep):
         """
@@ -126,7 +126,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             self.client.check_accounts(self.config)
 
         # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
+        self.assertEqual(mocked_request.call_count, 5)
 
     def test_timeout_error__request(self, mocked_request, mocked_sleep):
         """
@@ -141,7 +141,7 @@ class TestTimeoutBackoff(unittest.TestCase):
             self.client.request('GET')
 
         # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
+        self.assertEqual(mocked_request.call_count, 5)
 
 
 @mock.patch("time.sleep")
@@ -178,7 +178,7 @@ class TestConnectionErrorBackoff(unittest.TestCase):
                 pass
 
         # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
+        self.assertEqual(mocked_request.call_count, 5)
 
     def test_connection_error__check_accounts(self, mocked_request, mocked_sleep):
         """
@@ -209,4 +209,4 @@ class TestConnectionErrorBackoff(unittest.TestCase):
             cl.check_accounts(config)
 
         # verify that we backoff for 5 times
-        self.assertEquals(mocked_request.call_count, 5)
+        self.assertEqual(mocked_request.call_count, 5)

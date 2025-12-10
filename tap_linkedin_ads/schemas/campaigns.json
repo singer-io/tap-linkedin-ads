@@ -229,6 +229,24 @@
         "string"
       ]
     },
+    "story_delivery_enabled": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "connected_television_only": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "political_intent": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "total_budget": {
       "type": [
         "null",
