@@ -106,7 +106,7 @@ def raise_for_error(response):
         error_description = ERROR_CODE_EXCEPTION_MAPPING.get(error_code).get("message")
     else:
         # get message from the reponse if present or get custom message if not present
-        error_description = response_json.get("errorDetails", response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")))
+        error_description = response_json.get("error_description", response_json.get("message", ERROR_CODE_EXCEPTION_MAPPING.get(error_code, {}).get("message", "Unknown Error")))
 
     if response.status_code == 401 and 'Expired access token' in error_description:
         LOGGER.error("Your access_token has expired as per LinkedIn’s security policy. Please re-authenticate your connection to generate a new token and resume extraction.")
@@ -221,6 +221,12 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
             data = response.json()
             self.__expires = datetime.fromtimestamp(data['expires_at'])
+
+            # Display a warning message to inform the customer about the upcoming refresh token expiry in advance, helping to prevent sync failures.
+            if datetime.fromtimestamp(data['created_at']) + timedelta(days=334) < datetime.utcnow():
+                LOGGER.warning('The refresh token is going to expire soon. '
+                               'Please re-authenticate your connection to generate a new token and resume extraction.')
+
         return self.__expires
 
 
