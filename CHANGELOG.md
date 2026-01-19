@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.0
+  * Bump to API version `202511`
+  * Add missing fields into schemas
+  * Display warning message to reauthorize the connection if the refresh token is going to expire within the next month. ([#77](https://github.com/singer-io/tap-linkedin-ads/pull/77))
+
 ## 2.4.1
   * Bump dependency versions for twistlock compliance
   * Update tests to fix failing circle build

@@ -11,6 +11,27 @@
         "string"
       ]
     },
+    "name": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "review": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
     "account_id": {
       "type": [
         "null",
