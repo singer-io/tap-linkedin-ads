@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.6.0
+  * Adds `parent_tap_stream_id` as discoverable metadata
+  * Add latest versions for dependencies
+  * [#82](https://github.com/singer-io/tap-linkedin-ads/pull/82)
+
 ## 2.5.0
   * Bump to API version `202511`
   * Add missing fields into schemas
