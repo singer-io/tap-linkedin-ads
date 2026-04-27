@@ -68,6 +68,21 @@
               ]
             }
           }
+        },
+        "spotlight": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "landing_page": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         }
       }
     },
