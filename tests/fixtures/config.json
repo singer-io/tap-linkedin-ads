@@ -1,0 +1,7 @@
+{
+  "user_agent": "tap-linkedin-ads <api_user_email@your_company.com>",
+  "access_token": "fake_access_token",
+  "accounts": "12345",
+  "start_date": "2024-01-01T00:00:00Z",
+  "request_timeout": 300
+}

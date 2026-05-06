@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='tap-linkedin-ads',
-      version='2.3.1',
+      version='2.4.1',
       description='Singer.io tap for extracting data from the LinkedIn Marketing Ads API API 2.0',
       author='jeff.huth@bytecode.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
@@ -15,8 +15,8 @@ setup(name='tap-linkedin-ads',
       ],
       extras_require={
         'dev': [
-            'ipdb',
-            'pylint',
+            'pytest',
+            'responses',
         ]
       },
       entry_points='''

@@ -1,0 +1,5993 @@
+{
+  "streams": [
+    {
+      "tap_stream_id": "accounts",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "change_audit_stamps": {
+            "properties": {
+              "created": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "last_modified": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notified_on_campaign_optimization": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "notified_on_creative_approval": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "notified_on_creative_rejection": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "notified_on_end_of_campaign": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "notified_on_new_features_enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reference_organization_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "reference_person_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serving_statuses": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total_budget": {
+            "properties": {
+              "amount": {
+                "format": "singer.decimal",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "currency_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "total_budget_ends_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "test": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "version": {
+            "properties": {
+              "version_tag": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "accounts",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_time"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "change_audit_stamps"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_time"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "currency"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notified_on_campaign_optimization"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notified_on_creative_approval"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notified_on_creative_rejection"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notified_on_end_of_campaign"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notified_on_new_features_enabled"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reference"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reference_organization_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reference_person_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "serving_statuses"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_budget"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_budget_ends_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "test"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "version"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "video_ads",
+      "key_properties": [
+        "content_reference"
+      ],
+      "schema": {
+        "properties": {
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lifecycle_state": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "visibility": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "published_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "author": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content_call_to_action_label": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "distribution": {
+            "properties": {
+              "feed_distribution": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "third_party_distribution_channels": {
+                "items": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "content": {
+            "properties": {
+              "media": {
+                "properties": {
+                  "title": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "id": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "content_landing_page": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lifecycle_state_info": {
+            "properties": {
+              "is_edited_by_author": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "is_reshare_disabled_by_author": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "commentary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ad_context": {
+            "properties": {
+              "dsc_status": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "dsc_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "dsc_ad_type": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "is_dsc": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "dsc_ad_account": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "account_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "change_audit_stamps": {
+            "properties": {
+              "created": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "last_modified": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content_reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content_reference_ucg_post_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "content_reference_share_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "owner": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "owner_organization_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "video_ads",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "content_reference"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_time"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lifecycle_state"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "visibility"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "published_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "author"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_call_to_action_label"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "distribution"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_landing_page"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lifecycle_state_info"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "is_reshare_disabled_by_author"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "commentary"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ad_context"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "change_audit_stamps"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_time"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_reference"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_reference_ucg_post_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_reference_share_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "owner"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "owner_organization_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "account_users",
+      "key_properties": [
+        "account_id",
+        "user_person_id"
+      ],
+      "schema": {
+        "properties": {
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_contact": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "change_audit_stamps": {
+            "properties": {
+              "created": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "last_modified": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "role": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "user": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "user_person_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "account_users",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "account_id",
+              "user_person_id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_time"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_contact"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "change_audit_stamps"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_time"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "role"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "user"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "user_person_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "campaign_groups",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "run_schedule": {
+            "properties": {
+              "start": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "end": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "change_audit_stamps": {
+            "properties": {
+              "created": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "last_modified": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serving_statuses": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "backfilled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total_budget": {
+            "properties": {
+              "currency_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "amount": {
+                "format": "singer.decimal",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "test": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "allowed_campaign_types": {
+            "items": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "campaign_groups",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_time"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "run_schedule"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "change_audit_stamps"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_time"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "serving_statuses"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "backfilled"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_budget"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "test"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "allowed_campaign_types"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "campaigns",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "targeting": {
+            "properties": {
+              "included_targeting_facets": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "values": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "excluded_targeting_facets": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "values": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "targeting_criteria": {
+            "properties": {
+              "include": {
+                "properties": {
+                  "and": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": [
+                            "null",
+                            "object"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "type": {
+                              "type": [
+                                "null",
+                                "string"
+                              ]
+                            },
+                            "values": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "exclude": {
+                "properties": {
+                  "or": {
+                    "properties": {
+                      "urn:li:ad_targeting_facet:titles": {
+                        "items": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "type": [
+                          "null",
+                          "array"
+                        ]
+                      },
+                      "urn:li:ad_targeting_facet:staff_count_ranges": {
+                        "items": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "type": [
+                          "null",
+                          "array"
+                        ]
+                      },
+                      "urn:li:ad_targeting_facet:followed_companies": {
+                        "items": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "type": [
+                          "null",
+                          "array"
+                        ]
+                      },
+                      "urn:li:ad_targeting_facet:seniorities": {
+                        "items": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "type": [
+                          "null",
+                          "array"
+                        ]
+                      }
+                    },
+                    "type": [
+                      "null",
+                      "object"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "serving_statuses": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "total_budget": {
+            "properties": {
+              "currency_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "amount": {
+                "format": "singer.decimal",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "version_tag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "locale": {
+            "properties": {
+              "country": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "language": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "properties": {
+              "version_tag": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "associated_entity": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "associated_entity_organization_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "associated_entity_person_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "run_schedule": {
+            "properties": {
+              "start": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "end": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "optimization_target_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "change_audit_stamps": {
+            "properties": {
+              "created": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "last_modified": {
+                "properties": {
+                  "time": {
+                    "format": "date-time",
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_group": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_group_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "daily_budget": {
+            "properties": {
+              "amount": {
+                "format": "singer.decimal",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "currency_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "unit_cost": {
+            "properties": {
+              "amount": {
+                "format": "singer.decimal",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "currency_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "creative_selection": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "objective_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "offsite_delivery_enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "offsite_preferences": {
+            "properties": {
+              "iab_categories": {
+                "properties": {
+                  "exclude": {
+                    "items": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "include": {
+                    "items": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "publisher_restriction_files": {
+                "properties": {
+                  "exclude": {
+                    "items": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "audience_expansion_enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "test": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "format": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pacing_strategy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "campaigns",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_time"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "targeting"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "targeting_criteria"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "serving_statuses"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_budget"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "version_tag"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "locale"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "version"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "associated_entity"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "associated_entity_organization_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "associated_entity_person_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "run_schedule"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "optimization_target_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "change_audit_stamps"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_time"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_group"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_group_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "daily_budget"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "unit_cost"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "creative_selection"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "cost_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "objective_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "offsite_delivery_enabled"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "offsite_preferences"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "audience_expansion_enabled"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "test"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "format"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pacing_strategy"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "creatives",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "account": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "campaign": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "content": {
+            "properties": {
+              "reference": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "text_ad": {
+                "properties": {
+                  "headline": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "description": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "landing_page": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "spotlight": {
+                "properties": {
+                  "landing_page": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "created_by": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "last_modified_by": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "intended_status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "is_serving": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "is_test": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "serving_hold_reasons": {
+            "items": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "creatives",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_modified_at"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "account_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_by"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_at"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_modified_by"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "intended_status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "is_serving"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "is_test"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "serving_hold_reasons"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "ad_analytics_by_campaign",
+      "key_properties": [
+        "campaign_id",
+        "start_at"
+      ],
+      "schema": {
+        "properties": {
+          "document_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "download_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_click_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_click_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_click_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost_in_usd": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "talent_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_download_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost_in_local_currency": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_view_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_view_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_view_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approximate_unique_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "card_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "card_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "comment_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_card_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_card_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_comment_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "campaign": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "start_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "end_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "ad_unit_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "comments": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "company_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "conversion_value_in_local_currency": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date_range": {
+            "properties": {
+              "end": {
+                "properties": {
+                  "day": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "month": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "year": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "start": {
+                "properties": {
+                  "day": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "month": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "year": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "external_website_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "external_website_post_click_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "external_website_post_view_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "follows": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "full_screen_plays": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "landing_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "lead_generation_mail_contact_info_shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "lead_generation_mail_interested_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "one_click_lead_form_opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "one_click_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "other_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "pivot": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pivot_value": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pivot_values": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reactions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "sends": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "text_url_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "total_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_starts": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_views": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_comments": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_company_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_post_click_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_post_view_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_follows": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_full_screen_plays": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_landing_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_one_click_lead_form_opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_one_click_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_other_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_reactions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_total_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_starts": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_views": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "ad_analytics_by_campaign",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "campaign_id",
+              "start_at"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "end_at"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "download_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "cost_in_usd"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "talent_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_download_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "cost_in_local_currency"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "approximate_unique_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "card_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "card_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "comment_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_card_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_card_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_comment_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "start_at"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "end_at"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "action_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ad_unit_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "comments"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "company_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "conversion_value_in_local_currency"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "date_range"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_post_click_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_post_view_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "follows"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "full_screen_plays"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "landing_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lead_generation_mail_contact_info_shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lead_generation_mail_interested_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "one_click_lead_form_opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "one_click_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "other_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot_value"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot_values"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reactions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "sends"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "text_url_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_starts"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_views"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_comments"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_company_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_post_click_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_post_view_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_follows"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_full_screen_plays"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_landing_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_one_click_lead_form_opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_one_click_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_other_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_reactions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_total_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_starts"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_views"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "ad_analytics_by_creative",
+      "key_properties": [
+        "creative_id",
+        "start_at"
+      ],
+      "schema": {
+        "properties": {
+          "landing_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "document_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "download_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "post_click_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_click_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_click_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "post_view_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "talent_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "full_screen_plays": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_document_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_download_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_click_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_view_job_applications": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_post_view_job_apply_clicks": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "video_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_post_view_registrations": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "viral_registrations": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "approximate_unique_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "card_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "card_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "comment_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_card_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_card_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_comment_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "creative": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "creative_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "start_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "end_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "ad_unit_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "comments": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "company_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "conversion_value_in_local_currency": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost_in_local_currency": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cost_in_usd": {
+            "format": "singer.decimal",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date_range": {
+            "properties": {
+              "end": {
+                "properties": {
+                  "day": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "month": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "year": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "start": {
+                "properties": {
+                  "day": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "month": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "year": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "external_website_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "external_website_post_click_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "external_website_post_view_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "follows": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "lead_generation_mail_contact_info_shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "lead_generation_mail_interested_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "one_click_lead_form_opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "one_click_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "other_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "pivot": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pivot_value": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pivot_values": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reactions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "sends": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "text_url_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "total_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_starts": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "video_views": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_comments": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_company_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_post_click_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_external_website_post_view_conversions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_follows": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_full_screen_plays": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_impressions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_landing_page_clicks": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_likes": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_one_click_lead_form_opens": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_one_click_leads": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_other_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_reactions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_shares": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_total_engagements": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_first_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_midpoint_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_starts": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_third_quartile_completions": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "viral_video_views": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          }
+        },
+        "type": [
+          "null",
+          "object"
+        ],
+        "additionalProperties": false
+      },
+      "stream": "ad_analytics_by_creative",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "creative_id",
+              "start_at"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "end_at"
+            ],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "landing_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "document_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "download_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_click_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "post_view_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "talent_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "full_screen_plays"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_document_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_download_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_click_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_job_applications"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_job_apply_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_post_view_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_registrations"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "approximate_unique_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "card_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "card_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "comment_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_card_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_card_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_comment_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "creative"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "creative_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "start_at"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "end_at"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "action_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ad_unit_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "comments"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "company_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "conversion_value_in_local_currency"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "cost_in_local_currency"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "cost_in_usd"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "date_range"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_post_click_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "external_website_post_view_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "follows"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lead_generation_mail_contact_info_shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "lead_generation_mail_interested_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "one_click_lead_form_opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "one_click_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "other_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot_value"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "pivot_values"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reactions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "sends"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "text_url_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "total_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_starts"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "video_views"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_comments"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_company_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_post_click_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_external_website_post_view_conversions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_follows"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_full_screen_plays"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_impressions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_landing_page_clicks"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_likes"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_one_click_lead_form_opens"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_one_click_leads"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_other_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_reactions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_shares"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_total_engagements"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_first_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_midpoint_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_starts"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_third_quartile_completions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "viral_video_views"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    }
+  ]
+}
