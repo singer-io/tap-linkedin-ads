@@ -2,8 +2,6 @@
 /.ipynb_checkpoints/*
 config/
 virtualenvs/
-catalog.json
-*config*.json
 state*.json
 target*.json
 *.sublime-*
@@ -14,6 +12,7 @@ singer-check-tap-data
 dist/
 __pycache__/
 venv/
+.venv/
 build/
 tap_intercom/.vscode/settings.json
 *.ipynb
