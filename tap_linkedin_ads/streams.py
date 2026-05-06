@@ -28,6 +28,7 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
 CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
 NEW_PATH_STREAMS = ["campaign_groups", "campaigns", "creatives"]
 BASE_URL = 'https://api.linkedin.com/rest'
+CREATIVES_CAMPAIGNS_BATCH_SIZE = 20
 
 def write_bookmark(state, value, stream_name):
     """
@@ -64,6 +65,16 @@ def split_into_chunks(fields, chunk_length):
     Return: [[1, 2], [3, 4], [5]]
     """
     return (fields[x:x+chunk_length] for x in range(0, len(fields), chunk_length))
+
+def get_creatives_campaigns_param(campaign_ids):
+    """
+    Prepare the encoded campaigns query param for creatives finder requests.
+    """
+    encoded_campaigns = [
+        'urn%3Ali%3AsponsoredCampaign%3A{}'.format(campaign_id)
+        for campaign_id in campaign_ids
+    ]
+    return 'List({})'.format(','.join(encoded_campaigns))
 
 def sync_analytics_endpoint(client, stream_name, path, query_string):
     """
@@ -398,6 +409,49 @@ class LinkedInAds:
                     if child_stream_name in selected_streams:
                         # For each parent record
                         child_obj = STREAMS[child_stream_name]()
+
+                        if self.tap_stream_id == 'campaigns' and child_stream_name == 'creatives':
+                            # Batch creatives sync to reduce API calls: up to 20 campaign IDs per request.
+                            campaign_ids = [
+                                record.get(child_obj.foreign_key)
+                                for record in pre_singer_transformed_data
+                                if record.get(child_obj.foreign_key)
+                            ]
+                            campaign_ids = list(dict.fromkeys(campaign_ids))
+
+                            for campaign_chunk in split_into_chunks(campaign_ids, CREATIVES_CAMPAIGNS_BATCH_SIZE):
+                                child_stream_params = dict(child_obj.params)
+                                child_stream_params['campaigns'] = get_creatives_campaigns_param(campaign_chunk)
+                                child_obj.params = child_stream_params
+
+                                LOGGER.info('Syncing: %s, parent_stream: %s, campaign_count: %s',
+                                            child_stream_name,
+                                            self.tap_stream_id,
+                                            len(campaign_chunk))
+
+                                child_total_records, child_batch_bookmark_value = child_obj.sync_endpoint(
+                                    client=client,
+                                    catalog=catalog,
+                                    state=state,
+                                    page_size=page_size,
+                                    start_date=start_date,
+                                    selected_streams=selected_streams,
+                                    date_window_size=date_window_size,
+                                    account_list=[acct_id])
+
+                                child_batch_bookmark_dttm = strptime_to_utc(child_batch_bookmark_value)
+                                child_max_bookmark = child_max_bookmarks.get(child_stream_name)
+                                child_max_bookmark_dttm = strptime_to_utc(child_max_bookmark)
+                                if child_batch_bookmark_dttm > child_max_bookmark_dttm:
+                                    # Update bookmark for child stream.
+                                    child_max_bookmarks[child_stream_name] = strftime(child_batch_bookmark_dttm)
+
+                                LOGGER.info('Synced: %s, campaign_count: %s, total_records: %s',
+                                            child_stream_name,
+                                            len(campaign_chunk),
+                                            child_total_records)
+                                LOGGER.info('FINISHED Syncing: %s', child_stream_name)
+                            continue
 
                         for record in pre_singer_transformed_data:
 
