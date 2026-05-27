@@ -76,6 +76,18 @@
           ],
           "additionalProperties": false,
           "properties": {
+            "headline": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "call_to_action": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
             "landing_page": {
               "type": [
                 "null",
