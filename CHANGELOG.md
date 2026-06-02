@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.6.1
+  * Bump requests version to 2.33.0 [#85](https://github.com/singer-io/tap-linkedin-ads/pull/85)
+
 ## 2.6.0
   * Adds `parent_tap_stream_id` as discoverable metadata
   * Add latest versions for dependencies
