@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.0
+  * Exclude 403-inaccessible streams from catalog during discovery [#86](https://github.com/singer-io/tap-linkedin-ads/pull/86)
+  * Added `accounts` as a required config field
+  * Added unit tests for discovery access-check logic
+  * Bump requests version to 2.34.2 and singer-python to 6.8.0
+
 ## 2.6.1
   * Bump requests version to 2.33.0 [#85](https://github.com/singer-io/tap-linkedin-ads/pull/85)
 

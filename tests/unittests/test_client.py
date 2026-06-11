@@ -129,9 +129,9 @@ class TestLinkedInClient(unittest.TestCase):
         mocked_response = mock.Mock()
         mocked_response.json.return_value = {
             "expires_at": datetime.utcnow().timestamp(),
-            "created_at": (datetime.utcnow() - timedelta(days=334)).timestamp()
+            "created_at": (datetime.utcnow() - timedelta(days=335)).timestamp()
         }
-        
+
         mocked_response.status_code = 200
         mocked_post.return_value = mocked_response
 

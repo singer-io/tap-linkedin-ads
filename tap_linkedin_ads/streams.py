@@ -8,6 +8,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
+from tap_linkedin_ads.client import LinkedInForbiddenError
 
 LOGGER = singer.get_logger()
 
@@ -195,6 +196,53 @@ class LinkedInAds:
     count = None
     params = {}
     headers = {}
+
+    def check_access(self, client):
+        """
+        Verify that the API credentials have read access to this stream.
+        Returns True if accessible, False if a 403 Forbidden error is raised.
+        Child streams always return True (access is governed by the parent check).
+        This means children are never flagged by the access-check loop in _apply_access_checks();
+        their removal from the catalog is handled separately by _prune_inaccessible_children().
+        """
+        LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
+        if self.parent:
+            return True
+
+        config = getattr(client, 'config', {})
+        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+
+        try:
+            if self.tap_stream_id in NEW_PATH_STREAMS:
+                url = "{}/adAccounts/{}/{}?q=search&pageSize=1".format(
+                    BASE_URL, account_list[0], self.path
+                )
+            else:
+                probe_params = dict(self.params)
+                probe_params['count'] = 1
+                if self.account_filter == 'search_id_values_param' and account_list:
+                    urn_list = [
+                        "urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list
+                    ]
+                    probe_params['search'] = "(id:(values:List({})))".format(','.join(urn_list))
+                elif self.account_filter == 'accounts_param' and account_list:
+                    probe_params['accounts[0]'] = 'urn:li:sponsoredAccount:{}'.format(
+                        account_list[0]
+                    )
+                querystring = '&'.join(
+                    ['{}={}'.format(k, v) for k, v in probe_params.items()]
+                )
+                url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
+
+            client.get(url=url, endpoint=self.tap_stream_id, headers=self.headers)
+            return True
+        except LinkedInForbiddenError:
+            LOGGER.warning(
+                "Stream '%s' does not have read permission (403), excluding from catalog.",
+                self.__class__.__name__,
+            )
+            return False
+
     def write_schema(self, catalog):
         """
         Write the schema for the selected stream.
