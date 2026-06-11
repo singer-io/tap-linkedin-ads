@@ -229,17 +229,20 @@ class TestCheckAccess(unittest.TestCase):
         return STREAMS[stream_name]()
 
     def test_child_stream_always_accessible(self):
-        """Child streams (with parent) always return True from check_access."""
+        """Child streams (with parent) make a real API probe; return True on success."""
         stream = self._make_stream("video_ads")
+        self.client.get.return_value = {"elements": []}
         result = stream.check_access(self.client)
         self.assertTrue(result)
-        self.client.get.assert_not_called()
+        self.client.get.assert_called_once()
 
     def test_child_creatives_always_accessible(self):
-        """creatives (child of campaigns) always returns True."""
+        """creatives (child of campaigns) makes a real API probe; returns True on success."""
         stream = self._make_stream("creatives")
+        self.client.get.return_value = {"elements": []}
         result = stream.check_access(self.client)
         self.assertTrue(result)
+        self.client.get.assert_called_once()
 
     def test_accounts_accessible_returns_true(self):
         """check_access returns True when accounts endpoint responds successfully."""

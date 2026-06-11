@@ -8,7 +8,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
-from tap_linkedin_ads.client import LinkedInForbiddenError
+from tap_linkedin_ads.client import LinkedInForbiddenError, LinkedInBadRequestError, LinkedInNotFoundError
 
 LOGGER = singer.get_logger()
 
@@ -201,22 +201,42 @@ class LinkedInAds:
         """
         Verify that the API credentials have read access to this stream.
         Returns True if accessible, False if a 403 Forbidden error is raised.
-        Child streams always return True (access is governed by the parent check).
-        This means children are never flagged by the access-check loop in _apply_access_checks();
-        their removal from the catalog is handled separately by _prune_inaccessible_children().
+        All streams — including child streams — are individually probed.
+        Non-403 errors (e.g. 400, 404) are treated as accessible because they indicate
+        the endpoint is reachable; the probe params may not be perfect for child streams
+        (e.g. no real parent ID available at discovery time), but only a 403 confirms
+        the credentials lack access.
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
-        if self.parent:
-            return True
-
         config = getattr(client, 'config', {})
         account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
 
+        if not account_list:
+            raise ValueError(
+                "Configuration error: 'accounts' must contain at least one valid account ID."
+            )
+
         try:
             if self.tap_stream_id in NEW_PATH_STREAMS:
-                url = "{}/adAccounts/{}/{}?q=search&pageSize=1".format(
-                    BASE_URL, account_list[0], self.path
-                )
+                if self.parent:
+                    # Child stream in NEW_PATH_STREAMS (e.g. creatives): can't use q=search.
+                    # Build the probe using the stream's own params, substituting a dummy
+                    # value (0) for any parent ID placeholders ({}).
+                    probe_params = {
+                        k: v.format(0) if isinstance(v, str) and '{}' in v else v
+                        for k, v in self.params.items()
+                    }
+                    probe_params['pageSize'] = 1
+                    querystring = '&'.join(
+                        ['{}={}'.format(k, v) for k, v in probe_params.items()]
+                    )
+                    url = '{}/adAccounts/{}/{}?{}'.format(
+                        BASE_URL, account_list[0], self.path, querystring
+                    )
+                else:
+                    url = '{}/adAccounts/{}/{}?q=search&pageSize=1'.format(
+                        BASE_URL, account_list[0], self.path
+                    )
             else:
                 probe_params = dict(self.params)
                 probe_params['count'] = 1
@@ -234,14 +254,23 @@ class LinkedInAds:
                 )
                 url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
 
-            client.get(url=url, endpoint=self.tap_stream_id, headers=self.headers)
+            client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
-        except LinkedInForbiddenError:
+        except LinkedInForbiddenError as exc:
             LOGGER.warning(
-                "Stream '%s' does not have read permission (403), excluding from catalog.",
+                "Permission Error: Stream '%s' %s. Excluding from catalog.",
                 self.__class__.__name__,
+                exc,
             )
             return False
+        except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:
+            # Dummy parent ID caused a 400/404 — endpoint is reachable, credentials are fine.
+            LOGGER.info(
+                "Stream '%s': probe returned a non-403 error (%s) — endpoint reachable.",
+                self.tap_stream_id,
+                exc,
+            )
+            return True
 
     def write_schema(self, catalog):
         """
@@ -669,6 +698,42 @@ class VideoAds(LinkedInAds):
         "count":100
     }
     headers = {'X-Restli-Protocol-Version': "2.0.0"}
+
+    def check_access(self, client):
+        """
+        Override check_access for video_ads because its path is 'posts', which requires
+        a dscAdAccount query param to get a meaningful response rather than a 400.
+        """
+        LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
+        config = getattr(client, 'config', {})
+        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+
+        if not account_list:
+            raise ValueError(
+                "Configuration error: 'accounts' must contain at least one valid account ID."
+            )
+
+        url = '{}/{}?q=dscAdAccount&dscAdTypes=List(VIDEO)&count=1&dscAdAccount=urn%3Ali%3AsponsoredAccount%3A{}'.format(
+            BASE_URL, self.path, account_list[0]
+        )
+        try:
+            client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
+            return True
+        except LinkedInForbiddenError as exc:
+            LOGGER.warning(
+                "Permission Error: Stream '%s' %s. Excluding from catalog.",
+                self.__class__.__name__,
+                exc,
+            )
+            return False
+        except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:
+            # Dummy parent ID caused a 400/404 — endpoint is reachable, credentials are fine.
+            LOGGER.info(
+                "Stream '%s': probe returned a non-403 error (%s) — endpoint reachable.",
+                self.tap_stream_id,
+                exc,
+            )
+            return True
 
     def sync_endpoint(self, *args, **kwargs):
         try:
