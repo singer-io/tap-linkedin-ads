@@ -258,9 +258,9 @@ class LinkedInAds:
             return True
         except LinkedInForbiddenError as exc:
             LOGGER.warning(
-                "Permission Error: Stream '%s' %s. Excluding from catalog.",
-                self.__class__.__name__,
-                exc,
+                "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
+                self.tap_stream_id,
+                str(exc),
             )
             return False
         except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:
@@ -721,9 +721,9 @@ class VideoAds(LinkedInAds):
             return True
         except LinkedInForbiddenError as exc:
             LOGGER.warning(
-                "Permission Error: Stream '%s' %s. Excluding from catalog.",
-                self.__class__.__name__,
-                exc,
+                "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
+                self.tap_stream_id,
+                str(exc),
             )
             return False
         except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:

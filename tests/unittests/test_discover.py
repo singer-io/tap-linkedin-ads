@@ -306,3 +306,27 @@ class TestCheckAccess(unittest.TestCase):
         self.assertIn("987654", url)
         self.assertIn("adCampaignGroups", url)
 
+    def test_all_inaccessible_error_message(self):
+        client = mock.MagicMock()
+        client.config = {"accounts": "123456"}
+        schemas, field_metadata = get_schemas()
+        with mock.patch('tap_linkedin_ads.streams.LinkedInAds.check_access', return_value=False):
+            with self.assertRaises(LinkedInForbiddenError) as ctx:
+                _apply_access_checks(client, schemas, field_metadata)
+        self.assertIn('403', str(ctx.exception))
+        self.assertIn("do not have 'read' access to any supported streams", str(ctx.exception))
+
+    def test_all_inaccessible_exact_error_message(self):
+        """Validate the exact error message raised when no streams are accessible."""
+        client = mock.MagicMock()
+        client.config = {"accounts": "123456"}
+        schemas, field_metadata = get_schemas()
+        expected_message = (
+            "HTTP-error-code: 403, Error: The credentials "
+            "do not have 'read' access to any supported streams."
+        )
+        with mock.patch('tap_linkedin_ads.streams.LinkedInAds.check_access', return_value=False):
+            with self.assertRaises(LinkedInForbiddenError) as ctx:
+                _apply_access_checks(client, schemas, field_metadata)
+        self.assertEqual(expected_message, str(ctx.exception))
+
