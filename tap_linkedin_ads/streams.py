@@ -8,7 +8,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
-from tap_linkedin_ads.client import LinkedInForbiddenError, LinkedInBadRequestError, LinkedInNotFoundError
+from tap_linkedin_ads.client import LinkedInForbiddenError
 
 LOGGER = singer.get_logger()
 
@@ -29,6 +29,16 @@ FIELDS_UNAVAILABLE_FOR_AD_ANALYTICS = {
 CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "creatives"]
 NEW_PATH_STREAMS = ["campaign_groups", "campaigns", "creatives"]
 BASE_URL = 'https://api.linkedin.com/rest'
+
+# adAnalytics requires dateRange — shared static 1-day probe window for both analytics streams.
+_AD_ANALYTICS_PROBE_DATE_RANGE = {
+    'dateRange.start.day': 1,
+    'dateRange.start.month': 1,
+    'dateRange.start.year': 2024,
+    'dateRange.end.day': 1,
+    'dateRange.end.month': 1,
+    'dateRange.end.year': 2024,
+}
 
 def write_bookmark(state, value, stream_name):
     """
@@ -196,16 +206,68 @@ class LinkedInAds:
     count = None
     params = {}
     headers = {}
+    # Extra params merged into the access probe request only.
+    # Subclasses that require mandatory query params (e.g. dateRange for
+    # adAnalytics) can define these without overriding check_access.
+    access_probe_extra_params = {}
 
-    def check_access(self, client):
+    def _build_probe_url(self, account_list, parent_id=None):
         """
-        Verify that the API credentials have read access to this stream.
-        Returns True if accessible, False if a 403 Forbidden error is raised.
-        All streams — including child streams — are individually probed.
-        Non-403 errors (e.g. 400, 404) are treated as accessible because they indicate
-        the endpoint is reachable; the probe params may not be perfect for child streams
-        (e.g. no real parent ID available at discovery time), but only a 403 confirms
-        the credentials lack access.
+        Build the probe URL used by both check_access and get_first_id.
+        parent_id is only used for child streams in NEW_PATH_STREAMS.
+        """
+        if self.tap_stream_id in NEW_PATH_STREAMS:
+            if self.parent and parent_id:
+                probe_params = {
+                    k: v.format(parent_id) if isinstance(v, str) and '{}' in v else v
+                    for k, v in self.params.items()
+                }
+                probe_params['pageSize'] = 1
+                querystring = '&'.join(['{}={}'.format(k, v) for k, v in probe_params.items()])
+                return '{}/adAccounts/{}/{}?{}'.format(BASE_URL, account_list[0], self.path, querystring)
+            return '{}/adAccounts/{}/{}?q=search&pageSize=1'.format(BASE_URL, account_list[0], self.path)
+
+        probe_params = dict(self.params)
+        probe_params['count'] = 1
+        if self.account_filter == 'search_id_values_param':
+            urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list]
+            probe_params['search'] = "(id:(values:List({})))".format(','.join(urn_list))
+        elif self.account_filter == 'accounts_param':
+            probe_params['accounts[0]'] = 'urn:li:sponsoredAccount:{}'.format(account_list[0])
+        probe_params.update(self.access_probe_extra_params)
+        querystring = '&'.join(['{}={}'.format(k, v) for k, v in probe_params.items()])
+        return '{}/{}?{}'.format(BASE_URL, self.path, querystring)
+
+    def get_first_id(self, client):
+        """
+        Fetch the first real record ID from this stream's API endpoint.
+        Returns the numeric ID as a string, or None if no records or on any error.
+        Used so child streams can be probed with a real parent ID at discovery time.
+        """
+        config = getattr(client, 'config', {})
+        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        if not account_list:
+            return None
+        try:
+            url = self._build_probe_url(account_list)
+            data = client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
+            elements = data.get(self.data_key, [])
+            if elements:
+                raw_id = str(elements[0].get('id', ''))
+                # LinkedIn IDs may be URNs (e.g. "urn:li:sponsoredCampaign:12345");
+                # extract the numeric portion for safe URL embedding.
+                return raw_id.rsplit(':', 1)[-1] if ':' in raw_id else raw_id
+            return None
+        except Exception:  # pylint: disable=broad-except
+            return None
+
+    def check_access(self, client, parent_id=None):
+        """
+        Verify read access to this stream. Returns True if accessible, False on 403.
+
+        For child streams: probe uses the supplied parent_id for an accurate result.
+        If parent_id is None (parent had no records), skips the probe and includes
+        the stream with a warning to avoid a false negative from an invalid URL.
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
@@ -216,61 +278,26 @@ class LinkedInAds:
                 "Configuration error: 'accounts' must contain at least one valid account ID."
             )
 
-        try:
-            if self.tap_stream_id in NEW_PATH_STREAMS:
-                if self.parent:
-                    # Child stream in NEW_PATH_STREAMS (e.g. creatives): can't use q=search.
-                    # Build the probe using the stream's own params, substituting a dummy
-                    # value (0) for any parent ID placeholders ({}).
-                    probe_params = {
-                        k: v.format(0) if isinstance(v, str) and '{}' in v else v
-                        for k, v in self.params.items()
-                    }
-                    probe_params['pageSize'] = 1
-                    querystring = '&'.join(
-                        ['{}={}'.format(k, v) for k, v in probe_params.items()]
-                    )
-                    url = '{}/adAccounts/{}/{}?{}'.format(
-                        BASE_URL, account_list[0], self.path, querystring
-                    )
-                else:
-                    url = '{}/adAccounts/{}/{}?q=search&pageSize=1'.format(
-                        BASE_URL, account_list[0], self.path
-                    )
-            else:
-                probe_params = dict(self.params)
-                probe_params['count'] = 1
-                if self.account_filter == 'search_id_values_param' and account_list:
-                    urn_list = [
-                        "urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list
-                    ]
-                    probe_params['search'] = "(id:(values:List({})))".format(','.join(urn_list))
-                elif self.account_filter == 'accounts_param' and account_list:
-                    probe_params['accounts[0]'] = 'urn:li:sponsoredAccount:{}'.format(
-                        account_list[0]
-                    )
-                querystring = '&'.join(
-                    ['{}={}'.format(k, v) for k, v in probe_params.items()]
-                )
-                url = '{}/{}?{}'.format(BASE_URL, self.path, querystring)
+        # Child stream with no available parent record — skip probe with a warning.
+        if self.parent and parent_id is None:
+            LOGGER.warning(
+                "Stream '%s': parent stream '%s' returned no records so no real "
+                "parent ID is available for the access probe. Including '%s' in "
+                "the catalog without an API check.",
+                self.tap_stream_id, self.parent, self.tap_stream_id,
+            )
+            return True
 
+        try:
+            url = self._build_probe_url(account_list, parent_id=parent_id)
             client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
         except LinkedInForbiddenError as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
-                self.tap_stream_id,
-                str(exc),
+                self.tap_stream_id, str(exc),
             )
             return False
-        except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:
-            # Dummy parent ID caused a 400/404 — endpoint is reachable, credentials are fine.
-            LOGGER.info(
-                "Stream '%s': probe returned a non-403 error (%s) — endpoint reachable.",
-                self.tap_stream_id,
-                exc,
-            )
-            return True
 
     def write_schema(self, catalog):
         """
@@ -699,10 +726,11 @@ class VideoAds(LinkedInAds):
     }
     headers = {'X-Restli-Protocol-Version': "2.0.0"}
 
-    def check_access(self, client):
+    def check_access(self, client, parent_id=None):
         """
         Override check_access for video_ads because its path is 'posts', which requires
         a dscAdAccount query param to get a meaningful response rather than a 400.
+        parent_id is accepted for interface consistency
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
@@ -726,14 +754,6 @@ class VideoAds(LinkedInAds):
                 str(exc),
             )
             return False
-        except (LinkedInBadRequestError, LinkedInNotFoundError) as exc:
-            # Dummy parent ID caused a 400/404 — endpoint is reachable, credentials are fine.
-            LOGGER.info(
-                "Stream '%s': probe returned a non-403 error (%s) — endpoint reachable.",
-                self.tap_stream_id,
-                exc,
-            )
-            return True
 
     def sync_endpoint(self, *args, **kwargs):
         try:
@@ -835,6 +855,7 @@ class AdAnalyticsByCampaign(LinkedInAds):
         "timeGranularity": "DAILY",
         "count": 10000
     }
+    access_probe_extra_params = _AD_ANALYTICS_PROBE_DATE_RANGE
 
 class AdAnalyticsByCreative(LinkedInAds):
     """
@@ -855,6 +876,7 @@ class AdAnalyticsByCreative(LinkedInAds):
         "timeGranularity": "DAILY",
         "count": 10000
     }
+    access_probe_extra_params = _AD_ANALYTICS_PROBE_DATE_RANGE
 
 # Dictionary of the stream classes
 STREAMS = {

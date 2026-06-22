@@ -25,22 +25,53 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
     """
     Probe each stream for read access and remove inaccessible streams
     (and their children) from schemas and field_metadata in place.
-    Both parent and child streams are individually probed via check_access().
-    Child streams whose parent was also excluded are additionally pruned by
-    _prune_inaccessible_children().
-    Raises LinkedInForbiddenError if no streams are accessible.
+
+    Two-pass strategy:
+      Pass 1 — parent streams: check access, fetch first real record ID.
+      Pass 2 — child streams: probe using the real parent ID.
+        - Parent excluded → child pruned before pass 2.
+        - Parent has no records → child included with a warning, no probe.
+
+    Raises LinkedInForbiddenError if no streams remain accessible.
     """
-    inaccessible_streams = [
-        stream_name
-        for stream_name, stream_obj in STREAMS.items()
-        if stream_name in schemas and not stream_obj().check_access(client)
-    ]
+    inaccessible_streams = []
 
-    for stream_name in inaccessible_streams:
-        schemas.pop(stream_name, None)
-        field_metadata.pop(stream_name, None)
+    # --- Pass 1: check parent streams and collect first real IDs ---
+    parent_first_ids = {}  # stream_name -> first record ID (str) or None
+    for stream_name, stream_cls in list(STREAMS.items()):
+        if stream_name not in schemas:
+            continue
+        if stream_cls.parent:
+            continue  # handled in pass 2
+        stream_obj = stream_cls()
+        if stream_obj.check_access(client):
+            parent_first_ids[stream_name] = stream_obj.get_first_id(client)
+            if parent_first_ids[stream_name] is None:
+                LOGGER.info(
+                    "Stream '%s' is accessible but returned no records; child streams "
+                    "will be included without an API access probe.",
+                    stream_name,
+                )
+        else:
+            inaccessible_streams.append(stream_name)
+            schemas.pop(stream_name, None)
+            field_metadata.pop(stream_name, None)
 
+    # Prune children whose parent was just excluded before the child pass.
     _prune_inaccessible_children(schemas, field_metadata)
+
+    # --- Pass 2: check child streams using real parent IDs ---
+    for stream_name, stream_cls in list(STREAMS.items()):
+        if stream_name not in schemas:
+            continue
+        if not stream_cls.parent:
+            continue  # already handled
+        real_parent_id = parent_first_ids.get(stream_cls.parent)
+        stream_obj = stream_cls()
+        if not stream_obj.check_access(client, parent_id=real_parent_id):
+            inaccessible_streams.append(stream_name)
+            schemas.pop(stream_name, None)
+            field_metadata.pop(stream_name, None)
 
     if not schemas:
         raise LinkedInForbiddenError(
