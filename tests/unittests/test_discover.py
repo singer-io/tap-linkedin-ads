@@ -82,7 +82,7 @@ class TestApplyAccessChecks(unittest.TestCase):
         client = self._make_client()
         schemas, field_metadata = self._build_schemas_and_metadata()
 
-        def _check_access(self, client):
+        def _check_access(self, client, parent_id=None):
             if self.tap_stream_id == "accounts":
                 return False
             return True
@@ -101,7 +101,7 @@ class TestApplyAccessChecks(unittest.TestCase):
         client = self._make_client()
         schemas, field_metadata = self._build_schemas_and_metadata()
 
-        def _check_access(self, client):
+        def _check_access(self, client, parent_id=None):
             if self.tap_stream_id == "accounts":
                 return False
             return True
@@ -154,7 +154,7 @@ class TestApplyAccessChecks(unittest.TestCase):
         client = self._make_client()
         schemas, field_metadata = self._build_schemas_and_metadata()
 
-        def _check_access(self, client):
+        def _check_access(self, client, parent_id=None):
             if self.tap_stream_id == "account_users":
                 return False
             return True
@@ -237,10 +237,10 @@ class TestCheckAccess(unittest.TestCase):
         self.client.get.assert_called_once()
 
     def test_child_creatives_always_accessible(self):
-        """creatives (child of campaigns) makes a real API probe; returns True on success."""
+        """creatives (child of campaigns) makes a real API probe when a parent_id is given."""
         stream = self._make_stream("creatives")
         self.client.get.return_value = {"elements": []}
-        result = stream.check_access(self.client)
+        result = stream.check_access(self.client, parent_id="98765")
         self.assertTrue(result)
         self.client.get.assert_called_once()
 
