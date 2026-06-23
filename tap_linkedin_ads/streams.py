@@ -30,15 +30,21 @@ CURSOR_BASED_PAGINATION_STREAMS = ["accounts", "campaign_groups", "campaigns", "
 NEW_PATH_STREAMS = ["campaign_groups", "campaigns", "creatives"]
 BASE_URL = 'https://api.linkedin.com/rest'
 
-# adAnalytics requires dateRange — shared static 1-day probe window for both analytics streams.
-_AD_ANALYTICS_PROBE_DATE_RANGE = {
-    'dateRange.start.day': 1,
-    'dateRange.start.month': 1,
-    'dateRange.start.year': 2024,
-    'dateRange.end.day': 1,
-    'dateRange.end.month': 1,
-    'dateRange.end.year': 2024,
-}
+# adAnalytics requires dateRange — compute a rolling 5-day probe window ending today.
+def _build_ad_analytics_probe_date_range():
+    """
+    Build a 5-day date range ending today for adAnalytics access probes.
+    """
+    end = datetime.date.today()
+    start = end - timedelta(days=5)
+    return {
+        'dateRange.start.day': start.day,
+        'dateRange.start.month': start.month,
+        'dateRange.start.year': start.year,
+        'dateRange.end.day': end.day,
+        'dateRange.end.month': end.month,
+        'dateRange.end.year': end.year,
+    }
 
 def write_bookmark(state, value, stream_name):
     """
@@ -206,10 +212,13 @@ class LinkedInAds:
     count = None
     params = {}
     headers = {}
-    # Extra params merged into the access probe request only.
-    # Subclasses that require mandatory query params (e.g. dateRange for
-    # adAnalytics) can define these without overriding check_access.
-    access_probe_extra_params = {}
+
+    @property
+    def access_probe_extra_params(self):
+        # Extra params merged into the access probe request only.
+        # Subclasses that require mandatory query params (e.g. dateRange for
+        # adAnalytics) override this to return a non-empty dict.
+        return {}
 
     def _build_probe_url(self, account_list, parent_id=None):
         """
@@ -248,18 +257,15 @@ class LinkedInAds:
         account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
         if not account_list:
             return None
-        try:
-            url = self._build_probe_url(account_list)
-            data = client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
-            elements = data.get(self.data_key, [])
-            if elements:
-                raw_id = str(elements[0].get('id', ''))
-                # LinkedIn IDs may be URNs (e.g. "urn:li:sponsoredCampaign:12345");
-                # extract the numeric portion for safe URL embedding.
-                return raw_id.rsplit(':', 1)[-1] if ':' in raw_id else raw_id
-            return None
-        except Exception:  # pylint: disable=broad-except
-            return None
+        url = self._build_probe_url(account_list)
+        data = client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
+        elements = data.get(self.data_key, [])
+        if elements:
+            raw_id = str(elements[0].get('id', ''))
+            # LinkedIn IDs may be URNs (e.g. "urn:li:sponsoredCampaign:12345");
+            # extract the numeric portion for safe URL embedding.
+            return raw_id.rsplit(':', 1)[-1] if ':' in raw_id else raw_id
+        return None
 
     def check_access(self, client, parent_id=None):
         """
@@ -278,7 +284,11 @@ class LinkedInAds:
                 "Configuration error: 'accounts' must contain at least one valid account ID."
             )
 
-        # Child stream with no available parent record — skip probe with a warning.
+        # If no parent records exist, we cannot obtain a valid parent ID for the
+        # child-stream probe URL. Rather than excluding the child stream and risking
+        # a false negative, include it optimistically. Any actual access issues will
+        # be detected during sync, and users can manually deselect child streams if
+        # needed.
         if self.parent and parent_id is None:
             LOGGER.warning(
                 "Stream '%s': parent stream '%s' returned no records so no real "
@@ -855,7 +865,9 @@ class AdAnalyticsByCampaign(LinkedInAds):
         "timeGranularity": "DAILY",
         "count": 10000
     }
-    access_probe_extra_params = _AD_ANALYTICS_PROBE_DATE_RANGE
+    @property
+    def access_probe_extra_params(self):
+        return _build_ad_analytics_probe_date_range()
 
 class AdAnalyticsByCreative(LinkedInAds):
     """
@@ -876,7 +888,9 @@ class AdAnalyticsByCreative(LinkedInAds):
         "timeGranularity": "DAILY",
         "count": 10000
     }
-    access_probe_extra_params = _AD_ANALYTICS_PROBE_DATE_RANGE
+    @property
+    def access_probe_extra_params(self):
+        return _build_ad_analytics_probe_date_range()
 
 # Dictionary of the stream classes
 STREAMS = {

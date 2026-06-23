@@ -36,7 +36,7 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
     """
     inaccessible_streams = []
 
-    # --- Pass 1: check parent streams and collect first real IDs ---
+    # Pass 1: check parent streams and collect first real IDs
     parent_first_ids = {}  # stream_name -> first record ID (str) or None
     for stream_name, stream_cls in list(STREAMS.items()):
         if stream_name not in schemas:
@@ -60,7 +60,7 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
     # Prune children whose parent was just excluded before the child pass.
     _prune_inaccessible_children(schemas, field_metadata)
 
-    # --- Pass 2: check child streams using real parent IDs ---
+    # Pass 2: check child streams using real parent IDs
     for stream_name, stream_cls in list(STREAMS.items()):
         if stream_name not in schemas:
             continue
