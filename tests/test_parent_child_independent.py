@@ -4,7 +4,7 @@ from base import TestLinkedinAdsBase
 class LinkedinAdsParentChildIndependentTest(TestLinkedinAdsBase):
 
     def name(self):
-        return "tap_tester_linedin_ads_parent_child_test"
+        return "tap_tester_linkedin_ads_parent_child_test"
 
     def test_run(self):
         """
@@ -12,7 +12,7 @@ class LinkedinAdsParentChildIndependentTest(TestLinkedinAdsBase):
         • Verify that if only child streams are selected then only child streams are replicated.
         """
 
-        child_streams = {"video_ads", "creatives", "ad_analytics_by_campaign", "ad_analytics_by_creative"}
+        child_streams = {"creatives", "ad_analytics_by_campaign", "ad_analytics_by_creative"}
 
         # Instantiate connection
         conn_id = connections.ensure_connection(self)

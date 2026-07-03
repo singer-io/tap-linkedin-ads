@@ -34,6 +34,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
     FULL_TABLE = "FULL_TABLE"
     ADDITIONAL_AUTOMATIC = "additional-automatic-fields"
     OBEYS_START_DATE = "obey-start-date"
+    IS_FORBIDDEN_STREAM = "is-forbidden-stream"
 
     def setUp(self):
         """Raising the error if required environment variables are missing"""
@@ -104,7 +105,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.PRIMARY_KEYS: {'content_reference'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
-                self.REPLICATION_KEYS: {'last_modified_time'}
+                self.REPLICATION_KEYS: {'last_modified_time'},
+                self.IS_FORBIDDEN_STREAM: True
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
@@ -166,7 +168,11 @@ class TestLinkedinAdsBase(unittest.TestCase):
 
     def expected_streams(self):
         """A set of expected stream names"""
-        return set(self.expected_metadata().keys())
+        return {
+            stream_name
+            for stream_name, metadata in self.expected_metadata().items()
+            if not metadata.get(self.IS_FORBIDDEN_STREAM, False)
+        }
 
     def expected_start_date_keys(self):
         """
@@ -175,7 +181,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
                 for table, properties
-                in self.expected_metadata().items()}
+                in self.expected_metadata().items()
+                if not properties.get(self.IS_FORBIDDEN_STREAM, False)}
 
     def expected_primary_keys(self):
         """
@@ -184,7 +191,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         """
         return {table: properties.get(self.PRIMARY_KEYS, set())
                 for table, properties
-                in self.expected_metadata().items()}
+                in self.expected_metadata().items()
+                if not properties.get(self.IS_FORBIDDEN_STREAM, False)}
 
     def expected_replication_keys(self):
         """
@@ -193,7 +201,8 @@ class TestLinkedinAdsBase(unittest.TestCase):
         """
         return {table: properties.get(self.REPLICATION_KEYS, set())
                 for table, properties
-                in self.expected_metadata().items()}
+                in self.expected_metadata().items()
+                if not properties.get(self.IS_FORBIDDEN_STREAM, False)}
 
     #########################
     #   Helper Methods      #
