@@ -8,7 +8,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
-from tap_linkedin_ads.client import LinkedInForbiddenError
+from tap_linkedin_ads.client import LinkedInForbiddenError, LinkedInNotFoundError
 
 LOGGER = singer.get_logger()
 
@@ -757,7 +757,7 @@ class VideoAds(LinkedInAds):
         try:
             client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
-        except LinkedInForbiddenError as exc:
+        except (LinkedInForbiddenError, LinkedInNotFoundError) as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
                 self.tap_stream_id,

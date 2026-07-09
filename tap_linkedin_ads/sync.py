@@ -80,6 +80,34 @@ def sync(client, config, catalog, state):
         date_window_size = DATE_WINDOW_SIZE
         LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
 
+    # Validate that the token has access to the configured accounts before syncing.
+    # The LinkedIn API silently returns 200 with empty results for path-based endpoints
+    # (e.g. adAccounts/{id}/adCampaigns) when the token's user is not a member of the
+    # account, making it impossible to distinguish "no data" from "no access" at the
+    # stream level. This check surfaces the problem early and clearly.
+    configured_accounts = config['accounts'].replace(" ", "").split(",")
+    configured_accounts = [a for a in configured_accounts if a]
+    urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in configured_accounts]
+    search_param = "(id:(values:List({})))".format(','.join(urn_list))
+    accounts_check_url = 'https://api.linkedin.com/rest/adAccounts?pageSize={}&q=search&search={}'.format(
+        len(configured_accounts), search_param
+    )
+    try:
+        visible = client.get(
+            url=accounts_check_url,
+            endpoint='accounts',
+            headers={'X-Restli-Protocol-Version': '2.0.0'}
+        )
+        visible_ids = {str(e.get('id')) for e in visible.get('elements', [])}
+        inaccessible = [a for a in configured_accounts if a not in visible_ids]
+        if inaccessible:
+            raise Exception(
+                "Account(s) not found or inaccessible: {}. "
+                "Please verify the account ID(s) in your configuration.".format(', '.join(inaccessible))
+            )
+    except Exception:
+        raise
+
     # Get ALL selected streams from catalog
     selected_streams = []
     for stream in catalog.get_selected_streams(state):
