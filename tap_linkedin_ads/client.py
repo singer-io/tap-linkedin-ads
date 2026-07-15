@@ -304,6 +304,11 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
 
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
+            # Normalize to numeric IDs — accept both '12345' and 'urn:li:sponsoredAccount:12345'
+            account_list = [
+                a.rsplit(':', 1)[-1] if ':' in a else a
+                for a in account_list if a
+            ]
             invalid_account = []
             for account in account_list:
                 response = self.__session.get(

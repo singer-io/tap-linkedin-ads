@@ -254,7 +254,10 @@ class LinkedInAds:
         Used so child streams can be probed with a real parent ID at discovery time.
         """
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
         if not account_list:
             return None
         url = self._build_probe_url(account_list)
@@ -277,7 +280,10 @@ class LinkedInAds:
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
 
         if not account_list:
             raise ValueError(
@@ -744,7 +750,10 @@ class VideoAds(LinkedInAds):
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
 
         if not account_list:
             raise ValueError(
