@@ -153,7 +153,7 @@ class TestSync(unittest.TestCase):
         """
         Test sync function
         """
-        mock_client_get.return_value = {'elements': [{'id': int(config['accounts'])}]}
+        mock_client_get.return_value = {'elements': [{'id': 'urn:li:sponsoredAccount:{}'.format(config['accounts'])}]}
         client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         state = {} 
 
