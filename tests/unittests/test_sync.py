@@ -148,10 +148,12 @@ class TestSync(unittest.TestCase):
         ['test_sync_with_datewindow', {'start_date': '2019-06-01T00:00:00Z', 'date_window_size': 7, 'accounts': '1245'}, 7]
     ])
     @mock.patch('tap_linkedin_ads.streams.LinkedInAds.sync_endpoint', return_value=(1, '2020-06-01T00:00:00Z'))
-    def test_sync(self, name, config, expected_date_window, mock_sync_endpoint):
+    @mock.patch('tap_linkedin_ads.client.LinkedinClient.get')
+    def test_sync(self, name, config, expected_date_window, mock_client_get, mock_sync_endpoint):
         """
         Test sync function
         """
+        mock_client_get.return_value = {'elements': [{'id': int(config['accounts'])}]}
         client = LinkedinClient('client_id', 'client_secret', 'refresh_token', 'access_token', 'config_path')
         state = {} 
 

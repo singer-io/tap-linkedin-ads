@@ -302,7 +302,7 @@ class LinkedInAds:
             url = self._build_probe_url(account_list, parent_id=parent_id)
             client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
-        except LinkedInForbiddenError as exc:
+        except (LinkedInForbiddenError, LinkedInNotFoundError) as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
                 self.tap_stream_id, str(exc),
