@@ -105,8 +105,7 @@ class TestLinkedinAdsBase(unittest.TestCase):
                 self.PRIMARY_KEYS: {'content_reference'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
-                self.REPLICATION_KEYS: {'last_modified_time'},
-                self.IS_FORBIDDEN_STREAM: True
+                self.REPLICATION_KEYS: {'last_modified_time'}
             },
             'account_users': {
                 self.PRIMARY_KEYS: {'account_id', 'user_person_id'},
