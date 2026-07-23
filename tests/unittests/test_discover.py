@@ -112,16 +112,18 @@ class TestApplyAccessChecks(unittest.TestCase):
         ):
             _apply_access_checks(client, schemas, field_metadata)
 
-        # video_ads is a child of accounts
+        # video_ads, ad_analytics_by_campaign, ad_analytics_by_creative are children of accounts
         self.assertNotIn("accounts", schemas)
         self.assertNotIn("video_ads", schemas)
+        self.assertNotIn("ad_analytics_by_campaign", schemas)
+        self.assertNotIn("ad_analytics_by_creative", schemas)
 
     def test_inaccessible_campaigns_removes_child_streams(self):
         """Child streams of campaigns are removed when campaigns is inaccessible."""
         client = self._make_client()
         schemas, field_metadata = self._build_schemas_and_metadata()
 
-        def _check_access(self, client):
+        def _check_access(self, client, parent_id=None):
             if self.tap_stream_id == "campaigns":
                 return False
             return True
@@ -134,8 +136,10 @@ class TestApplyAccessChecks(unittest.TestCase):
 
         self.assertNotIn("campaigns", schemas)
         self.assertNotIn("creatives", schemas)
-        self.assertNotIn("ad_analytics_by_campaign", schemas)
-        self.assertNotIn("ad_analytics_by_creative", schemas)
+        # ad_analytics_by_campaign/creative are children of accounts, not campaigns,
+        # so they are unaffected by campaigns being inaccessible.
+        self.assertIn("ad_analytics_by_campaign", schemas)
+        self.assertIn("ad_analytics_by_creative", schemas)
 
     def test_all_parent_streams_inaccessible_raises(self):
         """Raises LinkedInForbiddenError when ALL parent streams are inaccessible."""
@@ -179,7 +183,7 @@ class TestPruneInaccessibleChildren(unittest.TestCase):
         return get_schemas()
 
     def test_child_removed_when_parent_absent(self):
-        """video_ads is removed when accounts is not in schemas."""
+        """video_ads, ad_analytics_by_campaign/creative are removed when accounts is not in schemas."""
         schemas, field_metadata = self._build_schemas_and_metadata()
         schemas.pop("accounts")
         field_metadata.pop("accounts")
@@ -188,6 +192,8 @@ class TestPruneInaccessibleChildren(unittest.TestCase):
 
         self.assertNotIn("video_ads", schemas)
         self.assertNotIn("video_ads", field_metadata)
+        self.assertNotIn("ad_analytics_by_campaign", schemas)
+        self.assertNotIn("ad_analytics_by_creative", schemas)
 
     def test_child_kept_when_parent_present(self):
         """video_ads is kept when accounts is present in schemas."""
@@ -198,7 +204,8 @@ class TestPruneInaccessibleChildren(unittest.TestCase):
         self.assertIn("video_ads", schemas)
 
     def test_campaigns_children_removed_when_campaigns_absent(self):
-        """creatives, ad_analytics_by_campaign, ad_analytics_by_creative removed when campaigns absent."""
+        """creatives is removed when campaigns absent; ad_analytics streams are unaffected
+        since they are children of accounts, not campaigns."""
         schemas, field_metadata = self._build_schemas_and_metadata()
         schemas.pop("campaigns")
         field_metadata.pop("campaigns")
@@ -206,8 +213,8 @@ class TestPruneInaccessibleChildren(unittest.TestCase):
         _prune_inaccessible_children(schemas, field_metadata)
 
         self.assertNotIn("creatives", schemas)
-        self.assertNotIn("ad_analytics_by_campaign", schemas)
-        self.assertNotIn("ad_analytics_by_creative", schemas)
+        self.assertIn("ad_analytics_by_campaign", schemas)
+        self.assertIn("ad_analytics_by_creative", schemas)
 
     def test_no_removal_when_all_parents_present(self):
         """No streams removed when all parent streams are present."""

@@ -298,7 +298,9 @@ class TestLinkedInAds(unittest.TestCase):
           {'paging': {'start': 0, 'count': 100, 'links': [], 'total': 0},'elements': []}],
          1, 0
         ],
-        ['test_parent_child_selected_stream', ['ad_analytics_by_campaign', 'campaigns'], CAMPAIGN_OBJ,
+        # ad_analytics_by_campaign is now a child of `accounts` (queried once per account,
+        # not once per campaign) - so it's exercised via ACCOUNT_OBJ here.
+        ['test_parent_child_selected_stream', ['ad_analytics_by_campaign', 'accounts'], ACCOUNT_OBJ,
          [{'paging': {'start': 0, 'count': 100, 'links': [], 'total': 1},'elements': [{'changeAuditStamps': {'created': {'time': 1564585620000}, 'lastModified': {'time': 1564585620000}}, 'id': 1, 'reference_organization_id': 1}]},
           {'paging': {'start': 0, 'count': 100, 'links': [], 'total': 0},'elements': []}],
          1, 1

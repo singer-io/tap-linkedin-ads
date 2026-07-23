@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+  * Query `ad_analytics_by_campaign`/`ad_analytics_by_creative` once per account (via the `accounts=List(...)` Analytics Finder facet, pivoted by campaign/creative) instead of once per campaign, to eliminate the 429 rate-limit storm on accounts with many campaigns
+
 ## 2.7.0
   * Exclude 403-inaccessible streams from catalog during discovery [#86](https://github.com/singer-io/tap-linkedin-ads/pull/86)
   * Added `accounts` as a required config field

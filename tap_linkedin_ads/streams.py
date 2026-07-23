@@ -521,14 +521,18 @@ class LinkedInAds:
                             # Add children filter params based on parent IDs
                             if self.tap_stream_id == 'accounts':
                                 account = 'urn:li:sponsoredAccount:{}'.format(parent_id)
+                                if child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
+                                    # Query analytics once per account (pivoted by campaign/creative)
+                                    # instead of once per campaign - collapses N per-campaign calls
+                                    # into ~1 per account and avoids the 429 rate limit storm.
+                                    # pivotValues on each returned row attributes it back to its
+                                    # campaign/creative (see merge_responses/transform_analytics).
+                                    child_stream_params['accounts[0]'] = account
                             elif self.tap_stream_id == 'campaigns':
-                                campaign = 'urn:li:sponsoredCampaign:{}'.format(parent_id)
                                 if child_stream_name == 'creatives':
                                     # The value of the campaigns in the query params should be passed in the encoded format.
                                     # Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#sample-request-3
                                     child_stream_params['campaigns'] = 'List(urn%3Ali%3AsponsoredCampaign%3A{})'.format(parent_id)
-                                elif child_stream_name in ('ad_analytics_by_campaign', 'ad_analytics_by_creative'):
-                                    child_stream_params['campaigns[0]'] = campaign
 
                             # Update params for the child stream
                             child_obj.params = child_stream_params
@@ -662,8 +666,20 @@ class LinkedInAds:
                 query_string = '&'.join(['%s=%s' % (key, value) for (key, value) in params.items()])
                 LOGGER.info('Syncing %s from %s to %s', parent_id, window_start_date, window_end_date)
                 for page in sync_analytics_endpoint(client, self.tap_stream_id, self.path, query_string):
-                    if page.get(self.data_key):
-                        responses.append(page.get(self.data_key))
+                    elements = page.get(self.data_key)
+                    if elements:
+                        # adAnalytics does not paginate and hard-caps responses at 15,000
+                        # elements. Account-level queries return more rows per call than
+                        # the old per-campaign queries did, so a wide date window on a
+                        # large account can now approach that cap - warn instead of
+                        # silently truncating.
+                        if len(elements) >= 15000:
+                            LOGGER.warning(
+                                '%s: response for parent_id=%s (%s to %s) returned %s elements, '
+                                'at/near LinkedIn\'s 15,000-element cap for adAnalytics. Rows may '
+                                'be silently truncated - consider lowering date_window_size in config.',
+                                self.tap_stream_id, parent_id, window_start_date, window_end_date, len(elements))
+                        responses.append(elements)
             pivot = params["pivot"] if "pivot" in params.keys() else None
             raw_records = merge_responses(pivot, responses)
             time_extracted = utils.now()
@@ -711,7 +727,7 @@ class Accounts(LinkedInAds):
     account_filter = "search_id_values_param"
     path = "adAccounts"
     data_key = "elements"
-    children = ["video_ads"]
+    children = ["video_ads", "ad_analytics_by_campaign", "ad_analytics_by_creative"]
     params = {
         "q": "search"
     }
@@ -817,7 +833,7 @@ class Campaigns(LinkedInAds):
     account_filter = "search_account_values_param"
     path = "adCampaigns"
     data_key = "elements"
-    children = ["ad_analytics_by_campaign", "creatives", "ad_analytics_by_creative"]
+    children = ["creatives"]
     params = {
         "q": "search"
     }
@@ -858,7 +874,7 @@ class AdAnalyticsByCampaign(LinkedInAds):
     path = "adAnalytics"
     foreign_key = "id"
     data_key = "elements"
-    parent = "campaigns"
+    parent = "accounts"
     params = {
         "q": "analytics",
         "pivot": "CAMPAIGN",
@@ -881,7 +897,7 @@ class AdAnalyticsByCreative(LinkedInAds):
     path = "adAnalytics"
     foreign_key = "id"
     data_key = "elements"
-    parent = "campaigns"
+    parent = "accounts"
     params = {
         "q": "analytics",
         "pivot": "CREATIVE",

@@ -10,12 +10,12 @@ This tap:
 - Extracts the following resources:
   - [Ad Accounts](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-accounts#search-for-accounts)
     - [Video Ads](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/advertising-targeting/create-and-manage-video#finders)
+    - [Ad Analytics by Campaign](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
+    - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
   - [Ad Account Users](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-account-users#find-ad-account-users-by-accounts)
   - [Campaign Groups](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaign-groups#search-for-campaign-groups)
   - [Campaigns](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns#search-for-campaigns)
-    - [Ad Analytics by Campaign](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
     - [Creatives](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives#search-for-creatives)
-    - [Ad Analytics by Creative](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
@@ -29,7 +29,7 @@ This tap:
   - Sort by: account id ascending
   - Bookmark: last_modified_time (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for total_budget field.
-- Children: video_ads
+- Children: video_ads, ad_analytics_by_campaign, ad_analytics_by_creative
 
 [**video_ads**](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api?view=li-lms-2024-03&tabs=curl#find-posts-by-account)
 - Endpoint: https://api.linkedin.com/rest/posts
@@ -72,7 +72,7 @@ This tap:
   - Sort by: Campaign id ascending
   - Bookmark: last_modified_time (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. String to decimal for daily_budget and unit_cost amount fields. Targeting and Targeting Criteria are transformed to a generalized type with list array structure.
-- Children: creatives, ad_analytics_by_campaign, ad_analytics_by_creative
+- Children: creatives
 
 [**creatives**](https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-creatives?view=li-lms-2023-01&tabs=http#search-for-creatives)
 - Endpoint: https://api.linkedin.com/rest/creatives
@@ -91,10 +91,11 @@ This tap:
 - Foreign keys: campaign_id (campaigns)
 - Granulariy: One record per day per campaign_id
 - Replication strategy: Incremental (query filtered by bookmark date range)
-  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date - 7 days to current date)
+  - Filter: account (from parent account), pivot=CAMPAIGN, start/end date range (bookmark date - 7 days to current date)
   - Bookmark: end_at (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to campaign and campaign_id.
-- Parent: campaign
+- Parent: account
+- **Note:** queried once per account (not once per campaign) using the Analytics Finder's `accounts=List(...)` facet with `pivot=CAMPAIGN`; each returned row is attributed back to its campaign via `pivotValues`. This collapses what used to be one API call per campaign into ~1 call per account, avoiding LinkedIn's 429 rate limit on accounts with many campaigns.
 
 [**ad_analytics_by_creative**](https://docs.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting#analytics-finder)
 - Endpoint: https://api.linkedin.com/rest/adAnalytics
@@ -102,10 +103,11 @@ This tap:
 - Foreign keys: creative_id
 - Granulariy: One record per day per creative_id
 - Replication strategy: Incremental (query filtered by bookmark date range)
-  - Filter: campaign_id (from parent campaign), start/end date range (bookmark date - 7 days to current date)
+  - Filter: account (from parent account), pivot=CREATIVE, start/end date range (bookmark date - 7 days to current date)
   - Bookmark: end_at (date-time)
 - Transformations: Fields camelCase to snake_case. URNs to ids. Unix epoch millisecond integers to date-times. Audit date-times created_at and last_modified_at de-nested. Currency and cost fields strings to decimals. Pivot URN to creative and creative_id.
-- Parent: campaign
+- Parent: account
+- **Note:** queried once per account (not once per campaign) using the Analytics Finder's `accounts=List(...)` facet with `pivot=CREATIVE`; see ad_analytics_by_campaign above.
 
 ## Authentication
 The tap uses a LinkedIn provided **access_token** in the config settings to make API requests. Access tokens expire after 60 days and require a user to manually authenticate again. If the tap receives a 401 invalid token response, the error logs will state that your access token has expired and to re-authenticate your connection to generate a new token.

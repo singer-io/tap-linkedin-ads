@@ -115,9 +115,11 @@ class TestSyncUtils(unittest.TestCase):
 
     @parameterized.expand([
         ['test_only_parent_selected', ['campaigns'], ['campaigns']],
-        ['test_only_single_child_selected', ['ad_analytics_by_campaign'], ['campaigns']],
-        ['test_multiple_child_selected', ['accounts', 'ad_analytics_by_campaign', 'ad_analytics_by_creative'], ['accounts', 'campaigns']],
-        ['test_parent_child_both_selected', ['ad_analytics_by_creative', 'campaigns'], ['campaigns']]
+        # ad_analytics_by_campaign/creative are children of `accounts` (queried once per
+        # account instead of once per campaign), so they force `accounts` to sync, not `campaigns`.
+        ['test_only_single_child_selected', ['ad_analytics_by_campaign'], ['accounts']],
+        ['test_multiple_child_selected', ['accounts', 'ad_analytics_by_campaign', 'ad_analytics_by_creative'], ['accounts']],
+        ['test_parent_child_both_selected', ['ad_analytics_by_creative', 'campaigns'], ['accounts', 'campaigns']]
     ])
     def test_get_streams_to_sync(self, name, selected_streams, expected_parent_streams):
         """
