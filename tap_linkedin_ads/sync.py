@@ -108,9 +108,17 @@ def sync(client, config, catalog, state):
             if len(account_list) > 0:
                 params = stream_obj.params
                 if account_filter == 'search_id_values_param':
-                    # Convert account IDs to URN format
+                    # Confirmed via direct API test (2026-07-23): the `id` search
+                    # facet on adAccounts DOES require the URN form
+                    # (urn:li:sponsoredAccount:<id>), percent-encoded - a bare
+                    # numeric id here returns 400 FIELD_INVALID ("Invalid Urn
+                    # format"). This URN form is correct; the `accounts` stream
+                    # separately returns 0 records in a live tap run despite an
+                    # identical request succeeding via direct curl - that is a
+                    # distinct, not-yet-root-caused issue. See
+                    # AGENT_HANDOFF_optimization.md "accounts stream returns 0
+                    # records" for details before touching this again.
                     urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(account_id) for account_id in account_list]
-                    # Create the query parameter string
                     param_value = "(id:(values:List({})))".format(','.join(urn_list))
                     params['search'] = param_value
                 elif account_filter == 'accounts_param':

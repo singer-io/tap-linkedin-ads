@@ -237,8 +237,18 @@ class LinkedInAds:
             return '{}/adAccounts/{}/{}?q=search&pageSize=1'.format(BASE_URL, account_list[0], self.path)
 
         probe_params = dict(self.params)
-        probe_params['count'] = 1
+        # Cursor-paginated streams (accounts, campaign_groups, campaigns,
+        # creatives) use `pageSize`, not `count` - sending `count` to these
+        # endpoints causes a 400 "param validation" error. Mirrors the
+        # pagination-param selection in sync_endpoint.
+        if self.tap_stream_id in CURSOR_BASED_PAGINATION_STREAMS:
+            probe_params['pageSize'] = 1
+        else:
+            probe_params['count'] = 1
         if self.account_filter == 'search_id_values_param':
+            # See matching comment in sync.py: the `id` search facet on
+            # adAccounts requires the percent-encoded URN form, confirmed
+            # against the live API.
             urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list]
             probe_params['search'] = "(id:(values:List({})))".format(','.join(urn_list))
         elif self.account_filter == 'accounts_param':
