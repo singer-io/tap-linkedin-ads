@@ -80,43 +80,12 @@ def sync(client, config, catalog, state):
         date_window_size = DATE_WINDOW_SIZE
         LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
 
-    # Validate that the token has access to the configured accounts before syncing.
-    # The LinkedIn API silently returns 200 with empty results for path-based endpoints
-    # (e.g. adAccounts/{id}/adCampaigns) when the token's user is not a member of the
-    # account, making it impossible to distinguish "no data" from "no access" at the
-    # stream level. This check surfaces the problem early and clearly.
     # Normalize account IDs to plain numeric form, accepting both '12345' and
     # 'urn:li:sponsoredAccount:12345' as valid input formats.
     account_list = [
         a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
         for a in config.get('accounts', '').split(',') if a.strip()
     ]
-    if not account_list:
-        raise ValueError(
-            "Configuration error: 'accounts' must contain at least one valid account ID."
-        )
-    urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list]
-    search_param = "(id:(values:List({})))".format(','.join(urn_list))
-    accounts_check_url = 'https://api.linkedin.com/rest/adAccounts?pageSize={}&q=search&search={}'.format(
-        len(account_list), search_param
-    )
-    visible = client.get(
-        url=accounts_check_url,
-        endpoint='accounts',
-        headers={'X-Restli-Protocol-Version': '2.0.0'}
-    )
-    # LinkedIn may return element IDs as URNs (e.g. "urn:li:sponsoredAccount:12345");
-    # extract the trailing numeric portion so comparison works regardless of format.
-    visible_ids = {
-        str(e.get('id')).rsplit(':', 1)[-1]
-        for e in visible.get('elements', [])
-    }
-    inaccessible = [a for a in account_list if a not in visible_ids]
-    if inaccessible:
-        raise PermissionError(
-            "Account(s) not found or inaccessible: {}. "
-            "Please verify the account ID(s) in your configuration.".format(', '.join(inaccessible))
-        )
 
     # Get ALL selected streams from catalog
     selected_streams = []
