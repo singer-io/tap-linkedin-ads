@@ -15,14 +15,16 @@ REQUEST_TIMEOUT = 300
 
 REQUIRED_CONFIG_KEYS = [
     'access_token',
-    'user_agent'
+    'user_agent',
+    'accounts'
 ]
 
 
 def do_discover(client, config):
     LOGGER.info('Starting discover')
     client.check_accounts(config)
-    catalog = _discover()
+    client.config = config
+    catalog = _discover(client)
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
 
