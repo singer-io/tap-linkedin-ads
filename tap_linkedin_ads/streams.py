@@ -8,7 +8,7 @@ from singer import metrics, metadata, utils
 from singer import Transformer, should_sync_field, UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING
 from singer.utils import strptime_to_utc, strftime
 from tap_linkedin_ads.transform import transform_json, snake_case_to_camel_case
-from tap_linkedin_ads.client import LinkedInForbiddenError
+from tap_linkedin_ads.client import LinkedInForbiddenError, LinkedInNotFoundError
 
 LOGGER = singer.get_logger()
 
@@ -254,7 +254,10 @@ class LinkedInAds:
         Used so child streams can be probed with a real parent ID at discovery time.
         """
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
         if not account_list:
             return None
         url = self._build_probe_url(account_list)
@@ -277,7 +280,10 @@ class LinkedInAds:
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
 
         if not account_list:
             raise ValueError(
@@ -302,7 +308,7 @@ class LinkedInAds:
             url = self._build_probe_url(account_list, parent_id=parent_id)
             client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
-        except LinkedInForbiddenError as exc:
+        except (LinkedInForbiddenError, LinkedInNotFoundError) as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
                 self.tap_stream_id, str(exc),
@@ -744,7 +750,10 @@ class VideoAds(LinkedInAds):
         """
         LOGGER.info("Checking access for stream: %s", self.tap_stream_id)
         config = getattr(client, 'config', {})
-        account_list = [a.strip() for a in config.get('accounts', '').split(',') if a.strip()]
+        account_list = [
+            a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+            for a in config.get('accounts', '').split(',') if a.strip()
+        ]
 
         if not account_list:
             raise ValueError(
@@ -757,7 +766,7 @@ class VideoAds(LinkedInAds):
         try:
             client.get(url=url, endpoint=self.tap_stream_id, headers=dict(self.headers))
             return True
-        except LinkedInForbiddenError as exc:
+        except (LinkedInForbiddenError, LinkedInNotFoundError) as exc:
             LOGGER.warning(
                 "Unauthorized Stream: %s, excluding from catalog. HTTP-Error-Message: '%s'",
                 self.tap_stream_id,

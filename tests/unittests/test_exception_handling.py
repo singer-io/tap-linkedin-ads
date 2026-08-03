@@ -68,41 +68,38 @@ class TestBackoffHandling(unittest.TestCase):
         (503 , "", client.Server5xxError),
     ])
     @mock.patch("time.sleep")
-    @mock.patch("requests.Session.get")
-    def test_check_accounts_backoff(self, error_code, message, error, mock_requests, mock_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    def test_check_accounts_backoff(self, error_code, message, error, mock_get, mock_sleep):
         """
         Test `check_accounts` will backoff 5 times for 5xx error.
         """
         config = {"accounts": "acc1"}
-        json_resp = {"message": message,
-                    "status": error_code,
-                    "code": ""}
-        mock_requests.return_value = get_response(error_code, json_resp)
+        mock_get.side_effect = error
         linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'config_path', 'access_token')
         with self.assertRaises(error) as e:
             linkedIn_client.check_accounts(config)
 
-        # Verify that `session.get` was called 5 times
-        self.assertEqual(mock_requests.call_count, 5)
+        # Verify that `client.get` was called 5 times
+        self.assertEqual(mock_get.call_count, 5)
 
     @parameterized.expand([
         (requests.exceptions.Timeout, requests.exceptions.Timeout),
         (requests.exceptions.ConnectionError, requests.exceptions.ConnectionError),
     ])
     @mock.patch("time.sleep")
-    @mock.patch("requests.Session.get")
-    def test_check_accounts_backoff_2(self, mock_response, error, mock_requests, mock_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    def test_check_accounts_backoff_2(self, mock_response, error, mock_get, mock_sleep):
         """
         Test `check_accounts` will backoff 5 times for Timeout and ConnectionError.
         """
         config = {"accounts": "acc1"}
-        mock_requests.side_effect = mock_response
+        mock_get.side_effect = mock_response
         linkedIn_client = client.LinkedinClient('client_id', 'client_secret', 'refresh_token', 'config_path', 'access_token')
         with self.assertRaises(error) as e:
             linkedIn_client.check_accounts(config)
 
-        # Verify that `session.get` was called 5 times
-        self.assertEqual(mock_requests.call_count, 5)
+        # Verify that `client.get` was called 5 times
+        self.assertEqual(mock_get.call_count, 5)
 
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.request")
@@ -274,28 +271,24 @@ class TestAccessToken(unittest.TestCase):
         # Verify that the exception message was expected
         self.assertEqual(str(e.exception), "HTTP-error-code: 401, Error: {}".format(response_json.get('message')))
 
-@mock.patch("requests.Session.get")
+@mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
 class TestCheckAccounts(unittest.TestCase):
     """
     Test exception handling for `check_accounts` method of client.
     """
     _client = client.LinkedinClient("","","", "","", "", "USR_AGENT")
 
-    @parameterized.expand([
-        (400,),
-        (404,),
-    ])
-    def test_invalid_accouts(self, mock_get, error_code):
+    def test_invalid_accouts(self, mock_get):
         """
-        Test for 400, 404 errors custom error message is written.
+        Test that accounts not returned by the adAccounts search API are flagged as invalid.
         """
         config = {"accounts": "account1,account2"}
         error_message = "Invalid Linked Ads accounts provided during the configuration:{}".format(["account1","account2"])
-        mock_get.return_value = get_response(error_code)
+        mock_get.return_value = {"elements": []}
 
         with self.assertRaises(Exception) as e:
             self._client.check_accounts(config)
 
         # Verify that error message is expected
         self.assertEqual(str(e.exception), error_message)
-        self.assertEqual(mock_get.call_count, 2)
+        self.assertEqual(mock_get.call_count, 1)

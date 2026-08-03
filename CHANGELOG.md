@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.0
+  * Raise error on inaccessible accounts [#88](https://github.com/singer-io/tap-linkedin-ads/pull/88)
+  * Accept URN based account IDs
+
 ## 2.7.0
   * Exclude 403-inaccessible streams from catalog during discovery [#86](https://github.com/singer-io/tap-linkedin-ads/pull/86)
   * Added `accounts` as a required config field

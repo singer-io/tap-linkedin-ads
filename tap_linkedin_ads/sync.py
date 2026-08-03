@@ -80,6 +80,13 @@ def sync(client, config, catalog, state):
         date_window_size = DATE_WINDOW_SIZE
         LOGGER.info('Using standard date window size of %s', DATE_WINDOW_SIZE)
 
+    # Normalize account IDs to plain numeric form, accepting both '12345' and
+    # 'urn:li:sponsoredAccount:12345' as valid input formats.
+    account_list = [
+        a.strip().rsplit(':', 1)[-1] if ':' in a.strip() else a.strip()
+        for a in config.get('accounts', '').split(',') if a.strip()
+    ]
+
     # Get ALL selected streams from catalog
     selected_streams = []
     for stream in catalog.get_selected_streams(state):
@@ -104,7 +111,6 @@ def sync(client, config, catalog, state):
         # Add appropriate account_filter query parameters based on account_filter type
         account_filter = stream_obj.account_filter
         if config.get("accounts") and account_filter is not None:
-            account_list = config['accounts'].replace(" ", "").split(",")
             if len(account_list) > 0:
                 params = stream_obj.params
                 if account_filter == 'search_id_values_param':

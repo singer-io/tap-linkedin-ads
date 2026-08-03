@@ -113,20 +113,21 @@ class TestTimeoutBackoff(unittest.TestCase):
         # verify that we backoff for 5 times
         self.assertEqual(mocked_request.call_count, 5)
 
-    def test_timeout_error__check_accounts(self, mocked_request, mocked_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    def test_timeout_error__check_accounts(self, mock_get, mocked_request, mocked_sleep):
         """
         Test `check_accounts` will backoff 5 times on Timeout. 
         """
 
-        # mock request and raise the 'Timeout' error
-        mocked_request.side_effect = requests.Timeout
+        # mock client.get to raise Timeout directly, avoiding nested backoff in request()
+        mock_get.side_effect = requests.Timeout
 
         with self.assertRaises(requests.Timeout):
             # function call
             self.client.check_accounts(self.config)
 
         # verify that we backoff for 5 times
-        self.assertEqual(mocked_request.call_count, 5)
+        self.assertEqual(mock_get.call_count, 5)
 
     def test_timeout_error__request(self, mocked_request, mocked_sleep):
         """
@@ -180,13 +181,14 @@ class TestConnectionErrorBackoff(unittest.TestCase):
         # verify that we backoff for 5 times
         self.assertEqual(mocked_request.call_count, 5)
 
-    def test_connection_error__check_accounts(self, mocked_request, mocked_sleep):
+    @mock.patch("tap_linkedin_ads.client.LinkedinClient.get")
+    def test_connection_error__check_accounts(self, mock_get, mocked_request, mocked_sleep):
         """
         Test for `check_accounts` will backoff 5 times on ConnectionError.
         """
 
-        # mock request and raise the 'ConnectionError'
-        mocked_request.side_effect = requests.ConnectionError
+        # mock client.get to raise ConnectionError directly, avoiding nested backoff in request()
+        mock_get.side_effect = requests.ConnectionError
 
         config = {"client_id": "test_client_id",
                   "client_secret": "test_client_secret",
@@ -209,4 +211,4 @@ class TestConnectionErrorBackoff(unittest.TestCase):
             cl.check_accounts(config)
 
         # verify that we backoff for 5 times
-        self.assertEqual(mocked_request.call_count, 5)
+        self.assertEqual(mock_get.call_count, 5)

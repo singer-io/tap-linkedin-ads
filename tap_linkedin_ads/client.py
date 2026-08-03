@@ -295,28 +295,33 @@ class LinkedinClient: # pylint: disable=too-many-instance-attributes
                           max_tries=5,
                           factor=2)
     def check_accounts(self, config):
-        headers = {}
-        if self.__user_agent:
-            headers['User-Agent'] = self.__user_agent
-        headers['Authorization'] = 'Bearer {}'.format(self.__access_token)
-        headers['Accept'] = 'application/json'
-        headers['LinkedIn-Version'] = LINKEDIN_VERSION
-
         if config.get('accounts'):
             account_list = config['accounts'].replace(" ", "").split(",")
-            invalid_account = []
-            for account in account_list:
-                response = self.__session.get(
-                    url='https://api.linkedin.com/rest/adAccountUsers?q=accounts&count=1&start=0&accounts=urn:li:sponsoredAccount:{}'.format(account),
-                    headers=headers,
-                    timeout=self.request_timeout)
+            # Normalize to numeric IDs — accept both '12345' and 'urn:li:sponsoredAccount:12345'
+            account_list = [
+                a.rsplit(':', 1)[-1] if ':' in a else a
+                for a in account_list if a
+            ]
+            if not account_list:
+                return
 
-                # Account users API will return 400 if account is not in number format.
-                # Account users API will return 404 if provided account is valid number but invalid LinkedIn Ads account
-                if response.status_code in [400, 404]:
-                    invalid_account.append(account)
-                elif response.status_code != 200:
-                    raise_for_error(response)
+            urn_list = ["urn%3Ali%3AsponsoredAccount%3A{}".format(a) for a in account_list]
+            search_param = "(id:(values:List({})))".format(','.join(urn_list))
+            accounts_check_url = 'https://api.linkedin.com/rest/adAccounts?pageSize={}&q=search&search={}'.format(
+                len(account_list), search_param
+            )
+            response = self.get(
+                url=accounts_check_url,
+                endpoint='accounts',
+                headers={'X-Restli-Protocol-Version': '2.0.0'}
+            )
+            # LinkedIn may return element IDs as URNs (e.g. "urn:li:sponsoredAccount:12345");
+            # extract the trailing numeric portion so comparison works regardless of format.
+            visible_ids = {
+                str(e.get('id')).rsplit(':', 1)[-1]
+                for e in response.get('elements', [])
+            }
+            invalid_account = [a for a in account_list if a not in visible_ids]
             if invalid_account:
                 error_message = 'Invalid Linked Ads accounts provided during the configuration:{}'.format(invalid_account)
                 raise Exception(error_message) from None
