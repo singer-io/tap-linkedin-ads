@@ -108,10 +108,15 @@ def get_next_url(stream_name, next_url, data):
     if stream_name in CURSOR_BASED_PAGINATION_STREAMS:
         next_page_token = data.get('metadata', {}).get('nextPageToken', None)
         if next_page_token:
+            # nextPageToken is an opaque cursor that can contain characters (e.g. '+', '/', '=')
+            # that are not safe to place directly in a query string. It must be URL-encoded,
+            # otherwise LinkedIn either fails to parse it or silently restarts/truncates
+            # pagination, which causes newer records to be missed.
+            encoded_next_page_token = urllib.parse.quote(str(next_page_token), safe='')
             if 'pageToken=' in next_url:
-                next_url = re.sub(r'pageToken=[^&]+', 'pageToken={}'.format(next_page_token), next_url)
+                next_url = re.sub(r'pageToken=[^&]+', 'pageToken={}'.format(encoded_next_page_token), next_url)
             else:
-                next_url = next_url + "&pageToken={}".format(next_page_token)
+                next_url = next_url + "&pageToken={}".format(encoded_next_page_token)
         else:
             next_url = None
     else:

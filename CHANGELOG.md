@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.8.1
+  * Fix cursor-based pagination for `campaigns`/`campaign_groups`/`creatives` by URL-encoding `nextPageToken` values[#91](https://github.com/singer-io/tap-linkedin-ads/pull/91)
+
 ## 2.8.0
   * Raise error on inaccessible accounts [#88](https://github.com/singer-io/tap-linkedin-ads/pull/88)
   * Accept URN based account IDs

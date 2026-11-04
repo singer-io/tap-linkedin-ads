@@ -152,6 +152,37 @@ class TestStreamsUtils(unittest.TestCase):
         self.assertEqual(expected_url, actual_url)
 
     @parameterized.expand([
+        ['test_no_pagetoken_in_url', 'https://api.linkedin.com/rest/adAccounts/123/adCampaigns?pageSize=100&q=search',
+         'https://api.linkedin.com/rest/adAccounts/123/adCampaigns?pageSize=100&q=search&pageToken=abc%2Bdef%3D%3D'],
+        ['test_pagetoken_already_in_url', 'https://api.linkedin.com/rest/adAccounts/123/adCampaigns?pageSize=100&q=search&pageToken=old%2Btoken',
+         'https://api.linkedin.com/rest/adAccounts/123/adCampaigns?pageSize=100&q=search&pageToken=abc%2Bdef%3D%3D'],
+    ])
+    def test_get_next_url_cursor_pagination_encodes_token(self, name, mock_next_url, expected_url):
+        """
+        Test that get_next_url URL-encodes the nextPageToken value (which can contain
+        characters like '+' and '=') so that cursor-based pagination for campaigns/
+        campaign_groups/creatives/accounts does not break on later pages.
+        """
+        data = {
+            'metadata': {
+                'nextPageToken': 'abc+def=='
+            }
+        }
+        mock_stream_name = "campaigns"
+        actual_url = get_next_url(mock_stream_name, mock_next_url, data)
+
+        self.assertEqual(expected_url, actual_url)
+
+    def test_get_next_url_cursor_pagination_no_token_stops(self):
+        """
+        Test that get_next_url returns None when no nextPageToken is present,
+        ending cursor-based pagination.
+        """
+        data = {'metadata': {}}
+        actual_url = get_next_url("campaigns", "https://api.linkedin.com/rest/adCampaigns?pageSize=100&q=search", data)
+        self.assertIsNone(actual_url)
+
+    @parameterized.expand([
         ['test_shift_sync_window_non_boundary', 11, 10],
         ['test_shift_sync_window_boundary', 10, 31]
     ])
