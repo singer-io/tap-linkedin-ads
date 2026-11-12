@@ -222,8 +222,27 @@ def transform_campaigns(data_dict): #pylint: disable=too-many-branches,too-many-
 
     return new_dict
 
+# From API version 202610, LinkedIn returns the post URN of sponsored-post creatives under
+# `content.videoAd.reference` / `content.standardUpdateAd.reference` instead of
+# `content.reference`. Copy it back to `content.reference` so the existing schema field
+# keeps being populated.
+# Ref - https://learn.microsoft.com/en-us/linkedin/marketing/integrations/recent-changes?view=li-lms-2026-10
+CREATIVE_CONTENT_REFERENCE_MEMBERS = ('video_ad', 'standard_update_ad')
+
+def backfill_creative_content_reference(data_dict):
+    content = data_dict.get('content')
+    if not isinstance(content, dict) or content.get('reference'):
+        return data_dict
+    for member in CREATIVE_CONTENT_REFERENCE_MEMBERS:
+        reference = (content.get(member) or {}).get('reference')
+        if reference:
+            content['reference'] = reference
+            break
+    return data_dict
+
 # Abstract variables to type with key/value pairs
 def transform_creatives(data_dict):
+    data_dict = backfill_creative_content_reference(data_dict)
     if 'variables' not in data_dict:
         return data_dict
 
