@@ -336,6 +336,30 @@ class TestTransformCreatives(unittest.TestCase):
         # Verify returned dict is expected
         self.assertEqual(transformed_dict, expected_dict)
 
+    @parameterized.expand([
+        # 202610 nests the post URN under `video_ad` / `standard_update_ad`; copy it to `content.reference`
+        ("video_ad",
+         {"content": {"video_ad": {"reference": "urn:li:ugcPost:1"}}},
+         {"content": {"video_ad": {"reference": "urn:li:ugcPost:1"}, "reference": "urn:li:ugcPost:1"}}),
+        ("standard_update_ad",
+         {"content": {"standard_update_ad": {"reference": "urn:li:share:2"}}},
+         {"content": {"standard_update_ad": {"reference": "urn:li:share:2"}, "reference": "urn:li:share:2"}}),
+        # An existing `content.reference` is never overwritten
+        ("existing_reference",
+         {"content": {"reference": "urn:li:ugcPost:3", "video_ad": {"reference": "urn:li:ugcPost:4"}}},
+         {"content": {"reference": "urn:li:ugcPost:3", "video_ad": {"reference": "urn:li:ugcPost:4"}}}),
+        # Creatives without a post reference (e.g. text ads) are left unchanged
+        ("text_ad",
+         {"content": {"text_ad": {"headline": "h"}}},
+         {"content": {"text_ad": {"headline": "h"}}}),
+        ("no_content", {"id": "urn:li:sponsoredCreative:5"}, {"id": "urn:li:sponsoredCreative:5"}),
+    ])
+    def test_content_reference_backfill(self, _name, test_dict, expected_dict):
+        """
+        Test that `content.reference` is populated from the 202610 nested content members.
+        """
+        self.assertEqual(transform_creatives(test_dict), expected_dict)
+
 
 class TestTransformAuditFields(unittest.TestCase):
     """

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.1
+  * Bump to API version `202610` (API version `202511` sunsets on 2026-11-16)
+  * Populate `creatives.content.reference` from `content.videoAd` / `content.standardUpdateAd`, where API version `202610` now returns it
+
 ## 2.8.0
   * Raise error on inaccessible accounts [#88](https://github.com/singer-io/tap-linkedin-ads/pull/88)
   * Accept URN based account IDs
